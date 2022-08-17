@@ -40,7 +40,7 @@ class Kuramoto:
                 T=100,
                 StimTstart=30,StimTend=60,StimFreq=40,StimAmp=300,
                 n_nodes=90,natfreqs=None,GenerateRandom=True,SEED=20,
-                MD=0.010):
+                mean_delay=0.010):
 
         '''
         SC: is the adjacency matrix (SC).
@@ -54,7 +54,7 @@ class Kuramoto:
         n_nodes: is the number of nodes.
         natfreqs: is the natural frequencies of the nodes. 
         Delay: is the delay matrix.
-        MD: is the mean delay (in Cabral, this delay is a scale like global coupling strength)
+        mean_delay: is the mean delay (in Cabral, this delay is a scale like global coupling strength)
         GenerateRandom: random natural frequencies every time if True, if False
         SEED: guarantees that the natfreqs are the same at each run
         
@@ -62,7 +62,7 @@ class Kuramoto:
         if n_nodes is None and natfreqs is None:
             raise ValueError("n_nodes or natfreqs must be specified")
         self.n_nodes=n_nodes
-        self.MD=MD
+        self.mean_delay=mean_delay
         self.dt=dt
         self.T=T
         self.K=K
@@ -105,16 +105,16 @@ class Kuramoto:
         D = loadmat('./AAL_matrices.mat')['D']
         D=D[-No_nodes:,-No_nodes:]
         C=self.SC
-        MD=self.MD
+        mean_delay=self.mean_delay
         if No_nodes>90:
             print('Max No. Nodes is 90')
             No_nodes=90
         D /= 1000 # Distance matrix in meters
 
-        if MD==0:
+        if mean_delay==0:
             τ = np.zeros_like(C) # Set all delays to 0.
         else:
-            τ = D / D[C>0].mean() * MD 
+            τ = D / D[C>0].mean() * mean_delay 
             # τ = τ.astype(np.int)
         τ[C==0] = 0.
         self.Delay=τ
@@ -143,19 +143,19 @@ class Kuramoto:
         
 
         # D = loadmat('./AAL_matrices.mat')['D']
-        MD=self.MD
-        VD=MD*0.2
-        D= np.random.normal(MD, VD, (n,n))
+        mean_delay=self.mean_delay
+        VD=mean_delay*0.2
+        D= np.random.normal(mean_delay, VD, (n,n))
         D = (D + D.T)/2
         D=D[:n,:n]
         np.fill_diagonal(D, 0)
         if n>90:
             print('Max No. Nodes is 90')
             n=90
-        if MD==0:
+        if mean_delay==0:
             τ = np.zeros_like(C) # Set all delays to 0.
         else:
-            τ = D / D[C>0].mean() * MD 
+            τ = D / D[C>0].mean() * mean_delay 
             # τ = τ.astype(np.int)
         τ=D
         τ[C==0] = 0.
@@ -177,8 +177,8 @@ class Kuramoto:
         C[np.diag(np.ones(n))==0] /= C[np.diag(np.ones(n))==0].mean()
 
         return C
-    def setMeanTimeDelay(self, MD):
-        self.MD=MD
+    def setMeanTimeDelay(self, mean_delay):
+        self.mean_delay=mean_delay
         self.initializeTimeDelays()
     
     def setGlobalCoupling(self,K):
@@ -288,11 +288,11 @@ class Kuramoto:
     def calculateOrderParameter(self,act_mat):
         R=[self.phase_coherence(vec) for vec in act_mat]
         # plt.plot(R)
-        # plt.ylabel('Order parameter at'+str(self.K)+str(self.MD), fontsize=25)
-        # plt.title(r'$<T>=$'+'%.001f ' % self.MD+ r'$  <K>=$'+'%.1f ' % self.K)
+        # plt.ylabel('Order parameter at'+str(self.K)+str(self.mean_delay), fontsize=25)
+        # plt.title(r'$<T>=$'+'%.001f ' % self.mean_delay+ r'$  <K>=$'+'%.1f ' % self.K)
         # plt.xlabel('Time', fontsize=25)
         # plt.ylim((-0.01, 1))
-        # plt.savefig('OP vs Time'+str(self.K)+str(self.MD)+'.png')
+        # plt.savefig('OP vs Time'+str(self.K)+str(self.mean_delay)+'.png')
         # # self.plotOnOffSet()
         # plt.show()
         # gc.collect()
@@ -305,14 +305,14 @@ class Kuramoto:
         R=[self.phase_coherence(vec) for vec in act_mat]
         plt.figure(figsize=(12,4))
         plt.plot(R)
-        plt.ylabel('Order parameter at'+str(self.K)+str(self.MD), fontsize=25)
-        plt.title(r'$<T>=$'+'%.001f ' % self.MD+ r'$  <K>=$'+'%.1f ' % self.K)
+        plt.ylabel('Order parameter at'+str(self.K)+str(self.mean_delay), fontsize=25)
+        plt.title(r'$<T>=$'+'%.001f ' % self.mean_delay+ r'$  <K>=$'+'%.1f ' % self.K)
         plt.xlabel('Time', fontsize=25)
         plt.ylim((-0.01, 1))
-        plt.savefig('OP vs Time'+str(self.K)+str(self.MD)+'.png')
+        plt.savefig('OP vs Time'+str(self.K)+str(self.mean_delay)+'.png')
         self.plotOnOffSet()
         # x=np.random.random()
-        np.save('Ord'+' K= '+str(self.K)+'  MD= '+str(self.MD)+' .npy',R)
+        np.save('Ord'+' K= '+str(self.K)+'  mean_delay= '+str(self.mean_delay)+' .npy',R)
         # R_mean=np.mean(R[m:len(R)])
         del R
         gc.collect()
@@ -353,37 +353,37 @@ class Kuramoto:
     def plotEnsOrd(self,EnsambleAverage):
         plt.figure(figsize=(12,4))
         plt.plot(EnsambleAverage)
-        plt.ylabel('Order parameter at'+str(self.K)+str(self.MD), fontsize=25)
-        plt.title(r'$<T>=$'+'%.001f ' % self.MD+ r'$  <K>=$'+'%.1f ' % self.K)
+        plt.ylabel('Order parameter at'+str(self.K)+str(self.mean_delay), fontsize=25)
+        plt.title(r'$<T>=$'+'%.001f ' % self.mean_delay+ r'$  <K>=$'+'%.1f ' % self.K)
         plt.xlabel('Time', fontsize=25)
         plt.ylim((-0.01, 1))
         
         plt.axvline(self.StimTstart/self.dt,color='r',label='Onset',linestyle='--')
         plt.axvline(self.StimTend/self.dt,color='b',label='Offset',linestyle='--')
         plt.legend()
-        plt.savefig('EnsembleAverage K='+str(self.K)+' MD='+str(self.MD)+'.png')
+        plt.savefig('EnsembleAverage K='+str(self.K)+' mean_delay='+str(self.mean_delay)+'.png')
         plt.close()               
     
 
 
-    def plotEnsemble(self,MD_Array,K_Array):
+    def plotEnsemble(self,mean_delay_Array,K_Array):
         n=len(K_Array)
-        m=len(MD_Array)
+        m=len(mean_delay_Array)
         dt=self.dt
         StimTstart=self.StimTstart
         StimTend=self.StimTend
         for i in range(n):
             for j in range(m):
-                Ord=np.load('EnsembleAverage'+'K='+ str(K_Array[i])+' MD= '+str(MD_Array[j])+'.npy')
+                Ord=np.load('EnsembleAverage'+'K='+ str(K_Array[i])+' mean_delay= '+str(mean_delay_Array[j])+'.npy')
                 plt.figure(figsize=(12,4))
                 plt.plot(Ord)
                 plt.xlabel('Time', fontsize=25)
                 plt.ylim((-0.01, 1))
-                plt.title('EnsembleAverage'+'K='+ str(K_Array[i])+' MD= '+str(MD_Array[j]))
+                plt.title('EnsembleAverage'+'K='+ str(K_Array[i])+' mean_delay= '+str(mean_delay_Array[j]))
                 plt.axvline(StimTstart/dt,color='r',label='Onset',linestyle='--')
                 plt.axvline(StimTend/dt,color='b',label='Offset',linestyle='--')
                 plt.legend()
-                plt.savefig('EnsembleAverage'+'K='+ str(K_Array[i])+' MD= '+str(MD_Array[j])+'.png')
+                plt.savefig('EnsembleAverage'+'K='+ str(K_Array[i])+' mean_delay= '+str(mean_delay_Array[j])+'.png')
 
 
     def plotEnsembleAv(self,param_tuple):
@@ -393,9 +393,9 @@ class Kuramoto:
         Rensamble=np.zeros((250000,num_of_realizations))
         for i in range(num_of_realizations):
 
-            R=np.load('../../Var/EXP2.6/OrderParameter'+' K='+ str(param_tuple[0])+' MD= '+str(param_tuple[1])+' Realization '+str(i)+'.npy')
+            R=np.load('../../Var/EXP2.6/OrderParameter'+' K='+ str(param_tuple[0])+' mean_delay= '+str(param_tuple[1])+' Realization '+str(i)+'.npy')
             #print(i)
-            # R=np.load('OrderParameter'+' K='+ str(param_tuple[0])+' MD= '+str(param_tuple[1])+' Realization '+str(i)+'.npy')
+            # R=np.load('OrderParameter'+' K='+ str(param_tuple[0])+' mean_delay= '+str(param_tuple[1])+' Realization '+str(i)+'.npy')
             Rensamble[:,i]=R[250000:500000]
             del R
             gc.collect()
@@ -412,25 +412,25 @@ class Kuramoto:
         plt.legend()
         plt.savefig('EnsembleAverage'+'K='+ str(param_tuple[0])+' MD= '+str(param_tuple[1])+'.png')
 
-    def plotAllEnsebles(self,MD_Array,K_Array):
+    def plotAllEnsebles(self,mean_delay_Array,K_Array):
         lock = Lock()
         with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
-            executor.map(self.plotEnsembleAv, itertools.product(K_Array, MD_Array))
+            executor.map(self.plotEnsembleAv, itertools.product(K_Array, mean_delay_Array))
    
-    # def multiProcForced(self,MD_Array,K_Array):
+    # def multiProcForced(self,mean_delay_Array,K_Array):
     #     lock = Lock()
     #     with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
-    #         executor.map(self.RunKuramotoFor, itertools.product(K_Array, MD_Array))
+    #         executor.map(self.RunKuramotoFor, itertools.product(K_Array, mean_delay_Array))
 
 
 
-# MD_Array=np.arange(0.012, 0.020, 0.002).tolist()
+# mean_delay_Array=np.arange(0.012, 0.020, 0.002).tolist()
 # K_Array=np.arange(6, 8, 1).tolist()
-#MD_Array=[0.008]
+#mean_delay_Array=[0.008]
 #K_Array=[6]
 # model=Kuramoto()
-# model.multiProcForced(MD_Array,K_Array)
-#model.plotAllEnsebles(MD_Array,K_Array)
+# model.multiProcForced(mean_delay_Array,K_Array)
+#model.plotAllEnsebles(mean_delay_Array,K_Array)
 
 
 

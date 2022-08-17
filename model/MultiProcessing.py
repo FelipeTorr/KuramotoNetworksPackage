@@ -50,10 +50,10 @@ def RunKuramotoFor(param_tuple):
     del model
     gc.collect()
 
-MD_Array=np.arange(0, 0.012, 0.001).tolist()
+mean_delay_Array=np.arange(0, 0.012, 0.001).tolist()
 K_Array=np.arange(3, 12, 1).tolist()
-# MD_Array=np.arange(0.008, 0.011, 0.001).tolist()
-# # MD_Array=[0, 0.001, 0.0015 , 0.002]
+# mean_delay_Array=np.arange(0.008, 0.011, 0.001).tolist()
+# # mean_delay_Array=[0, 0.001, 0.0015 , 0.002]
 # K_Array=np.arange(0.1, 1, 0.2).tolist()
 # K_Array=[5]
 #param_tuple=[5,0.007,100]
@@ -62,5 +62,5 @@ for j in range(1):
 
     lock = Lock()
     with concurrent.futures.ProcessPoolExecutor(max_workers=14) as executor:
-        executor.map(RunKuramotoFor, itertools.product(K_Array, MD_Array,[j]))
+        executor.map(RunKuramotoFor, itertools.product(K_Array, mean_delay_Array,[j]))
 
