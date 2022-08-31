@@ -5,74 +5,135 @@
 import numpy as np
 import numpy.linalg as linalg
 from scipy.io import loadmat
+import networkx as nx
 
-def loadConnectome(No_nodes):
+def loadConnectome(No_nodes, filename='../input_data/AAL_matrices.mat', field='C'):
     """
-    
+    Load a square matrix
 
     Parameters
     ----------
     No_nodes : int
         Number of nodes to load.
+        
+    filename : String, optional
+        The filename where the connection matrix is stored. The default is the AAL90 filename    
 
+    field: String, optional
+        The filed of file of the filename that contains the connections matrix.
+        
     Returns
     -------
     C : 2D float array
         Conectome matrix.
 
     """
-    C = loadmat('../input_data/AAL_matrices.mat')['C']
-    if No_nodes>90:
-        print('Max No. Nodes is 90')
-        No_nodes=90
+    C = loadmat(filename)[field]
+    assert np.shape(C)[0]==np.shape(C)[1], "Expected a square matrix for the connectome"
+        
+    max_No_nodes=np.shape(C)[0]
+    if No_nodes>max_No_nodes:
+        print('Max No. Nodes is %d'%max_No_nodes)
+        No_nodes=max_No_nodes
 
     n = No_nodes
-    C=C[:n,:n]
+    C=C[:No_nodes,:No_nodes]
     C[np.diag(np.ones(n))==0] /= C[np.diag(np.ones(n))==0].mean()
     
     return C
 
-def loadDelays(No_nodes):
+def loadDelays(No_nodes,filename='../input_data/AAL_matrices.mat',field='D'):
     """
     Load the matrix of delays between nodes
     Parameters
     ----------
     No_nodes : int
         Number of nodes to load.
+    
+    filename : String, optional
+        The filename where the delay matrix is stored. The default is the AAL90 filename    
 
+    field: String, optional
+        The filed of file of the filename that contains the delays matrix.
     Returns
     -------
     D : 2D float array
         Matrix of delays, unit: seconds.
 
     """
-    
-    D = loadmat('../input_data/AAL_matrices.mat')['D']
+    D = loadmat(filename)[field]
+    assert np.shape(D)[0]==np.shape(D)[1], "Expected a square matrix for the connection delays" 
+    D=D[:No_nodes,:No_nodes]
     D /= 1000 # Distance matrix in meters
     
     return D
 
-def loadLabels():
-    file=loadmat('../input_data/AAL_labels.mat')
-    labels=file['label90']
+def loadLabels(filename=None, field=None):
+    """
+    Parameters
+    ----------
+    filename : String, optional
+        The filename where the labels are stored. The default is None.
+    field : String, optional
+        The field o file inside 'filename' that contains the labels. The default is None.
+
+    Returns
+    -------
+    labels : String array or list
+        Physiologycall related names of the oscillating nodes.
+
+    """
+    #Default values for AAL90
+    if filename==None:
+        filename='../input_data/AAL_labels.mat'
+    if field==None:
+        field='label90'
+    
+    file=loadmat('filename')
+    labels=file[field]
     return labels
 
 
-def DegreeMatrix(C):
+def constructErdosRenyiConnectome(No_nodes,p=1):
+    """
+    Construct a random connected network
+    Parameters
+    ----------
+    No_nodes : int
+        Number of nodes.
+    p : float, optional
+        Degree of connectivity. The default is 1, corresponds to fully-connected network.
+        A value of 0, is a empty connectome (full of zeros).
+
+    Returns
+    -------
+    C : 2D float array (boolean)
+        Adjacency matrix with the defined connectivity degree for each node.
+
+    """
+
+    C_nx=nx.erdos_renyi_graph(n=No_nodes, p=p)
+    C=nx.to_numpy_array(C_nx)
+    return C 
+
+def applyMeanDelay(D,C,mean_delay=1.0):
+    meanD=np.mean(D[C>0])
+    D=D/meanD*mean_delay
+    return D
+
+def degreeMatrix(C):
     """
     Diagonal degree matrix
     Parameters
     ----------
     C : 2D float array
         Conectome or Adjacency matrix.
-
     Returns
     -------
     degree_matrix : 2D float array
         Diagonal matrix.
 
-    """
-    
+    """    
     degree_matrix=np.zeros_like(C)
     if np.shape(C)[0]==np.shape(C)[1]:
         for i in range(np.shape(C)[0]):
@@ -81,7 +142,7 @@ def DegreeMatrix(C):
         print("C must be a square matrix")
     return degree_matrix
 
-def AdjacencyMatrix(C):
+def adjacencyMatrix(C):
     """
     Boolean logic in a 2D float array
     Parameters
@@ -103,7 +164,7 @@ def AdjacencyMatrix(C):
         print("C must be a square matrix")
     return A
 
-def Intensities(C):
+def intensities(C):
     """
     Sum of the rows of the connectivity matrix
 
@@ -121,7 +182,7 @@ def Intensities(C):
     intensities=np.sum(C,axis=1)
     return intensities
 
-def BooleanDegree(C):
+def booleanDegree(C):
     """
     Sum of the rows of the boolean adjacency matrix
     Parameters
@@ -135,7 +196,7 @@ def BooleanDegree(C):
         degree of each node.
     """
     
-    A=AdjacencyMatrix(C)
+    A=adjacencyMatrix(C)
     k_i=np.sum(A,axis=1)
     return k_i
 
@@ -155,7 +216,7 @@ def Laplacian(C):
 
     """
     
-    D=DegreeMatrix(C)
+    D=degreeMatrix(C)
     L=D-C
     return L
 
