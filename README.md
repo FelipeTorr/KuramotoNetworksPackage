@@ -15,8 +15,14 @@ $$
 - The folder **test** contains test code.
 - The folder **analysis** contains digital signal processing, synchronization, and network analysis tools.
 - The folder **input_data** contains the connection matrices and other input_data
-- The simulation result goes to the folder **timeseries_output**. Not here because their large size.
+- The simulation result goes to the folder **output_timeseries**. Not here because their large size. By default, the storage format is Matlab-compatible file ".mat". 
 - The figures of the analysis and signal processing are inside the folder **figures**.
+
+## Installation
+1. Clone or download this repository
+2. If **pip** is not installed> In Windows with Anaconda install pip with "conda install pip" . In Linux (Ubuntu) use: "apt install python3-pip" or "sudo apt install python3-pip" 
+3. With pip already installed, run "pip install -r requirements.txt"
+4. Run "python3 simulations/testModel.py". If everything works well, you get a plot display in your screen. 
  
 
 ## TODO list

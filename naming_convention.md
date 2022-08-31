@@ -1,16 +1,19 @@
 # Naming conventions
 
 - **Delta**: array of indexes of forced nodes
-- **Delay**: matrix of connection delays
-- **dt**: integration time step/sampling period 
+- **delays_matrix**: matrix of connection delays
+- **dt**: integration sampling period (Jitcdde has variable integration time) 
 - **K**: global coupling parameter 
-- **mean_delay**: mean delay for **Delay** matrix.
+- **mean_delay**: mean delay for **delays_matrix** matrix.
+- **mean_nat_freq**: mean natural frequency
 - **n_nodes**: number of nodes (N)
-- **T**: Simulation duration in seconds
-- **theta**: phase matrix of size Nx(T*dt)
+- **simulation_period**: Simulation duration in seconds (T)
 - **SEED**: random generator seed
+- **std_nat_freq**: standard deviation of the natural frequencies
 - **StimAmp**: Stimulation amplitude
 - **StimFreq**: Stimulation frequency
 - **StimTstart**: Onset or start time of stimulation
 - **StimTend**: Offset or end time of stimulation
-- **$$ omega $$**: natural (intrinsic) frequencies   
+- **struct_connectivty**: matrix of connection couplings
+- **theta**: phase matrix of size (T*dt)xN
+- **$$ omega $$**: natural (intrinsic) frequencies in radians
