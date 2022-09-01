@@ -11,8 +11,9 @@ import scipy.io as sio
 import csv 
 from npy_append_array import NpyAppendArray
 import matplotlib.pyplot as plt
+import time 
 def RunKuramotoFor(param_tuple):
-    
+    time.sleep(0.1)
     #fully connected graph for Structural Connectivty
     #Homogeneous delay
     N=16

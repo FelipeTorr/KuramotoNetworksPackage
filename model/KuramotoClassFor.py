@@ -8,6 +8,7 @@ import os
 from tqdm import tqdm
 from numpy import pi, random, max
 from scipy import signal
+from scipy.integrate import odeint
 # https://jitcdde.readthedocs.io/en/stable/
 from jitcdde import jitcdde, y, t
 from symengine import sin, Symbol
@@ -41,7 +42,7 @@ class Kuramoto:
                 simulation_period=100,
                 StimTstart=0,StimTend=0,StimFreq=0,StimAmp=0,
                 n_nodes=4,natfreqs=None,
-                nat_freqs=None,nat_freq_mean=0,nat_freq_std=2,
+                nat_freq_mean=0,nat_freq_std=2,
                 GenerateRandom=True,SEED=2,
                 mean_delay=0.010):
 
@@ -212,19 +213,26 @@ class Kuramoto:
             return 1
         else:
             return 0
+    def initial_phases(self):
+        return 2*np.pi*np.random.random(size=self.n_nodes)
+    
+    def kuramotosZero(self,y,t):
+        ϴ_i,ϴ_j=np.meshgrid(y,y)
+        dphi_dt= self.ω + (self.K/ self.n_nodes)* ( self.struct_connectivity * np.sin( ϴ_j - ϴ_i ) ).sum(axis=0)
+        return dphi_dt
 
     def kuramotos(self):
         for i in range(self.n_nodes):
             yield self.ω[i] +(self.K/self.n_nodes)*sum(
-                self.struct_connectivity[j, i] * sin( y(j , t - (self.delays_matrix[i, j]) ) - y(i) )
+                self.struct_connectivity[j, i] * sin( y(j , t - (self.delays_matrix[i, j]) ) - y(i,t) )
                 for j in range(self.n_nodes)
-            )
+            ) 
 
     def kuramotosForced(self):
         Delta=self.ForcingNodes
         for i in range(self.n_nodes):
             yield self.ω[i] + Delta[i,0]*self.param_sym_func(t)*self.StimAmp*sin(self.StimFreq*t-y(i))+(self.K/self.n_nodes)*sum(
-                self.struct_connectivity[j, i] * sin( y(j , t - (self.delays_matrix[i, j]) ) - y(i) )
+                self.struct_connectivity[j, i] * sin( y(j , t - (self.delays_matrix[i, j]) ) - y(i,t) )
                 for j in range(self.n_nodes)
             )
 
@@ -234,29 +242,46 @@ class Kuramoto:
         dt=self.dt
         τ=self.delays_matrix
         n=self.n_nodes
+        #if np.max(self.delays_matrix)>0:
         if self.Forced:
             DDE = jitcdde(self.kuramotosForced, n=n, verbose=False,callback_functions=[( self.param_sym_func, self.param,1)])
             DDE.compile_C(simplify=False, do_cse=False, chunk_size=int(self.n_nodes//10))
-            DDE.set_integration_parameters(rtol=1e-5, atol=1e-5)
+            if np.max(self.delays_matrix)>0:
+                DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=2)
+            else:
+                DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=1)
             DDE.constant_past(random.uniform(0, 2*np.pi, n), time=0.0)
             DDE.integrate_blindly(max(τ), 0.00001)
-
         elif not self.Forced:
             DDE = jitcdde(self.kuramotos, n=n, verbose=True)
             DDE.compile_C(simplify=False, do_cse=False, chunk_size=int(self.n_nodes//10))
-            DDE.set_integration_parameters(rtol=1e-5, atol=1e-5)
+            if np.max(self.delays_matrix)>0:
+                DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=2)
+            else:
+                DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=1)
             DDE.constant_past(random.uniform(0, 2*np.pi, n), time=0.0)
             DDE.integrate_blindly(max(τ), 0.001)
-
         output = []
         for time in tqdm(DDE.t + np.arange(0, simulation_period,dt )):
             output.append([*DDE.integrate(time)])
         output=np.asarray(output)
-        
-        
         del DDE
         gc.collect()
         return output
+        
+        #else:
+        #    ϴ_o=self.initial_phases()
+
+        #    t = np.linspace(0, self.simulation_period, int(self.simulation_period/self.dt))
+        #    dynamics = odeint(self.kuramotosZero, ϴ_o, t)
+            
+        #    return dynamics
+
+
+        
+        
+        
+        
 
     
     def simulate(self,Forced):

@@ -21,7 +21,7 @@ $$
 ## Installation
 1. Clone or download this repository
 2. If **pip** is not installed> In Windows with Anaconda install pip with "conda install pip" . In Linux (Ubuntu) use: "apt install python3-pip" or "sudo apt install python3-pip" 
-3. With pip already installed, run "pip install -r requirements.txt"
+3. With pip already installed, run "pip install -r requirements.txt". In some cases, if the previous instruction does not work, you must use "python3 -m pip install -r requirements.txt".
 4. Run "python3 simulations/testModel.py". If everything works well, you get a plot display in your screen. 
  
 
