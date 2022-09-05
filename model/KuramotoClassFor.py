@@ -247,7 +247,7 @@ class Kuramoto:
             DDE = jitcdde(self.kuramotosForced, n=n, verbose=False,callback_functions=[( self.param_sym_func, self.param,1)])
             DDE.compile_C(simplify=False, do_cse=False, chunk_size=int(self.n_nodes//10))
             if np.max(self.delays_matrix)>0:
-                DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=2)
+                DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=1)
             else:
                 DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=1)
             DDE.constant_past(random.uniform(0, 2*np.pi, n), time=0.0)
@@ -256,7 +256,7 @@ class Kuramoto:
             DDE = jitcdde(self.kuramotos, n=n, verbose=True)
             DDE.compile_C(simplify=False, do_cse=False, chunk_size=int(self.n_nodes//10))
             if np.max(self.delays_matrix)>0:
-                DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=2)
+                DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=1)
             else:
                 DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=1)
             DDE.constant_past(random.uniform(0, 2*np.pi, n), time=0.0)
