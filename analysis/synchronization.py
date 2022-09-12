@@ -34,6 +34,45 @@ def shannonEntropy(p):
             S-=p[j]*np.log(p[j])
     return S
 
+def shannonEntropyTimeMatrix(X,nbins=100,bin_start=None,bin_end=None):
+    """
+    Calculates the shanon entropy 
+    #of the probability mass distribution p[j]
+
+    Parameters
+    ----------
+    X : 3D array: float 
+        size TxMxN where T is the number of time points
+
+    Returns
+    -------
+    S : 2D array: float
+        Shannon Entropy matrix.
+
+    """ 
+    if bin_start==None and bin_end==None:
+        bins=nbins
+    else:
+        bins=np.linspace(bin_start,bin_end,nbins)
+    M=np.shape(X)[1]
+    N=np.shape(X)[2]
+    S=np.zeros((M,N))
+    for i in range(M):
+        for j in range(N):
+            p,_=np.histogram(X[:,i,j],bins=bins,density=True)
+            if i!=j:
+                p=p*(180/nbins)
+            else:
+                p=p/nbins
+            #Checkpoint: all distirbuitions must sum 1
+            #print(np.sum(p))
+            Sij=0        
+            for n in range(len(p)):
+                if p[n]>0:
+                    Sij-=p[n]*np.log(p[n])
+            S[i,j]=Sij
+    return S
+
 ######Synchrony Measurements############################
 
 #Scalar
@@ -54,12 +93,32 @@ def elementFunctionalConnectivity(x1,x2):
         Pearson coefficient between x1 and x2, from -1 to 1.
 
     """
+    fc,p=stats.pearsonr(x1, x2)
+    return fc
+
+
+def elementFunctionalConnectivityTheta(x1,x2):
+    """
+    Element of the functional connectivity matrix
+    Parameters
+    ----------
+    x1 : 1D array: float
+        Lenghth L.
+    x2 : 1D array: float
+        Length L.
+
+    Returns
+    -------
+    fc : float
+        Pearson coefficient between x1 and x2, from -1 to 1.
+
+    """
     fc,p=stats.pearsonr(np.cos(x1), np.cos(x2))
     return fc
 
 
 
-def entropySynchrony(x1,x2,n=1,m=1):
+def entropySynchrony(x1,x2=None,n=1,m=1):
     """
     Index of synchrony based in the Shannon entropy
     ----------
@@ -77,12 +136,39 @@ def entropySynchrony(x1,x2,n=1,m=1):
     rho : float
         Synchrony index from 0 t0 1.
     """
-    
+    if x2==None:
+        phi=x1
     phi=np.abs(n*x1-m*x2)%(2*np.pi)
     L=len(x1)
     N=int(np.exp(0.624+0.4*np.log(L-1)))
     hist,bins=np.histogram(phi,bins=np.linspace(0, 2*np.pi,N),density=True)
     rho=1-shannonEntropy(hist*(bins[1]-bins[0]))/(np.log(N))
+    return rho
+
+def entropySynchronyMatrix(X,nbins=100,bin_start=None,bin_end=None):
+    """
+    Calculates the shanon entropy 
+    #of the probability mass distribution p[j]
+
+    Parameters
+    ----------
+    X : 3D array: float 
+        size TxMxN where T is the number of time points
+
+    Returns
+    -------
+    S : 2D array: float
+        Shannon Entropy matrix.
+
+    """ 
+    if bin_start==None and bin_end==None:
+        bins=nbins
+    else:
+        bins=np.linspace(bin_start,bin_end,nbins)
+    L=np.shape(X)[0]
+    S=shannonEntropyTimeMatrix(X,nbins=nbins,bin_start=bin_start,bin_end=bin_end)
+    N=int(np.exp(0.624+0.4*np.log(L-1)))
+    rho=1-S/np.log(N)
     return rho
 
 def fourierModeIndex(x1,x2,n=1,m=1):
@@ -136,31 +222,52 @@ def phaseLockingValueTwoNodes(x1,x2):
         phase locking value
 
     """
-    e_s1=np.exp(1j*x1)
-    e_s2=np.exp(1j*x2)
-    plv=np.abs(e_s1+e_s2)/2
+    T=len(x1)
+    es1s2=np.exp(1j*(x1-x2))
+    plv=np.abs(np.sum(es1s2))/T
     return plv
 
-def phaseLockingValue(x):
+
+def phaseLockingValueMatrix(X):
     """
-    Phase locking value of x 
-    (Kuramoto order parameter without modifications)
+    Phase locking value for pairs in matrix of phases X 
 
     Parameters
     ----------
-    x1 : 2D array: float
-        Nodes x Time
+    X : 2D array: float
+        Nodes x Time 
 
     Returns
     -------
-    plv : 1D array
-        phase locking value
+    plv : 2D array
+        phase locking value matrix
 
     """
-    e_s1=np.exp(1j*x)
-    plv=np.abs(np.mean(e_s1,axis=0))
+    N=np.shape(X)[0]
+    T=np.shape(X)[1]
+    plv=np.zeros((N,N))
+    for i in range(N):
+        for j in range(N):
+            plv[i,j]=phaseLockingValueTwoNodes(X[i,:]%(2*np.pi),X[j,:]%(2*np.pi))
     return plv
 
+def phaseLockingDiffPhase(diffX):
+    """
+    Phase locking value given the phase difference matrix 
+
+    Parameters
+    ----------
+    diffX : 3D array: float
+        Time X Nodes X Nodes difference between phases
+
+    Returns
+    -------
+    plv : 2D array
+        phase locking value matrix
+    """
+    T=np.shape(diffX)[0]
+    plv=np.abs(np.sum(np.exp(1j*diffX),axis=0)/T)
+    return plv
 
 def conditionalProbabiliy(x1,x2,theta=1.999*np.pi,epsilon=0.001,n=1,m=1):
     """
@@ -311,16 +418,50 @@ def synchronyMatrices(X,start_time=0,end_time=20000):
  
     return plv_matrix,phi_matrix,gamma_matrix,SE_matrix
 
-def FC_filtered(X,f_low=0.5,f_high=100,fs=1000):
+def hilbertTheta(X,f_low=0.5,f_high=100,fs=1000):
     # b,a=signal.cheby1(4,1e-6,[2*f_low/fs,2*f_high/fs],btype='bandpass')
-    b,a=signal.butter(4,[2*f_low/fs,2*f_high/fs],btype='bandpass') 
-    Xf=signal.filtfilt(b,a, np.cos(X),axis=1)
+    b,a=signal.butter(4,[2*f_low/fs,2*f_high/fs],btype='bandpass')
+    Xf=signal.filtfilt(b,a,np.sin(X),axis=1)
+    Xa=signal.hilbert(Xf,axis=1)
+    angles=np.angle(Xa)
+    amplitudes=np.abs(Xa)
+    return amplitudes, angles
+
+def FC_filtered(X,f_low=0.5,f_high=100,fs=1000):
+    #Assume X is NxT
+    amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs)
+    mean_sd_envelopes=np.mean(np.std(amplitudes,axis=1))
     N=np.shape(X)[0]
     FC=np.zeros((N,N))
     for i in range(N):
         for j in range(N):
             if i!=j:
-                FC[i,j]=elementFunctionalConnectivity(Xf[i,:],Xf[j,:])
+                FC[i,j]=elementFunctionalConnectivity(amplitudes[i,:],amplitudes[j,:])
             else:
                 FC[i,j]=1
-    return FC
+    return FC, mean_sd_envelopes
+
+def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000):
+    #Assume X is NxT
+    amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs)
+    N=np.shape(X)[0]
+    diff=np.zeros((np.shape(X)[1],N,N))
+    for i in range(N):
+        for j in range(N):
+            #Absolute Phase difference in degrees (as there is not much sense in define 'forward' signals) 
+            diff[:,i,j]=(angles[i,:]-angles[j,:])
+    return angles.T, diff   
+
+def diffPhaseTheta(X):
+    #Assume X is NxT
+    angles=X%(2*np.pi)
+    N=np.shape(X)[0]
+    diff=np.zeros((np.shape(X)[1],N,N))
+    for i in range(N):
+        for j in range(N):
+            #Absolute Phase difference in degrees (as there is not much sense in define 'forward' signals) 
+            diff[:,i,j]=(angles[i,:]-angles[j,:])
+    return angles.T, diff   
+
+def absDiffPhase(x):
+    return np.abs(x)%np.pi*180/np.pi

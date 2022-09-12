@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 from ast import Del
 from symtable import Symbol
 import networkx as nx
@@ -8,7 +10,6 @@ import os
 from tqdm import tqdm
 from numpy import pi, random, max
 from scipy import signal
-from scipy.integrate import odeint
 # https://jitcdde.readthedocs.io/en/stable/
 from jitcdde import jitcdde, y, t
 from symengine import sin, Symbol
@@ -29,6 +30,7 @@ import itertools
 import gc
 import io
 from npy_append_array import NpyAppendArray
+import time as tm
 
 # from networkx.algorithms.community import k_clique_communities
 
@@ -44,7 +46,7 @@ class Kuramoto:
                 n_nodes=4,natfreqs=None,
                 nat_freq_mean=0,nat_freq_std=2,
                 GenerateRandom=True,SEED=2,
-                mean_delay=0.010):
+                mean_delay=0.10):
 
         '''
         struct_connectivity: is the adjacency matrix (struct_connectivity).
@@ -95,8 +97,8 @@ class Kuramoto:
         self.applyMean_Delay()
         
         self.natfreqs=self.initializeNatFreq(natfreqs,SEED,GenerateRandom) # This initialize the natfreq
-        self.ω = 2*np.pi*self.natfreqs
-
+        self.ω = 2*np.pi*self.natfreqs*np.ones(n_nodes)
+        self.global_coupling=self.K/self.n_nodes
         
         self.act_mat=None # When the simulation run, this value is updated with the dynamics. 
     def applyMean_Delay(self):
@@ -136,50 +138,6 @@ class Kuramoto:
 
 
 
-    """ def initializeArbitraryGraph(self):
-        # Initialize erdos renyi graph
-        mu=0.05
-        sigma=0.2*mu
-        n=self.n_nodes
-        np.random.seed(2)
-        C = np.random.normal(mu, sigma, (n,n))
-        indices = np.random.choice(np.arange(C.shape[0]), replace=False,size=int(C.shape[0]*0.4 ))
-        C[indices] = 0
-        indices = np.random.choice(np.arange(C.shape[0]), replace=False,size=int(C.shape[0]*0.3 ))
-        C[indices] = -C[indices]
-        C = (C + C.T)/2
-        
-        C[np.diag(np.ones(n))==0] /= C[np.diag(np.ones(n))==0].mean()
-        np.fill_diagonal(C, 0)
-        n_zeros = np.count_nonzero(C==0)
-        # print(n_zeros)
-        
-        
-
-        # D = loadmat('./AAL_matrices.mat')['D']
-        mean_delay=self.mean_delay
-        VD=mean_delay*0.2
-        D= np.random.normal(mean_delay, VD, (n,n))
-        D = (D + D.T)/2
-        D=D[:n,:n]
-        np.fill_diagonal(D, 0)
-        if n>90:
-            print('Max No. Nodes is 90')
-            n=90
-        if mean_delay==0:
-            τ = np.zeros_like(C) # Set all delays to 0.
-        else:
-            τ = D / D[C>0].mean() * mean_delay 
-            # τ = τ.astype(np.int)
-        τ=D
-        τ[C==0] = 0.
-        self.Delay=τ
-        self.struct_connectivity=C
-        # print(C)
-        # print(τ)
-        return C,τ """
-
-
     def load_struct_connectivity(self):
         n=self.n_nodes
         
@@ -197,6 +155,7 @@ class Kuramoto:
 
     def setGlobalCoupling(self,K):
         self.K=K
+        self.global_coupling=self.K/self.n_nodes
 
     def param(self,y,arg):
         '''
@@ -218,21 +177,21 @@ class Kuramoto:
     
     def kuramotosZero(self,y,t):
         ϴ_i,ϴ_j=np.meshgrid(y,y)
-        dphi_dt= self.ω + (self.K/ self.n_nodes)* ( self.struct_connectivity * np.sin( ϴ_j - ϴ_i ) ).sum(axis=0)
+        dphi_dt= self.ω + (self.global_coupling)*( self.struct_connectivity * np.sin( ϴ_j - ϴ_i ) ).sum(axis=0)
         return dphi_dt
 
     def kuramotos(self):
         for i in range(self.n_nodes):
-            yield self.ω[i] +(self.K/self.n_nodes)*sum(
-                self.struct_connectivity[j, i] * sin( y(j , t - (self.delays_matrix[i, j]) ) - y(i,t) )
+            yield self.ω[i] +self.global_coupling*sum(
+                self.struct_connectivity[i, j] * sin( y(j,t - (self.delays_matrix[i, j])) - y(i))
                 for j in range(self.n_nodes)
-            ) 
+            )
 
     def kuramotosForced(self):
         Delta=self.ForcingNodes
         for i in range(self.n_nodes):
-            yield self.ω[i] + Delta[i,0]*self.param_sym_func(t)*self.StimAmp*sin(self.StimFreq*t-y(i))+(self.K/self.n_nodes)*sum(
-                self.struct_connectivity[j, i] * sin( y(j , t - (self.delays_matrix[i, j]) ) - y(i,t) )
+            yield self.ω[i] + Delta[i,0]*self.param_sym_func(t)*self.StimAmp*sin(self.StimFreq*t-y(i))+self.global_coupling*sum(
+                self.struct_connectivity[i, j] * sin( y(j , t - (self.delays_matrix[i, j])) - y(i))
                 for j in range(self.n_nodes)
             )
 
@@ -240,27 +199,34 @@ class Kuramoto:
     def IntegrateDD(self):
         simulation_period=self.simulation_period
         dt=self.dt
-        τ=self.delays_matrix
+        max_delay=np.max(self.delays_matrix)
         n=self.n_nodes
-        #if np.max(self.delays_matrix)>0:
+        if n<20:
+            chunksize=20
+        elif n<360:
+            chunksize=4
+        else:
+            chunksize=1
+        time_start=tm.time()
         if self.Forced:
-            DDE = jitcdde(self.kuramotosForced, n=n, verbose=False,callback_functions=[( self.param_sym_func, self.param,1)])
-            DDE.compile_C(simplify=False, do_cse=False, chunk_size=int(self.n_nodes//10))
-            if np.max(self.delays_matrix)>0:
-                DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=1)
-            else:
-                DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=1)
+            DDE = jitcdde(self.kuramotosForced, n=n, verbose=False,delays=self.delays_matrix.flatten(),callback_functions=[( self.param_sym_func, self.param,1)])
+            DDE.compile_C(simplify=False, do_cse=False, chunk_size=chunksize,verbose=False)
+            DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=1)
             DDE.constant_past(random.uniform(0, 2*np.pi, n), time=0.0)
-            DDE.integrate_blindly(max(τ), 0.00001)
+            if max_delay>0:
+                DDE.integrate_blindly(max_delay, dt*1.0e-2)
+        
         elif not self.Forced:
-            DDE = jitcdde(self.kuramotos, n=n, verbose=True)
-            DDE.compile_C(simplify=False, do_cse=False, chunk_size=int(self.n_nodes//10))
-            if np.max(self.delays_matrix)>0:
-                DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=1)
-            else:
-                DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=1)
+            DDE = jitcdde(self.kuramotos, n=n,delays=self.delays_matrix.flatten(),verbose=False)
+            DDE.compile_C(simplify=False, do_cse=False, chunk_size=chunksize,verbose=False)
+            DDE.set_integration_parameters(rtol=1e-10, atol=1e-5,pws_max_iterations=1)
             DDE.constant_past(random.uniform(0, 2*np.pi, n), time=0.0)
-            DDE.integrate_blindly(max(τ), 0.001)
+            if max_delay>0:
+                DDE.integrate_blindly(max_delay, dt)
+
+        #DDE.step_on_discontinuities()
+        time_end=tm.time()-time_start
+        print('Compiled in %.4f seconds'%time_end)
         output = []
         for time in tqdm(DDE.t + np.arange(0, simulation_period,dt )):
             output.append([*DDE.integrate(time)])
@@ -314,7 +280,7 @@ class Kuramoto:
         Compute global order parametr R_t - mean length of resultant vector
         re^(i*epsi)=(1/N)* sum ( e^(i*theta_m))
         '''
-        suma=sum([np.e ** (1j*i) for i in angles_vec ])
+        suma=sum([np.exp(1j*i) for i in angles_vec ])
         return abs(suma/len(angles_vec))
 
     def calculateOrderParameter(self,act_mat):
