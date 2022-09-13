@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from ast import Del
+#from ast import Del
 from symtable import Symbol
-import networkx as nx
-import matplotlib.pyplot as plt
 from scipy.io import loadmat
 import numpy as np
 import os
@@ -15,21 +13,9 @@ from jitcdde import jitcdde, y, t
 from symengine import sin, Symbol
 import symengine
 import sympy
-import glob
-from PIL import Image
-from sklearn.preprocessing import normalize
-from math import comb
-from numpy import linalg as LA
-from matplotlib import colors
 import gc
-from math import floor
-from multiprocessing import Lock
+
 # from KuramotoClass import Kuramoto
-import concurrent.futures
-import itertools 
-import gc
-import io
-from npy_append_array import NpyAppendArray
 import time as tm
 
 # from networkx.algorithms.community import k_clique_communities
