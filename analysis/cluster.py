@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath('../'))
 import analysis.synchronization as synchronization
 import metis
 from networkx.algorithms.community import k_clique_communities
+from scipy.cluster.hierarchy import dendrogram, linkage
 import numpy as np
 
 def Clustering(G,No_Clusters):
@@ -21,7 +22,7 @@ def Clustering(G,No_Clusters):
         color_map.append(colors[p])
     return(G,color_map)
 
-def significantFC(X,f_low=0.5,f_high=100,fs=1000,Nshuffles=100):
+def significantFC(X,f_low=0.5,f_high=100,fs=1000,Nshuffles=20):
     #Assume X is NxT
     originalFC,_=synchronization.FC_filtered(X,f_low=f_low,f_high=f_high,fs=fs)
     T=np.shape(X)[1]
@@ -50,3 +51,8 @@ def sortMatrix(X):
     sorted_indexes=np.flip(np.argsort(np.sum(upper_triang,axis=1)))
     sortedX=X[sorted_indexes,:][:,sorted_indexes]
     return sortedX, sorted_indexes
+
+def hierarchyKMeans(FC):
+    Z=linkage(1-FC,'average')
+    return Z
+

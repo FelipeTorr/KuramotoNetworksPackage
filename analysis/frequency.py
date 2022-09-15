@@ -26,17 +26,19 @@ def effectiveFrequency(x,T):
     """
     return (x[:,-2]-x[:,1])/(2*np.pi*T)
     
-def peak_freqs(x,nperseg=4096,noverlap=3600):
+def peak_freqs(x,fs=1000,nperseg=4096,noverlap=2048):
     """
     The peak of the Welch's periodogram.
     Parameters
     ----------
     x : 1D float
-        data.
+        data NxT.
+    fs : int
+    	sampling frequency
     nperseg : int, optional
         time window in number of samples. The default is 4096.
     noverlap : int, optional
-        overlap time in number of samples. The default is 3600.
+        overlap time in number of samples. The default is 2048.
 
     Returns
     -------
@@ -53,11 +55,11 @@ def peak_freqs(x,nperseg=4096,noverlap=3600):
     Pxx=np.zeros((np.shape(x)[0],nperseg//2+1))
     if len(np.shape(x))>1:
         for n in range(np.shape(x)[0]):
-            f,Pxx[n,:]=signal.welch(np.cos(x[n,:]),fs=1000,window='hamming',nperseg=nperseg,noverlap=noverlap)
+            f,Pxx[n,:]=signal.welch(np.cos(x[n,:]),fs=fs,window='hamming',nperseg=nperseg,noverlap=noverlap)
             pfreqs[n]=f[np.argmax(Pxx[n,:])]
     else:
         #Single node
-        f,Pxx=signal.welch(np.cos(x),fs=1000,window='hamming',nperseg=nperseg,noverlap=noverlap)
+        f,Pxx=signal.welch(np.cos(x),fs=fs,window='hamming',nperseg=nperseg,noverlap=noverlap)
         pfreqs=f[np.argmax(Pxx)]
     return f,Pxx,pfreqs
 
@@ -73,12 +75,12 @@ def Npeaks(f,Pxx,N=5,deltaf=5):
     N : int, optional
         Number of peaks to found. The default is 5.
     deltaf : int, optional
-        Number of frequency bins for tolerance beteen peaks. The default is 5.
+        Number of frequency bins for tolerance between peaks. The default is 5.
 
     Returns
     -------
     pindex : 1D int array
-        Indexes of the peak frequencies in the list f.
+        Indexes of the peak frequencies in the frequencies list, f.
     pfreqs : 1D float array
         Frequency peaks.
 
@@ -106,7 +108,7 @@ def waveletMorlet(x,fs=1000, f_start=0.5,f_end=200, numberFreq=500, omega0=15, c
 
     Parameters
     ----------
-    x : 1D float aaray
+    x : 1D float array
         timeserie data.
     fs : fs, optional
         sampling frequency. The default is 1000 Hz.
@@ -134,7 +136,7 @@ def waveletMorlet(x,fs=1000, f_start=0.5,f_end=200, numberFreq=500, omega0=15, c
         Wavelet scales
     coefs: 2D float array: freqs x len(x) 
         Scalogram coefficients
-        Waveelet transform is calculated for each time point.
+        Wavelet transform is calculated for each time point.
 
     """
 	
@@ -148,6 +150,34 @@ def waveletMorlet(x,fs=1000, f_start=0.5,f_end=200, numberFreq=500, omega0=15, c
         for col in range(np.shape(coefs)[1]):
             coefs[:,col]=coefs[:,col]*freqs[:]
     return np.flip(freqs),np.flip(scales),np.flipud(coefs)
+
+def spectrogram(X,fs=1000,nperseg=4096,noverlap=2048):
+    """
+    Welch spectrogram usign the welch periodograms
+
+    Parameters
+    ----------
+    X : 1D or 2D float array
+        timeseries data. If 2D: N x T
+    fs : int
+    	sampling frequency
+    nperseg : int, optional
+        time window in number of samples. The default is 4096.
+    noverlap : int, optional
+        overlap time in number of samples. The default is 2048.
+    
+    Returns
+    -------
+    t: 1D float array 
+        center of the time window.
+    f: 1D float array
+        frequencies list.
+    Sxx: 2D or 3D float array: N x len(f) x len(t) 
+        Spectrogram with spectral power density units (x^2/Hz). 
+    """
+    t,f,Sxx=signal.spectrogram(X,fs,nperseg=nperseg,noverlap=noverlap,scaling='density')
+    	         
+    return t,f,Sxx
 
 def empiricalModeDecomposition(x,fs=1000,f_start=0.2,f_end=200,numberFreq=500):
     #Empirical decomposition (ortogonal signals)

@@ -418,34 +418,51 @@ def synchronyMatrices(X,start_time=0,end_time=20000):
  
     return plv_matrix,phi_matrix,gamma_matrix,SE_matrix
 
-def hilbertTheta(X,f_low=0.5,f_high=100,fs=1000):
-    # b,a=signal.cheby1(4,1e-6,[2*f_low/fs,2*f_high/fs],btype='bandpass')
-    b,a=signal.butter(4,[2*f_low/fs,2*f_high/fs],btype='bandpass')
-    Xf=signal.filtfilt(b,a,np.sin(X),axis=1)
+def hilbertTheta(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simulated=True):
+    #Define the filter
+    if type=='butterworth':
+        if f_high>fs/100:
+            b,a=signal.butter(4,[2*f_low/fs,2*f_high/fs],btype='bandpass')
+        else:
+            b,a=signal.butter(3,[2*f_low/fs,2*f_high/fs],btype='bandpass')
+    elif type=='chebysev': 
+        b,a=signal.cheby1(4,1e-6,[2*f_low/fs,2*f_high/fs],btype='bandpass')
+    #Zero-phase filter
+    sinX=np.sin(X)
+    Xf=signal.filtfilt(b,a,sinX)
+    if simulated:
+       Xf=Xf[:,3*fs:-3*fs]
+    #Hilbert transform
     Xa=signal.hilbert(Xf,axis=1)
     angles=np.angle(Xa)
     amplitudes=np.abs(Xa)
     return amplitudes, angles
 
-def FC_filtered(X,f_low=0.5,f_high=100,fs=1000):
+def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
+    #Signal duration must be higher than 12 seconds, or the same np.shape(X)[1]>12fs
+    #This limitation assures that the filter works well where theres is not signal in simulated data
     #Assume X is NxT
-    amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs)
-    mean_sd_envelopes=np.mean(np.std(amplitudes,axis=1))
+    amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
+    #Low-pass 0.5 Hz
+    b,a=signal.butter(4,2*0.5/fs,btype='lowpass')
+    envelopes=signal.filtfilt(b,a,amplitudes,axis=1)
+    envelopes=envelopes[:,3*fs:-3*fs]
+    mean_sd_envelopes=np.mean(np.std(envelopes,axis=1))
     N=np.shape(X)[0]
     FC=np.zeros((N,N))
     for i in range(N):
         for j in range(N):
             if i!=j:
-                FC[i,j]=elementFunctionalConnectivity(amplitudes[i,:],amplitudes[j,:])
+                FC[i,j]=elementFunctionalConnectivity(envelopes[i,:],envelopes[j,:])
             else:
                 FC[i,j]=1
     return FC, mean_sd_envelopes
 
-def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000):
+def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000,simulated=True):
     #Assume X is NxT
-    amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs)
+    amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
     N=np.shape(X)[0]
-    diff=np.zeros((np.shape(X)[1],N,N))
+    diff=np.zeros((np.shape(angles)[1],N,N))
     for i in range(N):
         for j in range(N):
             #Absolute Phase difference in degrees (as there is not much sense in define 'forward' signals) 
