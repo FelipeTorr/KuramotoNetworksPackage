@@ -5,6 +5,8 @@ from symtable import Symbol
 from scipy.io import loadmat
 import numpy as np
 import os
+import sys
+import analysis.connectivityMatrices as matrices
 from tqdm import tqdm
 from numpy import pi, random, max
 from scipy import signal
@@ -45,9 +47,9 @@ class Kuramoto:
         StimTend  : is the offset time.
         n_nodes: is the number of nodes.
         natfreqs: is the natural frequencies of the nodes. 
-        Delay: is the delay matrix.
+        delays_matrix: is the delay matrix.
         mean_delay: is the mean delay (in Cabral, this delay is a scale like global coupling strength)
-        GenerateRandom: random natural frequencies every time if True, if False
+        random_nat_freq: random natural frequencies every time if True, if False
         SEED: guarantees that the natfreqs are the same at each run
         
         '''
@@ -67,6 +69,8 @@ class Kuramoto:
         #self.ForcingNodes[80:90,:]=0
         self.mean_nat_freq=nat_freq_mean
         self.std_nat_freq=nat_freq_std
+        self.seed=SEED
+        self.random_nat_freq=GenerateRandom
 
         if struct_connectivity is None:
             self.struct_connectivity=self.load_struct_connectivity()
@@ -82,32 +86,70 @@ class Kuramoto:
             self.delays_matrix=delays_matrix
         self.applyMean_Delay()
         
-        self.natfreqs=self.initializeNatFreq(natfreqs,SEED,GenerateRandom) # This initialize the natfreq
-        self.ω = 2*np.pi*self.natfreqs*np.ones(n_nodes)
+        self.natfreqs=self.initializeNatFreq(natfreqs) # This initialize the natfreq
+        self.ω = 2*np.pi*self.natfreqs
         self.global_coupling=self.K/self.n_nodes
         
         self.act_mat=None # When the simulation run, this value is updated with the dynamics. 
+    
     def applyMean_Delay(self):
+        #Apply a scaling factor to the delays matrix in order to obtain the specified mean delay
         if self.mean_delay==0:
             self.delays_matrix=np.zeros((self.n_nodes,self.n_nodes))
         else:
             self.delays_matrix=self.delays_matrix/np.mean(self.delays_matrix[self.struct_connectivity>0])*self.mean_delay
     
-    def initializeNatFreq(self,natfreqs,SEED,GenerateRandom):
+    def initializeNatFreq(self,natfreqs):
+        #Set the natural(intrinsic) frequencies of the oscillators
+        
         if natfreqs is not None:
             if type(natfreqs)==int or type(natfreqs)==float or type(natfreqs)==np.float32:
-                natfreqs=natfreqs*np.ones((self.n_nodes,)) 
+                #Equal frequency for all nodes
+                natfreqs=natfreqs*np.ones(self.n_nodes) 
             elif self.n_nodes == len(natfreqs):
+                #Frequencies specified in an array of the same length than n_nodes
                 natfreqs=natfreqs
+            elif type(natfreqs)==str:
+                natfreqs=loadmat(natfreqs)['natfreqs']
+                if self.n_nodes == len(natfreqs):
+                    #Frequencies specified in an array of the same length than n_nodes
+                    natfreqs=natfreqs
+                else:
+                    print('Natural frequencies are bad defined')
             else:
                 print('Natural frequencies are bad defined')
         else:
-            if GenerateRandom==True:
+            #Generate random natural frequencies from a Gaussian distribution
+            if self.random_nat_freq==True:
                 natfreqs=np.random.normal( self.mean_nat_freq,self.std_nat_freq ,size=self.n_nodes)
             else:
-                np.random.seed(SEED)
+                np.random.seed(self.seed)
                 natfreqs=np.random.normal( self.mean_nat_freq,self.std_nat_freq ,size=self.n_nodes)
         return natfreqs
+
+    
+    def loadParameters(self,parameters):
+        self.K=parameters['K']
+        self.n_nodes=parameters['n_nodes']
+        self.mean_delay=parameters['mean_delay']
+        self.dt=parameters['dt']
+        self.simulation_period=parameters['simulation_period']
+        self.StimTstart=parameters['StimTstart']
+        self.StimTend=parameters['StimTend']
+        self.StimAmp=parameters['StimAmp']
+        self.StimFreq=parameters['StimFreq']
+        self.seed=parameters['seed']
+        self.nat_freq_mean=parameters['nat_freq_mean']
+        self.nat_freq_std=parameters['nat_freq_std']
+        self.random_nat_freq=parameters['random_nat_freq']
+        self.natfreqs=self.initializeNatFreq(parameters['nat_freqs'])
+        self.struct_connectivity=matrices.loadConnectome(self.n_nodes,parameters['struct_connectivity'])
+        self.delays_matrix=matrices.loadDelays(self.n_nodes,parameters['delay_matrix'])
+        self.applyMean_Delay()
+        self.ω = 2*np.pi*self.natfreqs
+        self.ForcingNodes=np.zeros((self.n_nodes,1))
+        self.global_coupling=self.K/self.n_nodes
+
 
     def initializeTimeDelays(self):
         No_nodes=self.n_nodes
@@ -121,8 +163,6 @@ class Kuramoto:
         D /= 1000 # Distance matrix in meters
         self.delays_matrix=D
         return D
-
-
 
     def load_struct_connectivity(self):
         n=self.n_nodes

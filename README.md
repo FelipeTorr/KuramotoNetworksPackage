@@ -25,7 +25,8 @@ $$
 4. Run "python3 simulations/testModel.py". If everything works well, you get a plot display in your screen. 
  
 ### Run it now
-Instead of installing it, you can run the Kuramoto model rigth now in Google Colab
+Instead of installing it, you can run the Kuramoto model rigth now in Google Colab.
+
 Just click here:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/FelipeTorr/KuramotoNetworksPackage/blob/main/KuramotoNotebook.ipynb)
 

@@ -64,7 +64,8 @@ def loadDelays(No_nodes,filename='../input_data/AAL_matrices.mat',field='D'):
     D = loadmat(filename)[field]
     assert np.shape(D)[0]==np.shape(D)[1], "Expected a square matrix for the connection delays" 
     D=D[:No_nodes,:No_nodes]
-    D /= 1000 # Distance matrix in meters
+    D /= 1000 # Distance matrix in meters 
+    #or seconds with conduction velocity=1 m/s
     
     return D
 
