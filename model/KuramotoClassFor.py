@@ -6,6 +6,7 @@ from scipy.io import loadmat
 import numpy as np
 import os
 import sys
+sys.path.append(os.path.abspath('../'))
 import analysis.connectivityMatrices as matrices
 from tqdm import tqdm
 from numpy import pi, random, max
