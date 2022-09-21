@@ -272,11 +272,17 @@ class Kuramoto:
 
         
         
-        
-        
+    def interact(self,K):
+        import matplotlib.pyplot as plt
+        self.K=K
+        R,Dynamics=self.simulate()
+        t=np.linspace(0,self.simulation_period,int(self.simulation_period//self.dt)+1)
+        plt.figure(figsize=(12,4))
+        plt.plot(t,R)
+        plt.show()
 
     
-    def simulate(self,Forced):
+    def simulate(self,Forced=False):
         self.Forced=Forced
         Dynamics=self.IntegrateDD()
         R=self.calculateOrderParameter(Dynamics)
