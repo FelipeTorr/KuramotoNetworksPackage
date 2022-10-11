@@ -24,7 +24,7 @@ def Clustering(G,No_Clusters):
 
 def significantFC(X,f_low=0.5,f_high=100,fs=1000,Nshuffles=20):
     #Assume X is NxT
-    originalFC,_=synchronization.FC_filtered(X,f_low=f_low,f_high=f_high,fs=fs)
+    originalFC,mean_energy=synchronization.FC_filtered(X,f_low=f_low,f_high=f_high,fs=fs)
     T=np.shape(X)[1]
     N=np.shape(X)[0]
     indexes=list(np.arange(0,T))
@@ -43,7 +43,7 @@ def significantFC(X,f_low=0.5,f_high=100,fs=1000,Nshuffles=20):
             break
 
     thresholdedFC[np.abs(originalFC)>threshold]=originalFC[np.abs(originalFC)>threshold]
-    return originalFC,thresholdedFC,threshold,percentil
+    return originalFC,thresholdedFC,threshold,percentil, mean_energy
 
 def sortMatrix(X):
     N=np.shape(X)[0]

@@ -71,8 +71,8 @@ class Kuramoto:
         self.StimAmp=StimAmp
         self.ForcingNodes=np.zeros((self.n_nodes,1))
         #self.ForcingNodes[80:90,:]=0
-        self.mean_nat_freq=nat_freq_mean
-        self.std_nat_freq=nat_freq_std
+        self.nat_freq_mean=nat_freq_mean
+        self.nat_freq_std=nat_freq_std
         self.seed=SEED
         self.random_nat_freq=GenerateRandom
 
@@ -125,10 +125,11 @@ class Kuramoto:
         else:
             #Generate random natural frequencies from a Gaussian distribution
             if self.random_nat_freq==True:
-                natfreqs=np.random.normal( self.mean_nat_freq,self.std_nat_freq ,size=self.n_nodes)
+                natfreqs=np.random.normal( self.nat_freq_mean,self.nat_freq_std ,size=self.n_nodes)
             else:
                 np.random.seed(self.seed)
-                natfreqs=np.random.normal( self.mean_nat_freq,self.std_nat_freq ,size=self.n_nodes)
+                natfreqs=np.random.normal( self.nat_freq_mean,self.nat_freq_std ,size=self.n_nodes)
+                
         return natfreqs
 
     
@@ -146,7 +147,8 @@ class Kuramoto:
         self.nat_freq_mean=parameters['nat_freq_mean']
         self.nat_freq_std=parameters['nat_freq_std']
         self.random_nat_freq=parameters['random_nat_freq']
-        self.natfreqs=self.initializeNatFreq(parameters['nat_freqs'])
+        nat_freqs=parameters['nat_freqs']
+        self.natfreqs=self.initializeNatFreq(nat_freqs)
         self.struct_connectivity=matrices.loadConnectome(self.n_nodes,parameters['struct_connectivity'])
         self.delays_matrix=matrices.loadDelays(self.n_nodes,parameters['delay_matrix'])
         self.applyMean_Delay()
@@ -227,6 +229,7 @@ class Kuramoto:
 
 
     def IntegrateDD(self):
+        print('Simulating %d nodes network using K=%.3f and MD=%.3f at f=%.3fHz'%(self.n_nodes,self.K,self.mean_delay,self.nat_freq_mean))
         simulation_period=self.simulation_period
         dt=self.dt
         max_delay=np.max(self.delays_matrix)

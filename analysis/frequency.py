@@ -26,7 +26,7 @@ def effectiveFrequency(x,T):
     """
     return (x[:,-2]-x[:,1])/(2*np.pi*T)
     
-def peak_freqs(x,fs=1000,nperseg=4096,noverlap=2048):
+def peak_freqs(x,fs=1000,nperseg=4096,noverlap=2048,applySin=True,includeDC=False):
     """
     The peak of the Welch's periodogram.
     Parameters
@@ -39,7 +39,10 @@ def peak_freqs(x,fs=1000,nperseg=4096,noverlap=2048):
         time window in number of samples. The default is 4096.
     noverlap : int, optional
         overlap time in number of samples. The default is 2048.
-
+    applySin : boolean, deafult=True
+        apply the sin function before calculate the spectrum
+    includeDC : boolean, default=False
+        include or not the DC component to find the peak frequency
     Returns
     -------
     f : 1D float array
@@ -51,16 +54,30 @@ def peak_freqs(x,fs=1000,nperseg=4096,noverlap=2048):
 
     """
     
+    if applySin:
+        X=np.sin(x)
+    else:
+        X=x
     pfreqs=np.zeros((np.shape(x)[0],))
     Pxx=np.zeros((np.shape(x)[0],nperseg//2+1))
     if len(np.shape(x))>1:
         for n in range(np.shape(x)[0]):
-            f,Pxx[n,:]=signal.welch(np.cos(x[n,:]),fs=fs,window='hamming',nperseg=nperseg,noverlap=noverlap)
-            pfreqs[n]=f[np.argmax(Pxx[n,:])]
+            f,Pxx[n,:]=signal.welch(X[n,:],fs=fs,window='hamming',nperseg=nperseg,noverlap=noverlap)
+            if includeDC==True:
+                pfreqs[n]=f[np.argmax(Pxx[n,:])]
+            else:
+                pfreqs[n]=f[np.argmax(Pxx[n,1::])]
     else:
         #Single node
-        f,Pxx=signal.welch(np.cos(x),fs=fs,window='hamming',nperseg=nperseg,noverlap=noverlap)
+        f,Pxx=signal.welch(X,fs=fs,window='hamming',nperseg=nperseg,noverlap=noverlap)
+    
+    if includeDC==True:
         pfreqs=f[np.argmax(Pxx)]
+    else:
+        index_max_freq=np.argmax(Pxx)
+        if index_max_freq==0:
+            index_max_freq==1
+        pfreqs=f[index_max_freq+1]
     return f,Pxx,pfreqs
 
 def Npeaks(f,Pxx,N=5,deltaf=5):
@@ -175,7 +192,7 @@ def spectrogram(X,fs=1000,nperseg=4096,noverlap=2048):
     Sxx: 2D or 3D float array: N x len(f) x len(t) 
         Spectrogram with spectral power density units (x^2/Hz). 
     """
-    t,f,Sxx=signal.spectrogram(X,fs,nperseg=nperseg,noverlap=noverlap,scaling='density')
+    t,f,Sxx=signal.spectrogram(X,fs=fs,nperseg=nperseg,noverlap=noverlap,scaling='density')
     	         
     return t,f,Sxx
 

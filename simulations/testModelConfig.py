@@ -38,7 +38,7 @@ def RunKuramotoFor(configFile):
     del model
     gc.collect()
 
-config_directory='../input_config/'
+config_directory='../input_config/multiple/'
 config_files=[]
 for file in os.listdir(config_directory):
     if file.split('.')[1]=='txt':

@@ -419,35 +419,37 @@ def synchronyMatrices(X,start_time=0,end_time=20000):
     return plv_matrix,phi_matrix,gamma_matrix,SE_matrix
 
 def hilbertTheta(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simulated=True):
-    #Define the filter
+    #Define the filter 2nd order
     if type=='butterworth':
-        if f_high>fs/100:
-            b,a=signal.butter(4,[2*f_low/fs,2*f_high/fs],btype='bandpass')
-        else:
-            b,a=signal.butter(3,[2*f_low/fs,2*f_high/fs],btype='bandpass')
+        b,a=signal.butter(2,[2*f_low/fs,2*f_high/fs],btype='bandpass')
     elif type=='chebysev': 
-        b,a=signal.cheby1(4,1e-6,[2*f_low/fs,2*f_high/fs],btype='bandpass')
+        b,a=signal.cheby1(2,1e-6,[2*f_low/fs,2*f_high/fs],btype='bandpass')
     #Zero-phase filter
     sinX=np.sin(X)
+    #The final order of the filters is 4th
     Xf=signal.filtfilt(b,a,sinX)
     if simulated:
-       Xf=Xf[:,3*fs:-3*fs]
+       Xf=Xf[:,fs:-fs]
     #Hilbert transform
-    Xa=signal.hilbert(Xf,axis=1)
+    Xfiltered=np.copy(Xf) #Copy of the array as scipy.signal.Hilbert modifies the input 
+    Xa=signal.hilbert(Xfiltered,axis=1)
     angles=np.angle(Xa)
     amplitudes=np.abs(Xa)
     return amplitudes, angles
 
 def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
-    #Signal duration must be higher than 12 seconds, or the same np.shape(X)[1]>12fs
-    #This limitation assures that the filter works well where theres is not signal in simulated data
+    #Signal duration must be higher than 5 seconds, or the same np.shape(X)[1]>5*fs
+    #This limitation assures that the filter works well for the frequncy bands where is not signal in simulated data
     #Assume X is NxT
     amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
-    #Low-pass 0.5 Hz
+    #The output from HilbertTheta has two seconds less in duration
+    #Low-pass 0.5 Hz, removes 1 second of the Analytical signal before filtering
     b,a=signal.butter(4,2*0.5/fs,btype='lowpass')
-    envelopes=signal.filtfilt(b,a,amplitudes,axis=1)
-    envelopes=envelopes[:,3*fs:-3*fs]
-    mean_sd_envelopes=np.mean(np.std(envelopes,axis=1))
+    envelopes=signal.filtfilt(b,a,amplitudes[:,fs:-fs],axis=1)
+    envelopes=envelopes[:,fs//2:-fs//2] #removes half second after filtering
+    #Warning! envelopes has five seconds lesser than X
+    #The mean energy indicates something about how significant is the analysis in the specific frequency band
+    mean_energy=np.mean(envelopes**2)
     N=np.shape(X)[0]
     FC=np.zeros((N,N))
     for i in range(N):
@@ -456,7 +458,7 @@ def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
                 FC[i,j]=elementFunctionalConnectivity(envelopes[i,:],envelopes[j,:])
             else:
                 FC[i,j]=1
-    return FC, mean_sd_envelopes
+    return FC, mean_energy
 
 def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000,simulated=True):
     #Assume X is NxT
