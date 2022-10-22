@@ -3,6 +3,7 @@
 
 import analysis.Wavelets as Wavelets
 import numpy as np
+import numpy.linalg as linalg
 import scipy.signal as signal
 import scipy.ndimage as ndimage
 import emd
@@ -27,7 +28,7 @@ def effectiveFrequency(x,T):
     return (x[:,-2]-x[:,1])/(2*np.pi*T)
     
 def peak_freqs(x,fs=1000,nperseg=4096,noverlap=2048,applySin=True,includeDC=False):
-    """
+    """"
     The peak of the Welch's periodogram.
     Parameters
     ----------
@@ -70,29 +71,28 @@ def peak_freqs(x,fs=1000,nperseg=4096,noverlap=2048,applySin=True,includeDC=Fals
     else:
         #Single node
         f,Pxx=signal.welch(X,fs=fs,window='hamming',nperseg=nperseg,noverlap=noverlap)
-    
-    if includeDC==True:
-        pfreqs=f[np.argmax(Pxx)]
-    else:
-        index_max_freq=np.argmax(Pxx)
-        if index_max_freq==0:
-            index_max_freq==1
-        pfreqs=f[index_max_freq+1]
+        if includeDC==True:
+            pfreqs=f[np.argmax(Pxx)]
+        else:
+            index_max_freq=np.argmax(Pxx[1::])
+            if index_max_freq==0 or index_max_freq==len(Pxx):
+                index_max_freq==0
+            pfreqs=f[index_max_freq+1]
     return f,Pxx,pfreqs
 
-def Npeaks(f,Pxx,N=5,deltaf=5):
+def peaksSpectrum(f,Pxx,Npeaks=10,deltaf=5):
     """
     Find the N harmonics
     Parameters
     ----------
     f : 1D float array
         frequencies list.
-    Pxx : 1D float array
-        Spectrum.
-    N : int, optional
-        Number of peaks to found. The default is 5.
+    Pxx : 1D or 2D float array
+        N x Spectrum.
+    Npeaks : int 
+        Number of peaks. Default is 10
     deltaf : int, optional
-        Number of frequency bins for tolerance between peaks. The default is 5.
+        Frequency range for tolerance between peaks. The default is 5 Hz.
 
     Returns
     -------
@@ -103,22 +103,52 @@ def Npeaks(f,Pxx,N=5,deltaf=5):
 
     """
     
-    pfreqs=np.zeros((N,np.shape(Pxx)[0]))
-    pindex=np.zeros((N,np.shape(Pxx)[0]),dtype=int)
     df=f[1]-f[0]
-    delta=int(deltaf/df)+1
-    for n in range(np.shape(Pxx)[0]):
-        index_peak_one=np.argmax(Pxx[n,:])
-        pfreqs[0,n]=f[index_peak_one]
-        pindex[0,n]=index_peak_one
-        prev_index_peak=index_peak_one
-        for j in range(1,N):
-                index_peak=np.argmax(Pxx[n,prev_index_peak+delta::])
-                pfreqs[j,n]=f[index_peak+prev_index_peak+delta]
-                pindex[j,n]=index_peak+prev_index_peak+delta
-                prev_index_peak=index_peak+prev_index_peak+delta
+    delta=int(deltaf/df)+1 
+        
+    if len(np.shape(Pxx))==1:
+        pindex=findPeaks(Pxx,tolF=delta,Nmax=Npeaks)
+        pfreqs=f[pindex]
+    else:
+        N=np.shape(Pxx)[0]
+        pindex=np.zeros((N,Npeaks))
+        pfreqs=np.zeros((N,Npeaks))
+        for j in range(N):
+            pindex[j,:]=findPeaks(Pxx[j,:],tolF=delta,Nmax=Npeaks)
+            pfreqs[j,:]=f[pindex]
+    
     return pindex,pfreqs
 
+def findPeaks(Pxx,tolPercentile=1,tolF=10,Nmax=10,power_quotient=10):
+    peak_indexes=np.zeros((Nmax,),dtype=int)
+    diffPxx=Pxx[1::]-Pxx[0:-1]
+    absdiffPxx=np.abs(diffPxx)
+    tol=np.percentile(absdiffPxx,tolPercentile)
+    npeak=0
+    current_f=0
+    #Take the mean of three consecutive points to detect cross-zero points  
+    next_f=3
+    maxPxx=np.max(Pxx)
+    thresholdPower=maxPxx/power_quotient
+    while next_f<len(Pxx)-1 and npeak<Nmax:
+        if (np.mean(diffPxx[current_f:next_f]))<tol:
+            search_peak=True
+            for f_index in range(current_f,next_f):
+                if search_peak:
+                    if Pxx[f_index+1]<Pxx[f_index]:
+                        if Pxx[f_index]>=thresholdPower:
+                            peak_indexes[npeak]=f_index
+                            npeak+=1
+                            #If there is a peak, skip the tolerance frequency
+                            current_f+=tolF
+                            next_f+=tolF
+                            break
+                        search_peak=False
+            search_peak=False
+        current_f+=1
+        next_f+=1
+    return peak_indexes
+    
 def waveletMorlet(x,fs=1000, f_start=0.5,f_end=200, numberFreq=500, omega0=15, correctF=False):
     """
     Wavelet scalogram usign the Morlet mother wavelet
@@ -206,3 +236,73 @@ def empiricalModeDecomposition(x,fs=1000,f_start=0.2,f_end=200,numberFreq=500):
     hht = ndimage.gaussian_filter(hht, 1)
     
     return imf, hht_f, hht
+
+def ARparameters(x,P=2):
+    """
+    Estimation of the parameters of an Auto-regressive process
+    Parameters
+    ----------
+    x : 1D float array
+        time serie.
+    P : int, optional
+        Number of AR parameters (number of poles, then it is strictly related to peaks). The default is 2.
+    Returns
+    -------
+    a : float array
+        Parameters of the AR process.
+        These are the coeficients from the denominator of a discrete time impulse response 1/[1 a1 a2 a3]
+    """
+    
+    correlation=np.correlate(x, x,mode='full')
+    nlags=P
+    Nhalf=len(x)-1
+    #Positive lags
+    correlation=correlation[Nhalf:Nhalf+nlags]
+    #Used to normalize and get r0=1
+    r0=correlation[0]
+    norm_correlation=correlation/r0
+    #correlation vector
+    corrvect=norm_correlation[1:nlags] #after normalization
+    #Not needed, but this avoids confusion
+    norm_correlation=norm_correlation[0:nlags-1]
+    corrmtx=np.zeros((nlags-1,nlags-1))
+    #Bulid the correlation matrix
+    for i in range(nlags-1):
+        for j in range(nlags-1):
+            corrmtx[i,j]=norm_correlation[np.abs(i-j)]        
+
+    #Parameters (caution a0 is not obtained as it is always 1)
+    a=linalg.solve(corrmtx,corrvect)
+    
+    return a
+
+def ARpsd(a,worN=1000,fs=100,sigma=1e-3):
+    """
+    Power spectral density from AR parameters
+
+    Parameters
+    ----------
+    a : 1D float array
+        AR parameters [a1, a2, a3, ..., ap].
+    worN : int, optional
+        Number of frequency bins. The default is 1000.
+    fs : int, optional
+        sampling frequency, used only to scale. The default is 100.
+    sigma : float, optional
+        standard deviation of the noise in the AR process. The default is 1e-3.
+
+    Returns
+    -------
+    psd. 1D float array
+    Power spectral density of large worN
+    """
+    
+    den = np.zeros(worN, dtype=complex)
+    den[0] = 1.+0j
+    for k in range(0, len(a)):
+        den[k+1] = a[k]
+    denf=np.fft.fft(den,worN*2)
+    psd=sigma*fs/np.abs(denf)**2
+    psd=np.real(psd[worN::])
+    
+    return psd
