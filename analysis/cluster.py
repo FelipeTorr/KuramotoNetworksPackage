@@ -180,7 +180,7 @@ def spectralBisection(L, trisection=False):
         cluster1=np.argwhere(real_fiedler_vector<0)[:,0]
         return cluster0, cluster1
     
-def clusteringSpecral(C,N=2):
+def clusteringSpectral(C,N=2):
     num_nodes=np.shape(C)[0]
     all_nodes=np.arange(num_nodes)
     if N==1:
