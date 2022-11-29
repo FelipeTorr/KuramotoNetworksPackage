@@ -460,6 +460,35 @@ def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
                 FC[i,j]=1
     return FC, mean_energy
 
+def FC_filtered_windowed(X,t_start=20000,t_end=40000,f_low=0.5,f_high=100,fs=1000,simulated=True):
+    #Signal duration must be higher than 5 seconds, or the same np.shape(X)[1]>5*fs
+    #This limitation assures that the filter works well for the frequncy bands where is not signal in simulated data
+    #Assume X is NxT
+    amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
+    #The output from HilbertTheta has two seconds less in duration
+    #Low-pass 0.5 Hz, removes 1 second of the Analytical signal before filtering
+    b,a=signal.butter(4,2*0.5/fs,btype='lowpass')
+    envelopes=signal.filtfilt(b,a,amplitudes[:,fs:-fs],axis=1)
+    envelopes=envelopes[:,fs//2:-fs//2] #removes half second after filtering
+    #Warning! envelopes has five seconds lesser than X
+    #The mean energy indicates something about how significant is the analysis in the specific frequency band
+    mean_energy=np.mean(envelopes**2)
+    N=np.shape(X)[0]
+    FC=np.zeros((N,N))
+    time_start=0
+    if t_start>2.5*fs:
+        time_start=t_start-int(2.5*fs)
+    time_end=np.shape(X)[1]
+    if t_end-int(2.5*fs)<time_end:
+        time_end=t_end-int(2.5*fs)
+    for i in range(N):
+        for j in range(N):
+            if i!=j:
+                FC[i,j]=elementFunctionalConnectivity(envelopes[i,time_start:time_end],envelopes[j,time_start:time_end])
+            else:
+                FC[i,j]=1
+    return FC, mean_energy
+
 def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000,simulated=True):
     #Assume X is NxT
     amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)

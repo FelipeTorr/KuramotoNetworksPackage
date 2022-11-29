@@ -70,7 +70,6 @@ class Kuramoto:
         self.StimFreq=StimFreq*2*np.pi
         self.StimAmp=StimAmp
         self.ForcingNodes=np.zeros((self.n_nodes,1))
-        #self.ForcingNodes[80:90,:]=0
         self.nat_freq_mean=nat_freq_mean
         self.nat_freq_std=nat_freq_std
         self.seed=SEED
@@ -148,15 +147,32 @@ class Kuramoto:
         self.nat_freq_std=parameters['nat_freq_std']
         self.random_nat_freq=parameters['random_nat_freq']
         nat_freqs=parameters['nat_freqs']
+        try:
+        	self.initializeForcingNodes(parameters['ForcingNodes'])
+        except:
+        	self.initializeForcingNodes(None)
         self.natfreqs=self.initializeNatFreq(nat_freqs)
         self.struct_connectivity=matrices.loadConnectome(self.n_nodes,parameters['struct_connectivity'])
         self.delays_matrix=matrices.loadDelays(self.n_nodes,parameters['delay_matrix'])
         self.applyMean_Delay()
         self.ω = 2*np.pi*self.natfreqs
-        self.ForcingNodes=np.zeros((self.n_nodes,1))
+        
         self.global_coupling=self.K/self.n_nodes
 
-
+    def initializeForcingNodes(self,forcingNodes):
+        self.ForcingNodes=np.zeros((self.n_nodes,1))
+        if forcingNodes is not None:
+            if type(forcingNodes)==int:
+            	self.ForcingNodes[forcingNodes]=1
+            elif type(forcingNodes)==str:
+            	fnodes=eval(forcingNodes)
+            	for node in fnodes:
+                    self.ForcingNodes[node]=1
+            else:
+                for node in forcingNodes:
+                    self.ForcingNodes[node]=1
+            
+    
     def initializeTimeDelays(self):
         No_nodes=self.n_nodes
         D = loadmat('../input_data/AAL_matrices.mat')['D']
@@ -194,16 +210,18 @@ class Kuramoto:
         This function present the stimulation from Tstart to Tend 
         It is used below in the integration function, 
         t is here because of the default parameters of the odeint function.
+        Add the maximum of the delays matrix, because for the stored data t_0=max(delays_matrix) 
         '''
 
         if self.StimTend>self.simulation_period:
             print("Tend Cannot be larger than the simulation time which is"+'%.1f' %self.T)
-        if arg<self.StimTstart:
+        if arg<self.StimTstart+np.max(self.delays_matrix):
             return 0
-        elif arg>self.StimTstart and arg<self.StimTend: 
+        elif arg>self.StimTstart+np.max(self.delays_matrix) and arg<self.StimTend+np.max(self.delays_matrix): 
             return 1
         else:
             return 0
+            
     def initial_phases(self):
         return 2*np.pi*np.random.random(size=self.n_nodes)
     

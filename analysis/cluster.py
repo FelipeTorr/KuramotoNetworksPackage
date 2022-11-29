@@ -4,10 +4,12 @@ import os
 import sys
 sys.path.append(os.path.abspath('../'))
 import analysis.synchronization as synchronization
+import analysis.connectivityMatrices as connectivityMatrices
 import metis
 from networkx.algorithms.community import k_clique_communities
 from scipy.cluster.hierarchy import dendrogram, linkage
 import numpy as np
+import matplotlib.pyplot as plt
 
 def Clustering(G,No_Clusters):
     """
@@ -32,7 +34,11 @@ def Clustering(G,No_Clusters):
         No_Clusters=10
     # No_Clusters=9 # Can be assigned, But add extra colors below
     (edgecuts, parts) = metis.part_graph(G, No_Clusters,recursive=True)
-    colors = ['red','blue','green','brown','yellow','black','magenta','olive','cyan','purple']
+    colors = ['red','blue','cyan','yellow','green','brown','black','magenta',
+              'olive','purple','orange','light blue','light green',plt.cm.tab10(0),plt.cm.tab10(1),plt.cm.tab10(2),
+              plt.cm.tab10(3),plt.cm.tab10(4),plt.cm.tab10(5),
+              plt.cm.tab10(6),plt.cm.tab10(7),plt.cm.tab10(8),
+              plt.cm.tab10(9)]
     for i, p in enumerate(parts):
         G.nodes[i]['color'] = colors[p]
         color_map.append(colors[p])
@@ -160,3 +166,47 @@ def categoryDistance(x,y):
         min_distance_index=np.zeros((len(x)))
         min_distance=np.sqrt(np.abs(x**2-y**2))
     return min_distance_index,min_distance
+
+def spectralBisection(L, trisection=False):
+    eig_values, eig_vectors, count_zeros_eigvalues, algebraic_connectivty=connectivityMatrices.eigen(L)
+    real_fiedler_vector=np.real(eig_vectors[:,1])
+    if trisection:
+        cluster0=np.argwhere(real_fiedler_vector>algebraic_connectivty)[:,0]
+        cluster1=np.argwhere(real_fiedler_vector<-algebraic_connectivty)[:,0]
+        cluster2=np.argwhere((real_fiedler_vector>=(-algebraic_connectivty)) & (real_fiedler_vector<=algebraic_connectivty))[:,0]
+        return cluster0, cluster1, cluster2
+    else:
+        cluster0=np.argwhere(real_fiedler_vector>=0)[:,0]
+        cluster1=np.argwhere(real_fiedler_vector<0)[:,0]
+        return cluster0, cluster1
+    
+def clusteringSpecral(C,N=2):
+    num_nodes=np.shape(C)[0]
+    all_nodes=np.arange(num_nodes)
+    if N==1:
+        return all_nodes
+    else:
+        flag_odd=False
+        iter_num=int(N//2)
+        if (N%2)==1:
+           flag_odd=True
+
+        L=connectivityMatrices.Laplacian(C)
+        clusters_pre=[]
+        
+        clusters_pre.append(all_nodes)
+        for ii in range(iter_num):
+            clusters_post=[]
+            for cluster in clusters_pre:
+                if ii==iter_num-1 and flag_odd:
+                    cluster0,cluster1,cluster2=spectralBisection(L[cluster,:][:,cluster],trisection=True)
+                    clusters_post.append(cluster[cluster0])
+                    clusters_post.append(cluster[cluster1])
+                    clusters_post.append(cluster[cluster2])
+                    flag_odd=False
+                else:
+                    cluster0,cluster1=spectralBisection(L[cluster,:][:,cluster],trisection=False)
+                    clusters_post.append(cluster[cluster0])
+                    clusters_post.append(cluster[cluster1])
+                clusters_pre=clusters_post
+        return clusters_post

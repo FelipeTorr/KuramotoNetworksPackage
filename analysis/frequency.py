@@ -80,6 +80,64 @@ def peak_freqs(x,fs=1000,nperseg=4096,noverlap=2048,applySin=True,includeDC=Fals
             pfreqs=f[index_max_freq+1]
     return f,Pxx,pfreqs
 
+def countSumPeaks(x,fs=1000,nperseg=4096,noverlap=2048,applySin=True,minProminence=0.5,maxProminence=100,distance=0.5):
+    """"
+    The peaks of the sum of the all nodes Welch's periodograms.
+    Parameters
+    ----------
+    x : 1D float
+        data NxT.
+    fs : int
+    	sampling frequency
+    nperseg : int, optional
+        time window in number of samples. The default is 4096.
+    noverlap : int, optional
+        overlap time in number of samples. The default is 2048.
+    applySin : boolean, deafult=True
+        apply the sin function before calculate the spectrum
+    minProminence: float
+        minimum value of ratio between the peak and its neighborhood
+    maxProminence: float
+    	maximum value of ratio between the peak and its neighborhood
+    distance: float
+    	minimum value in Hz between peaks	
+    	
+    Returns
+    -------
+    f : 1D float array
+        list of frequencies.
+    sumPxx : 1D float array
+        Sum of the periodograms.
+    npeaks : int
+        Number of found peaks
+    peaks_arrayt : 2D float array
+        frequencies and amplitudes of the found peaks
+
+    """
+    if applySin:
+        X=np.sin(x)
+    else:
+        X=x
+    Pxx=np.zeros((np.shape(x)[0],nperseg//2+1))
+    if len(np.shape(x))>1:
+        for n in range(np.shape(x)[0]):
+            f,Pxx[n,:]=signal.welch(X[n,:],fs=fs,window='hamming',nperseg=nperseg,noverlap=noverlap)
+        #Sum
+        sumPxx=np.sum(Pxx,axis=0)
+    else:
+        #Single node
+        f,sumPxx=signal.welch(X,fs=fs,window='hamming',nperseg=nperseg,noverlap=noverlap)
+    df=f[1]-f[0]
+    ndistance=int(distance//df)
+    peaks, properties=signal.find_peaks(sumPxx,prominence=(minProminence,maxProminence),distance=ndistance)
+    npeaks=len(peaks)
+    peaks_array=np.zeros((npeaks,2))
+    for i in range(npeaks):
+        peaks_array[i,0]=f[peaks[i]]
+        peaks_array[i,1]=sumPxx[peaks[i]]
+        
+    return f, sumPxx, npeaks, peaks_array
+    
 def peaksSpectrum(f,Pxx,Npeaks=10,deltaf=5):
     """
     Find the N harmonics
@@ -119,7 +177,7 @@ def peaksSpectrum(f,Pxx,Npeaks=10,deltaf=5):
     
     return pindex,pfreqs
 
-def findPeaks(Pxx,tolPercentile=1,tolF=10,Nmax=10,power_quotient=10):
+def findPeaks(Pxx,tolPercentile=1,tolF=10,Nmax=10,power_quotient=2):
     peak_indexes=np.zeros((Nmax,),dtype=int)
     diffPxx=Pxx[1::]-Pxx[0:-1]
     absdiffPxx=np.abs(diffPxx)
@@ -306,3 +364,13 @@ def ARpsd(a,worN=1000,fs=100,sigma=1e-3):
     psd=np.real(psd[worN::])
     
     return psd
+
+def spectralEntropy(Pxx):
+    """ Pxx : 1D float arry
+    N x frequency bins
+    """
+
+    N=np.shape(Pxx)[1]
+    ProbPxx=Pxx/Pxx.sum(keepdims=1)
+    H=(np.sum(-ProbPxx*np.log(ProbPxx),axis=1))/np.log(N)
+    return H

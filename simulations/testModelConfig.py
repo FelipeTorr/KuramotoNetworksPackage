@@ -45,10 +45,11 @@ for file in os.listdir(config_directory):
         config_files.append(config_directory+file)
         
 parameters=parser.loadData(config_files[0])
+print(parameters)
 max_workers=parameters['max_workers']
 
-# RunKuramotoFor(config_files[0])
-# #Multiprocessing
+#RunKuramotoFor(config_files[0])
+#Multiprocessing
 for j in range(1):
     print('Starting simulations')
     lock = Lock()

@@ -24,8 +24,7 @@ def connectionMatrix(n_nodes=4,weights_type='equal', mean_weight=1.0,std_weight=
         SC=std_weight*np.random.randn(n_nodes,n_nodes)+mean_weight
         SC=SC-np.diag(np.diag(SC))
     if symmetric:
-        LU=np.triu(SC,k=1)
-        SC[np.tril_indices(n_nodes,-1)]=LU[np.nonzero(LU)].flatten()
+        SC[np.tril_indices(n_nodes,-1)]=SC.T[np.tril_indices(n_nodes,-1)]
     
     if positive:
         SC=np.abs(SC)
@@ -45,39 +44,42 @@ def storeMatrices(SC,D,name=None):
 def main():
     print('Storing new connection matrices')
     print('Structural Connectivity matrix')
-    n_nodes=int(input('Set the number of nodes'))
-    tipo=int(input('Set the type of the connections: 1:Equal, 2:Random Uniform, 3: Random Gaussian'))
-    symmetric_in=input('Symmetric [y/n]?')
-    positive_in=input('Only positives [y/n]?')
-    
-    print('Delays matrix')
-    tipoDelays=int(input('Set the type of the connections: 1:Equal, 2:Random Uniform, 3: Random Gaussian'))
+    n_nodes=int(input('Set the number of nodes:\n'))
+    tipo=int(input('Set the type of the connections: 1:Equal, 2:Random Uniform, 3: Random Gaussian:\n'))
+    symmetric_in=input('Symmetric [y/n]?:\n')
+    positive_in=input('Only positives [y/n]?:\n')
     
     if tipo==1:
         weights_type='equal'
-        mean_weight=float(input('Set weight value'))
+        mean_weight=float(input('Set weight value:\n'))
         std_weight=0
     elif tipo==2:
         weights_type='random'
-        mean_weight=float(input('Set mean weight value'))
-        std_weight=float(input('Set standard deviation of weight values'))
+        mean_weight=float(input('Set mean weight value:\n'))
+        std_weight=float(input('Set standard deviation of weight values:\n'))
     elif tipo==3:
         weights_type='randomGaussian'
-        mean_weight=float(input('Set mean weight value'))
-        std_weight=float(input('Set standard deviation of weight values'))
+        mean_weight=float(input('Set mean weight value:\n'))
+        std_weight=float(input('Set standard deviation of weight values:\n'))
+    
+    
+    print('Delays matrix')
+    tipoDelays=int(input('Set the type of the connections: 1:Equal, 2:Random Uniform, 3: Random Gaussian:\n'))
+    
+    
         
     if tipoDelays==1:
         weights_typeDelays='equal'
-        mean_weightDelays=float(input('Set delay value'))
+        mean_weightDelays=float(input('Set delay value:\n'))
         std_weightDelays=0
     elif tipoDelays==2:
         weights_typeDelays='random'
-        mean_weightDelays=float(input('Set mean delay value'))
-        std_weightDelays=float(input('Set standard deviation of delay values'))
+        mean_weightDelays=float(input('Set mean delay value:\n'))
+        std_weightDelays=float(input('Set standard deviation of delay values:\n'))
     elif tipoDelays==3:
         weights_typeDelays='randomGaussian'
-        mean_weightDelays=float(input('Set mean weight value'))
-        std_weightDelays=float(input('Set standard deviation of delay values'))
+        mean_weightDelays=float(input('Set mean delay value:\n'))
+        std_weightDelays=float(input('Set standard deviation of delay values:\n'))
     
     if symmetric_in=='y':
         symmetric=True

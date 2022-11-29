@@ -95,7 +95,7 @@ def loadLabels(filename=None, field=None):
     return labels
 
 
-def constructErdosRenyiConnectome(No_nodes,p=1):
+def constructErdosRenyiConnectome(No_nodes,p=1,seed=2):
     """
     Construct a random connected network
     Parameters
@@ -113,7 +113,7 @@ def constructErdosRenyiConnectome(No_nodes,p=1):
 
     """
 
-    C_nx=nx.erdos_renyi_graph(n=No_nodes, p=p)
+    C_nx=nx.erdos_renyi_graph(n=No_nodes, p=p,seed=seed)
     C=nx.to_numpy_array(C_nx)
     return C 
 
@@ -201,7 +201,7 @@ def booleanDegree(C):
     k_i=np.sum(A,axis=1)
     return k_i
 
-def Laplacian(C):
+def Laplacian(C,asAdjancency=False):
     """
     Lplacian matrix of a graph from the connectivity matrix
 
@@ -216,9 +216,12 @@ def Laplacian(C):
         Laplacian matrix.
 
     """
-    
-    D=degreeMatrix(C)
-    L=D-C
+    if asAdjancency:
+        A=adjacencyMatrix(C)
+    else:
+        A=np.copy(C)
+    D=degreeMatrix(A)
+    L=D-A
     return L
 
 def eigen(C):
@@ -226,7 +229,7 @@ def eigen(C):
     Parameters
     ----------
     C : 2D float square array
-        Connectivity matrix.
+        Connectivity or Laplacian matrix.
 
     Returns
     -------
@@ -251,7 +254,9 @@ def eigen(C):
     #count zero eigvalues
     count_zeros_eigvalues=len(np.argwhere(np.abs(eig_values)<1e-9))
     #Algebraic connectivity
-    algebraic_connectivty=np.abs(eig_values[1])
+    algebraic_connectivity=np.abs(eig_values[1])
     
-    return eig_values, eig_vectors, count_zeros_eigvalues, algebraic_connectivty
+    return eig_values, eig_vectors, count_zeros_eigvalues, algebraic_connectivity
+    
+
     

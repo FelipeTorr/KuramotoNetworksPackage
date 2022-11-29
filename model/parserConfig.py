@@ -29,11 +29,17 @@ def loadData(file_path):
                 else:
                     config[key]=data
                 continue
-            elif key=='random_nat_freq': 
+            if key=='ForcingNodes':
+                if data=='' or data==' ':
+                    config[key]=None
+                else:
+                    config[key]=data
+                continue
+            if key=='random_nat_freq': 
                 data=eval(data)
                 config[key]=data
                 continue
-            elif key=='max_workers' or key =='seed' or key =='n_nodes':
+            if key=='max_workers' or key =='seed' or key =='n_nodes':
                 data=int(data)
                 config[key]=data
                 continue
