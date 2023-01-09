@@ -80,7 +80,7 @@ def peak_freqs(x,fs=1000,nperseg=4096,noverlap=2048,applySin=True,includeDC=Fals
             pfreqs=f[index_max_freq+1]
     return f,Pxx,pfreqs
 
-def countSumPeaks(x,fs=1000,nperseg=4096,noverlap=2048,applySin=True,minProminence=0.5,maxProminence=100,distance=0.5):
+def countSumPeaks(x,fs=1000,nperseg=4096,noverlap=2048,applySin=True,minProminence=0.5,maxProminence=1000,distance=0.5):
     """"
     The peaks of the sum of the all nodes Welch's periodograms.
     Parameters
@@ -369,8 +369,26 @@ def spectralEntropy(Pxx):
     """ Pxx : 1D float arry
     N x frequency bins
     """
+    H=0
+    if Pxx.sum()==0:
+        return H
+    else:
+        if len(np.shape(Pxx))==2:
+            Nfreq=np.shape(Pxx)[1]
+            ProbPxx=Pxx/Pxx.sum(keepdims=1)+1e-21
+            H=(np.sum(-ProbPxx*np.log(ProbPxx),axis=1))/np.log(Nfreq)
+        else:
+            Nfreq=len(Pxx)
+            ProbPxx=Pxx/Pxx.sum()+1e-21
+            H=(np.sum(-ProbPxx*np.log(ProbPxx)))/np.log(Nfreq)
+        return H
 
-    N=np.shape(Pxx)[1]
-    ProbPxx=Pxx/Pxx.sum(keepdims=1)
-    H=(np.sum(-ProbPxx*np.log(ProbPxx),axis=1))/np.log(N)
+def spectralEntropy2D(Cxx):
+    """ Pxx : 2D float arry
+    frequency bins x frequency bins
+    """
+
+    N=np.shape(Cxx)[0]*np.shape(Cxx)[1]
+    ProbCxx=Cxx/Cxx.sum()
+    H=(np.sum(-ProbCxx*np.log(ProbCxx)))/np.log(N)
     return H
