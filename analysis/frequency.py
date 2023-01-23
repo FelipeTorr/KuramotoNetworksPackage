@@ -6,7 +6,7 @@ import numpy as np
 import numpy.linalg as linalg
 import scipy.signal as signal
 import scipy.ndimage as ndimage
-import emd
+#import emd
 
 
 def effectiveFrequency(x,T):
@@ -284,16 +284,16 @@ def spectrogram(X,fs=1000,nperseg=4096,noverlap=2048):
     	         
     return t,f,Sxx
 
-def empiricalModeDecomposition(x,fs=1000,f_start=0.2,f_end=200,numberFreq=500):
-    #Empirical decomposition (ortogonal signals)
-    imf = emd.sift.sift(x)
-    #Hilbert-Huang
-    freq_range = (f_start, f_end, numberFreq)
-    IP, IF, IA = emd.spectra.frequency_transform(imf, fs, 'hilbert')
-    hht_f, hht=emd.spectra.hilberthuang(IF, IA, freq_range, mode='amplitude', sum_time=False)
-    hht = ndimage.gaussian_filter(hht, 1)
+# def empiricalModeDecomposition(x,fs=1000,f_start=0.2,f_end=200,numberFreq=500):
+#     #Empirical decomposition (ortogonal signals)
+#     imf = emd.sift.sift(x)
+#     #Hilbert-Huang
+#     freq_range = (f_start, f_end, numberFreq)
+#     IP, IF, IA = emd.spectra.frequency_transform(imf, fs, 'hilbert')
+#     hht_f, hht=emd.spectra.hilberthuang(IF, IA, freq_range, mode='amplitude', sum_time=False)
+#     hht = ndimage.gaussian_filter(hht, 1)
     
-    return imf, hht_f, hht
+#     return imf, hht_f, hht
 
 def ARparameters(x,P=2):
     """
