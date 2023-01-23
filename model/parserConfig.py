@@ -3,7 +3,7 @@ def readline(line):
         Read one line from the *config* file, if the line is not tagged as a comment
 
         Parameters
-        -------
+        ----------
             line : str
             	A line of the *config* file
 
@@ -32,7 +32,7 @@ def loadData(file_path):
     Recollect the model parameters from the *config* file specified by **file_path**.
     
     Parameters
-    -------
+    ----------
     filepath : str
     	The path with the directory and filename of the __config__ file.
     	

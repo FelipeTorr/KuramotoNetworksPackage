@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animation of Kuramoto Order Parameter &mdash; KuramotoNetworksPackage 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Circular plots" href="circular.html" />
+    <link rel="prev" title="Plot Tools" href="../plot.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> KuramotoNetworksPackage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../model.html">Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../plot.html">Plot Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Animation of Kuramoto Order Parameter</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#plot.animation.Animation"><code class="docutils literal notranslate"><span class="pre">Animation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot.animation.animateClusters"><code class="docutils literal notranslate"><span class="pre">animateClusters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot.animation.animateSync"><code class="docutils literal notranslate"><span class="pre">animateSync()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot.animation.remove_img"><code class="docutils literal notranslate"><span class="pre">remove_img()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="circular.html">Circular plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="networks.html">Networkx plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scatter.html">Scatter plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="video_twonodes.html">Video for the two nodes system</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../simulations.html">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Summary</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">KuramotoNetworksPackage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../plot.html">Plot Tools</a></li>
+      <li class="breadcrumb-item active">Animation of Kuramoto Order Parameter</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/plot/animation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="animation-of-kuramoto-order-parameter">
+<h1>Animation of Kuramoto Order Parameter<a class="headerlink" href="#animation-of-kuramoto-order-parameter" title="Permalink to this heading"></a></h1>
+<span class="target" id="module-plot.animation"></span><p><strong>Functions:</strong></p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#plot.animation.Animation" title="plot.animation.Animation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Animation</span></code></a>(fp_in, name)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#plot.animation.animateClusters" title="plot.animation.animateClusters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">animateClusters</span></code></a>(T, dt, Step, act_mat, ...)</p></td>
+<td><p>act_mat is the activity matrix or the phases after integration Step is the frame duration in the gif</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#plot.animation.animateSync" title="plot.animation.animateSync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">animateSync</span></code></a>(T, dt, Step, act_mat)</p></td>
+<td><p>act_mat is the activity matrix or the phases after integration Step is the frame duration in the gif</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#plot.animation.remove_img" title="plot.animation.remove_img"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_img</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="plot.animation.Animation">
+<span class="sig-prename descclassname"><span class="pre">plot.animation.</span></span><span class="sig-name descname"><span class="pre">Animation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fp_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.animation.Animation" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot.animation.animateClusters">
+<span class="sig-prename descclassname"><span class="pre">plot.animation.</span></span><span class="sig-name descname"><span class="pre">animateClusters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_mat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CoherentPhases</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.animation.animateClusters" title="Permalink to this definition"></a></dt>
+<dd><p>act_mat is the activity matrix or the phases after integration
+Step is the frame duration in the gif</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot.animation.animateSync">
+<span class="sig-prename descclassname"><span class="pre">plot.animation.</span></span><span class="sig-name descname"><span class="pre">animateSync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_mat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.animation.animateSync" title="Permalink to this definition"></a></dt>
+<dd><p>act_mat is the activity matrix or the phases after integration
+Step is the frame duration in the gif</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot.animation.remove_img">
+<span class="sig-prename descclassname"><span class="pre">plot.animation.</span></span><span class="sig-name descname"><span class="pre">remove_img</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#plot.animation.remove_img" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../plot.html" class="btn btn-neutral float-left" title="Plot Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="circular.html" class="btn btn-neutral float-right" title="Circular plots" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Vibrain.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

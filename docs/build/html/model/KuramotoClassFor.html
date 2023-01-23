@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kuramoto model &mdash; KuramotoNetworksPackage 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Configuration file parser" href="parserConfig.html" />
+    <link rel="prev" title="Model" href="../model.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> KuramotoNetworksPackage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../model.html">Model</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Kuramoto model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#clasical-kuramoto">Clasical Kuramoto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#delayed-kuramoto">Delayed Kuramoto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#partially-forced-delayed-kuramoto">Partially Forced Delayed Kuramoto</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto"><code class="docutils literal notranslate"><span class="pre">Kuramoto</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="parserConfig.html">Configuration file parser</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plot.html">Plot Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../simulations.html">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Summary</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">KuramotoNetworksPackage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../model.html">Model</a></li>
+      <li class="breadcrumb-item active">Kuramoto model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/model/KuramotoClassFor.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="kuramoto-model">
+<h1>Kuramoto model<a class="headerlink" href="#kuramoto-model" title="Permalink to this heading"></a></h1>
+<p>Implements the Kuramoto model in three different versions.
+The instatiated model already includes the method for its integration called by the method <strong>simulate()</strong>.</p>
+<section id="clasical-kuramoto">
+<h2>Clasical Kuramoto<a class="headerlink" href="#clasical-kuramoto" title="Permalink to this heading"></a></h2>
+<div class="math notranslate nohighlight">
+\[\dot{\theta}_{n}(t)=\omega_{n}+\sum_{n} c_{nm} \sin{(\theta_{m}(t)-\theta_{n}(t))}\]</div>
+</section>
+<section id="delayed-kuramoto">
+<h2>Delayed Kuramoto<a class="headerlink" href="#delayed-kuramoto" title="Permalink to this heading"></a></h2>
+<div class="math notranslate nohighlight">
+\[\dot{\theta}_{n}(t)=\omega_{n}+\sum_{n} c_{nm} \sin{(\theta_{m}(t-\tau_{mn})-\theta_{n}(t))}\]</div>
+</section>
+<section id="partially-forced-delayed-kuramoto">
+<h2>Partially Forced Delayed Kuramoto<a class="headerlink" href="#partially-forced-delayed-kuramoto" title="Permalink to this heading"></a></h2>
+<div class="math notranslate nohighlight">
+\[\dot{\theta}_{n}(t)=\omega_{n}-\delta_{n} F\sin{(\sigma t-\theta_{n})}+\sum_{n} c_{nm} \sin{(\theta_{m}(t-\tau_{mn})-\theta_{n}(t))}\]</div>
+<p>An online tutorial could be found in <a class="reference external" href="https://colab.research.google.com/github/FelipeTorr/KuramotoNetworksPackage/blob/main/KuramotoNotebook.ipynb">Tutorial Kuramoto model</a>.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.KuramotoClassFor.</span></span><span class="sig-name descname"><span class="pre">Kuramoto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">struct_connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delays_matrix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">K</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">StimTstart</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">StimTend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">StimFreq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">StimAmp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_nodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">90</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">natfreqs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nat_freq_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nat_freq_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GenerateRandom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SEED</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Kuramoto model class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>struct_connectivity</strong> (<em>float 2D array</em><em>, </em><em>optional</em>) – Structural connectivty matrix, a weighted adjacency matrix. The default is the AAL90 matrix</p></li>
+<li><p><strong>delays_matrix</strong> (<em>float 2D array</em><em>, </em><em>optional</em>) – Matrix of the delays between connections. The default is the AAL90 distances matrix in meters.</p></li>
+<li><p><strong>K</strong> (<em>float</em><em>, </em><em>optional</em>) – Global coupling parameter <strong>K</strong> (it will be normalized by the number of nodes). The default is 5.</p></li>
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – Integration time step.
+The default is 1e-4 seconds.</p></li>
+<li><p><strong>simulation_period</strong> (<em>float</em><em>, </em><em>optional</em>) – Total time of the simulation.
+The default is 100 seconds.</p></li>
+<li><p><strong>StimTstart</strong> (<em>float</em><em>, </em><em>optional.</em>) – Starting time of the stimulaiton
+(PFDK only! The default is 0 seconds.)</p></li>
+<li><p><strong>StimTend</strong> (<em>float</em><em>, </em><em>optional.</em>) – Final time of the stimulation
+(PFDK only! The default is 0 seconds.)</p></li>
+<li><p><strong>StimFreq</strong> (<em>float</em><em>, </em><em>optional.</em>) – Stimulation frequency, <strong>sigma</strong>
+(PFDK only! The default is 0 seconds.)</p></li>
+<li><p><strong>StimAmplitude</strong> (<em>float</em><em>, </em><em>optional.</em>) – Stimulation force amplitude, <strong>F</strong>
+PFDK only! The default is 0 seconds.)</p></li>
+<li><p><strong>n_nodes</strong> (<em>int</em><em>, </em><em>optional.</em>) – Number of oscillatory nodes.
+The default is 90 nodes.</p></li>
+<li><p><strong>natfreqs</strong> (<em>float 1D array</em><em>, </em><em>optional.</em>) – Natural frequencies, <strong>omega_n</strong>, of the system oscillators.
+The default is None, in order to use the <strong>nat_freq_mean</strong> and <strong>nat_freq_std</strong> to build the array.</p></li>
+<li><p><strong>nat_freq_mean</strong> (<em>float</em><em>, </em><em>optional.</em>) – Average natural frequency. The default is 0 Hz (only used if <strong>natfreqs</strong> is None).</p></li>
+<li><p><strong>nat_freq_std</strong> (<em>float</em><em>, </em><em>optional.</em>) – The standard deviation for a Gaussian distribution. The dafult is 2 Hz (only used if natfreqs is None).</p></li>
+<li><p><strong>GenerateRandom</strong> (<em>boolean</em><em>, </em><em>optional.</em>) – Set if the natural frequencies comes from the same random seed for each simulation.</p></li>
+<li><p><strong>SEED</strong> (<em>int</em><em>, </em><em>optional.</em>) – The simulation seed. The default is 2.</p></li>
+<li><p><strong>mean_delay</strong> (<em>float</em><em>, </em><em>optional.</em>) – The mean delay to scale the distance matrix. It also could be seen as the inverse of the conduction speed.
+The default is 0.1 seconds/meter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>model</strong> – Kuramoto model that implements itself integration method</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto" title="model.KuramotoClassFor.Kuramoto">Kuramoto</a></p>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.IntegrateDD" title="model.KuramotoClassFor.Kuramoto.IntegrateDD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IntegrateDD</span></code></a>()</p></td>
+<td><p>Jitcdde solver (integration) function.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.applyMean_Delay" title="model.KuramotoClassFor.Kuramoto.applyMean_Delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">applyMean_Delay</span></code></a>()</p></td>
+<td><p>Scale the delays matrix by the mean_delay factor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.calculateOrderParameter" title="model.KuramotoClassFor.Kuramoto.calculateOrderParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculateOrderParameter</span></code></a>(dynamics)</p></td>
+<td><p>Calculate Kuramoto order parameter</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.gui_interact" title="model.KuramotoClassFor.Kuramoto.gui_interact"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gui_interact</span></code></a>(K)</p></td>
+<td><p>Jupyter notebook function for &quot;online&quot; change of the <strong>K</strong> parameter (Note that this method can be used to change any model parameter with the appropiate modifications)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.initial_phases" title="model.KuramotoClassFor.Kuramoto.initial_phases"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initial_phases</span></code></a>()</p></td>
+<td><p>Set the initial values of the variables</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.initializeForcingNodes" title="model.KuramotoClassFor.Kuramoto.initializeForcingNodes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initializeForcingNodes</span></code></a>(forcingNodes)</p></td>
+<td><p>Set the binary vector of forcing/no-forcing nodes</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.initializeNatFreq" title="model.KuramotoClassFor.Kuramoto.initializeNatFreq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initializeNatFreq</span></code></a>(natfreqs)</p></td>
+<td><p>Set the vector of the natural frequencies of the oscillators with:</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.initializeTimeDelays" title="model.KuramotoClassFor.Kuramoto.initializeTimeDelays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initializeTimeDelays</span></code></a>()</p></td>
+<td><p>Initialize the default matrix <strong>D</strong>: the delays matrix of AAL90.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.kuramotos" title="model.KuramotoClassFor.Kuramoto.kuramotos"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kuramotos</span></code></a>()</p></td>
+<td><p>Delayed Kuramoto model (from Jitcdde documentation)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.kuramotosForced" title="model.KuramotoClassFor.Kuramoto.kuramotosForced"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kuramotosForced</span></code></a>()</p></td>
+<td><p>Forced and delayed Kuramoto model</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.kuramotosZero" title="model.KuramotoClassFor.Kuramoto.kuramotosZero"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kuramotosZero</span></code></a>(y, t)</p></td>
+<td><p>Easiest way to define in python the classical Kuramoto model It works (and solves faster) with scipy ODE solvers</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.loadParameters" title="model.KuramotoClassFor.Kuramoto.loadParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadParameters</span></code></a>(parameters)</p></td>
+<td><p>Load the parameters of the model</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.load_struct_connectivity" title="model.KuramotoClassFor.Kuramoto.load_struct_connectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_struct_connectivity</span></code></a>()</p></td>
+<td><p>Intialize the default structural connectivity matrix <strong>C</strong> from AAL90 Only if the matrix was not specified in the input parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.param" title="model.KuramotoClassFor.Kuramoto.param"><code class="xref py py-obj docutils literal notranslate"><span class="pre">param</span></code></a>(y, arg)</p></td>
+<td><p>Auxiliar function in order to present the stimulation from <strong>StimTstart</strong> to <strong>StimTend</strong> Add the maximum of the delays matrix, because for the stored data t_0=max(<strong>delays_matrix</strong>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.phase_coherence" title="model.KuramotoClassFor.Kuramoto.phase_coherence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phase_coherence</span></code></a>(angles_vec)</p></td>
+<td><p>Calculate the Kuramoto Order parameter for each time step</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.setGlobalCoupling" title="model.KuramotoClassFor.Kuramoto.setGlobalCoupling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setGlobalCoupling</span></code></a>(K)</p></td>
+<td><p>Set the global coupling parameter <strong>K</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.setMeanTimeDelay" title="model.KuramotoClassFor.Kuramoto.setMeanTimeDelay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setMeanTimeDelay</span></code></a>(mean_delay)</p></td>
+<td><p>Set the <strong>mean_delay</strong> parameter</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.simulate" title="model.KuramotoClassFor.Kuramoto.simulate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">simulate</span></code></a>([Forced])</p></td>
+<td><p>Main function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.testIntegrate" title="model.KuramotoClassFor.Kuramoto.testIntegrate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">testIntegrate</span></code></a>()</p></td>
+<td><p>Test the Delayed Kuramoto</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.testIntegrateForced" title="model.KuramotoClassFor.Kuramoto.testIntegrateForced"><code class="xref py py-obj docutils literal notranslate"><span class="pre">testIntegrateForced</span></code></a>()</p></td>
+<td><p>Test the Partially forced and delayed model</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Methods:</strong></p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.IntegrateDD" title="model.KuramotoClassFor.Kuramoto.IntegrateDD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IntegrateDD</span></code></a>()</p></td>
+<td><p>Jitcdde solver (integration) function.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.applyMean_Delay" title="model.KuramotoClassFor.Kuramoto.applyMean_Delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">applyMean_Delay</span></code></a>()</p></td>
+<td><p>Scale the delays matrix by the mean_delay factor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.calculateOrderParameter" title="model.KuramotoClassFor.Kuramoto.calculateOrderParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculateOrderParameter</span></code></a>(dynamics)</p></td>
+<td><p>Calculate Kuramoto order parameter</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.gui_interact" title="model.KuramotoClassFor.Kuramoto.gui_interact"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gui_interact</span></code></a>(K)</p></td>
+<td><p>Jupyter notebook function for &quot;online&quot; change of the <strong>K</strong> parameter (Note that this method can be used to change any model parameter with the appropiate modifications)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.initial_phases" title="model.KuramotoClassFor.Kuramoto.initial_phases"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initial_phases</span></code></a>()</p></td>
+<td><p>Set the initial values of the variables</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.initializeForcingNodes" title="model.KuramotoClassFor.Kuramoto.initializeForcingNodes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initializeForcingNodes</span></code></a>(forcingNodes)</p></td>
+<td><p>Set the binary vector of forcing/no-forcing nodes</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.initializeNatFreq" title="model.KuramotoClassFor.Kuramoto.initializeNatFreq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initializeNatFreq</span></code></a>(natfreqs)</p></td>
+<td><p>Set the vector of the natural frequencies of the oscillators with:</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.initializeTimeDelays" title="model.KuramotoClassFor.Kuramoto.initializeTimeDelays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">initializeTimeDelays</span></code></a>()</p></td>
+<td><p>Initialize the default matrix <strong>D</strong>: the delays matrix of AAL90.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.kuramotos" title="model.KuramotoClassFor.Kuramoto.kuramotos"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kuramotos</span></code></a>()</p></td>
+<td><p>Delayed Kuramoto model (from Jitcdde documentation)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.kuramotosForced" title="model.KuramotoClassFor.Kuramoto.kuramotosForced"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kuramotosForced</span></code></a>()</p></td>
+<td><p>Forced and delayed Kuramoto model</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.kuramotosZero" title="model.KuramotoClassFor.Kuramoto.kuramotosZero"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kuramotosZero</span></code></a>(y, t)</p></td>
+<td><p>Easiest way to define in python the classical Kuramoto model It works (and solves faster) with scipy ODE solvers</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.loadParameters" title="model.KuramotoClassFor.Kuramoto.loadParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadParameters</span></code></a>(parameters)</p></td>
+<td><p>Load the parameters of the model</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.load_struct_connectivity" title="model.KuramotoClassFor.Kuramoto.load_struct_connectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_struct_connectivity</span></code></a>()</p></td>
+<td><p>Intialize the default structural connectivity matrix <strong>C</strong> from AAL90 Only if the matrix was not specified in the input parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.param" title="model.KuramotoClassFor.Kuramoto.param"><code class="xref py py-obj docutils literal notranslate"><span class="pre">param</span></code></a>(y, arg)</p></td>
+<td><p>Auxiliar function in order to present the stimulation from <strong>StimTstart</strong> to <strong>StimTend</strong> Add the maximum of the delays matrix, because for the stored data t_0=max(<strong>delays_matrix</strong>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.phase_coherence" title="model.KuramotoClassFor.Kuramoto.phase_coherence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phase_coherence</span></code></a>(angles_vec)</p></td>
+<td><p>Calculate the Kuramoto Order parameter for each time step</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.setGlobalCoupling" title="model.KuramotoClassFor.Kuramoto.setGlobalCoupling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setGlobalCoupling</span></code></a>(K)</p></td>
+<td><p>Set the global coupling parameter <strong>K</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.setMeanTimeDelay" title="model.KuramotoClassFor.Kuramoto.setMeanTimeDelay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setMeanTimeDelay</span></code></a>(mean_delay)</p></td>
+<td><p>Set the <strong>mean_delay</strong> parameter</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.simulate" title="model.KuramotoClassFor.Kuramoto.simulate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">simulate</span></code></a>([Forced])</p></td>
+<td><p>Main function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.testIntegrate" title="model.KuramotoClassFor.Kuramoto.testIntegrate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">testIntegrate</span></code></a>()</p></td>
+<td><p>Test the Delayed Kuramoto</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#model.KuramotoClassFor.Kuramoto.testIntegrateForced" title="model.KuramotoClassFor.Kuramoto.testIntegrateForced"><code class="xref py py-obj docutils literal notranslate"><span class="pre">testIntegrateForced</span></code></a>()</p></td>
+<td><p>Test the Partially forced and delayed model</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.IntegrateDD">
+<span class="sig-name descname"><span class="pre">IntegrateDD</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.IntegrateDD" title="Permalink to this definition"></a></dt>
+<dd><p>Jitcdde solver (integration) function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>output</strong> – Oscillator phases at the sampling times.
+T x N array.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float 2D array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.applyMean_Delay">
+<span class="sig-name descname"><span class="pre">applyMean_Delay</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.applyMean_Delay" title="Permalink to this definition"></a></dt>
+<dd><p>Scale the delays matrix by the mean_delay factor.
+If <strong>mean_delay</strong> ==0, the delay matrix becomes a zeros matrix
+in other case, the delays matrix is divided by the its mean valuem
+and then multiplied by the scaling factor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.calculateOrderParameter">
+<span class="sig-name descname"><span class="pre">calculateOrderParameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dynamics</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.calculateOrderParameter" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate Kuramoto order parameter</p>
+<p>R=abs((1/N)* sum_{n} ( e^{(i*theta_{n})}))</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dynamics</strong> (<em>float 2D array</em>) – T x N matrix with the oscillators phases.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>R</strong> – Kuramoto order parameter.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float 1D array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.gui_interact">
+<span class="sig-name descname"><span class="pre">gui_interact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">K</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.gui_interact" title="Permalink to this definition"></a></dt>
+<dd><p>Jupyter notebook function for “online” change of the <strong>K</strong> parameter
+(Note that this method can be used to change any model parameter with the appropiate modifications)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>K</strong> (<em>float</em>) – Global coupling parameter (it will be normalized by the number of nodes).</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.initial_phases">
+<span class="sig-name descname"><span class="pre">initial_phases</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.initial_phases" title="Permalink to this definition"></a></dt>
+<dd><p>Set the initial values of the variables</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>Initial_values</strong> – Array with the initial values of the ocillators’ phases.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float 1D array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.initializeForcingNodes">
+<span class="sig-name descname"><span class="pre">initializeForcingNodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forcingNodes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.initializeForcingNodes" title="Permalink to this definition"></a></dt>
+<dd><p>Set the binary vector of forcing/no-forcing nodes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>forcingNodes</strong> (<em>list</em>) – List of the indexes of the forcing nodes.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.initializeNatFreq">
+<span class="sig-name descname"><span class="pre">initializeNatFreq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">natfreqs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.initializeNatFreq" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Set the vector of the natural frequencies of the oscillators with:</dt><dd><p>Single value por all nodes</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>natfreqs</strong> (<em>float</em><em> (</em><em>single</em><em> | </em><em>1D array</em><em>)</em>) – Natural frequencies of the oscillators, could be a single value if
+it is the same for all the nodes.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>natfreqs</strong> – N x 1 array with the natural frequencies of the oscillators.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float 1D array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.initializeTimeDelays">
+<span class="sig-name descname"><span class="pre">initializeTimeDelays</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.initializeTimeDelays" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize the default matrix <strong>D</strong>: the delays matrix of AAL90.
+Only if the matrix was not specified in the input parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>D</strong> – Delays matrix.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float 2D array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.kuramotos">
+<span class="sig-name descname"><span class="pre">kuramotos</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.kuramotos" title="Permalink to this definition"></a></dt>
+<dd><p>Delayed Kuramoto model (from Jitcdde documentation)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p><em>Jitcdde Model</em> – Delayed Kuramoto. Structural connectivity and delays matrices are required.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.kuramotosForced">
+<span class="sig-name descname"><span class="pre">kuramotosForced</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.kuramotosForced" title="Permalink to this definition"></a></dt>
+<dd><p>Forced and delayed Kuramoto model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p><em>Jitcdde Model</em> – Forced and Delayed Kuramoto model. The stimulation parameters are required.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.kuramotosZero">
+<span class="sig-name descname"><span class="pre">kuramotosZero</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.kuramotosZero" title="Permalink to this definition"></a></dt>
+<dd><p>Easiest way to define in python the classical Kuramoto model
+It works (and solves faster) with scipy ODE solvers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<em>float 1D array</em>) – Current (previous) value of the oscillators phases.</p></li>
+<li><p><strong>t</strong> (<em>float</em>) – Current time (actually not used, but usefull to plot or further analysis).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>dphi_dt</strong> – derivate value at the current time step.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float 1D array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.loadParameters">
+<span class="sig-name descname"><span class="pre">loadParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.loadParameters" title="Permalink to this definition"></a></dt>
+<dd><p>Load the parameters of the model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>parameters</strong> (<em>dict</em>) – Dictionary with the parameters.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.load_struct_connectivity">
+<span class="sig-name descname"><span class="pre">load_struct_connectivity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.load_struct_connectivity" title="Permalink to this definition"></a></dt>
+<dd><p>Intialize the default structural connectivity matrix <strong>C</strong> from AAL90
+Only if the matrix was not specified in the input parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>C</strong> – Structural connectivity matrix.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float 2D array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.param">
+<span class="sig-name descname"><span class="pre">param</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.param" title="Permalink to this definition"></a></dt>
+<dd><p>Auxiliar function in order to present the stimulation from <strong>StimTstart</strong> to <strong>StimTend</strong>
+Add the maximum of the delays matrix, because for the stored data t_0=max(<strong>delays_matrix</strong>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<em>Not needed</em><em>, </em><em>internal function</em><em> of </em><em>Jitcdde</em>) – </p></li>
+<li><p><strong>arg</strong> (<em>Not needed</em><em>, </em><em>internal function</em><em> of </em><em>Jitcdde</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the simulation time is inside the stimulation window.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int(boolean)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.phase_coherence">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">phase_coherence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angles_vec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.phase_coherence" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the Kuramoto Order parameter for each time step</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>angles_vec</strong> (<em>float 1D array</em>) – Phases of the oscillators at time t.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>R(t)</strong> – A time point of the Kuramoto order parameter: abs(exp{(theta_n(t))})</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.setGlobalCoupling">
+<span class="sig-name descname"><span class="pre">setGlobalCoupling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">K</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.setGlobalCoupling" title="Permalink to this definition"></a></dt>
+<dd><p>Set the global coupling parameter <strong>K</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>K</strong> (<em>float</em>) – Scaling factor for the structural connectivity matrix <strong>C</strong>.
+The value using this function is scaled by the number of nodes
+then <strong>K</strong> =K/N.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.setMeanTimeDelay">
+<span class="sig-name descname"><span class="pre">setMeanTimeDelay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mean_delay</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.setMeanTimeDelay" title="Permalink to this definition"></a></dt>
+<dd><p>Set the <strong>mean_delay</strong> parameter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mean_delay</strong> (<em>float</em>) – Mean delay value that scales the delays matrix <strong>D</strong>.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.simulate">
+<span class="sig-name descname"><span class="pre">simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Forced</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.simulate" title="Permalink to this definition"></a></dt>
+<dd><p>Main function. Simulate the Kuramoto model.
+To avoid the additional overload from using the Partially Forced Kuramoto you shoul pass
+False in the Forced argument.
+On the other hand, if you need to apply stimulation, use Forced=True</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Forced</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Set if the simulation is going to use or not the Partially Forced Kuramoto. The default is False.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>R</strong> (<em>float 1D array</em>) – Kuramoto order parameter. Array with dimensions T x 1.</p></li>
+<li><p><strong>dynamics</strong> (<em>float 2D array</em>) – Kuramoto oscillators phases. Array with dimensions T x N</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.testIntegrate">
+<span class="sig-name descname"><span class="pre">testIntegrate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.testIntegrate" title="Permalink to this definition"></a></dt>
+<dd><p>Test the Delayed Kuramoto</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model.KuramotoClassFor.Kuramoto.testIntegrateForced">
+<span class="sig-name descname"><span class="pre">testIntegrateForced</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.KuramotoClassFor.Kuramoto.testIntegrateForced" title="Permalink to this definition"></a></dt>
+<dd><p>Test the Partially forced and delayed model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../model.html" class="btn btn-neutral float-left" title="Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parserConfig.html" class="btn btn-neutral float-right" title="Configuration file parser" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Vibrain.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

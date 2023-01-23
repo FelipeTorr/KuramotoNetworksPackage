@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cluster analysis &mdash; KuramotoNetworksPackage 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Analysis of connectivity matrices" href="connectivityMatrices.html" />
+    <link rel="prev" title="Analysis Tools" href="../analysis.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> KuramotoNetworksPackage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../model.html">Model</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../analysis.html">Analysis Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Cluster analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.cluster.Clustering"><code class="docutils literal notranslate"><span class="pre">Clustering()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.cluster.categoryDistance"><code class="docutils literal notranslate"><span class="pre">categoryDistance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.cluster.cluster_colors"><code class="docutils literal notranslate"><span class="pre">cluster_colors()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.cluster.clusteringSpectral"><code class="docutils literal notranslate"><span class="pre">clusteringSpectral()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.cluster.greedyModularityClustering"><code class="docutils literal notranslate"><span class="pre">greedyModularityClustering()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.cluster.hierarchyKMeans"><code class="docutils literal notranslate"><span class="pre">hierarchyKMeans()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.cluster.metisClustering"><code class="docutils literal notranslate"><span class="pre">metisClustering()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.cluster.significantFC"><code class="docutils literal notranslate"><span class="pre">significantFC()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.cluster.sortMatrix"><code class="docutils literal notranslate"><span class="pre">sortMatrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.cluster.spectralBisection"><code class="docutils literal notranslate"><span class="pre">spectralBisection()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="connectivityMatrices.html">Analysis of connectivity matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frequency.html">Frequency-domain analysis tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="synchronization.html">Synchrony analysis tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plot.html">Plot Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../simulations.html">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Summary</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">KuramotoNetworksPackage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../analysis.html">Analysis Tools</a></li>
+      <li class="breadcrumb-item active">Cluster analysis</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/analysis/cluster.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cluster-analysis">
+<h1>Cluster analysis<a class="headerlink" href="#cluster-analysis" title="Permalink to this heading"></a></h1>
+<p>Tools to perform clustering in a graph.</p>
+<p>Formally from a Graph</p>
+<div class="math notranslate nohighlight">
+\[G(V,E)\]</div>
+<p>where <em>V</em> are the vertices or nodes, and <em>E</em> are the edges or connections weights. Performing a clustering of <em>G</em> is the same to obtain the partition</p>
+<div class="math notranslate nohighlight">
+\[P_i=\{V_i\}\]</div>
+<div class="math notranslate nohighlight">
+\[\sum_{i=1}^{M} |P_i|=N\]</div>
+<p>where <em>M</em> is the number of partitions, and <em>N</em> is the total number of nodes of the graph.</p>
+<span class="target" id="module-analysis.cluster"></span><p><strong>Functions:</strong></p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.cluster.Clustering" title="analysis.cluster.Clustering"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Clustering</span></code></a>(G, No_Clusters)</p></td>
+<td><p>Clustering a graph <strong>G</strong> in the quantity indicated by <strong>No_Clusters</strong> by the METS algorithm</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.cluster.categoryDistance" title="analysis.cluster.categoryDistance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">categoryDistance</span></code></a>(x, y)</p></td>
+<td><p>Returns the index <strong>j</strong> and distance of the lower distance from <strong>i</strong> element in <strong>x</strong> to <strong>j</strong> element in y</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.cluster.cluster_colors" title="analysis.cluster.cluster_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cluster_colors</span></code></a>()</p></td>
+<td><p>A list of colors to distiguish the clusters</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.cluster.clusteringSpectral" title="analysis.cluster.clusteringSpectral"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clusteringSpectral</span></code></a>(C[, M])</p></td>
+<td><p>Clusters obtained by spectral bisection</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.cluster.greedyModularityClustering" title="analysis.cluster.greedyModularityClustering"><code class="xref py py-obj docutils literal notranslate"><span class="pre">greedyModularityClustering</span></code></a>(G[, resolution])</p></td>
+<td><p>Clustering a grap <strong>G</strong> with the Greedy Modularity algorithm.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.cluster.hierarchyKMeans" title="analysis.cluster.hierarchyKMeans"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hierarchyKMeans</span></code></a>(FC)</p></td>
+<td><p>Hierarchical clustering by average mean</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.cluster.metisClustering" title="analysis.cluster.metisClustering"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metisClustering</span></code></a>(G[, M])</p></td>
+<td><p>Clustering a grap <strong>G</strong> with the METIS algorithm.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.cluster.significantFC" title="analysis.cluster.significantFC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">significantFC</span></code></a>(X[, f_low, f_high, fs, Nshuffles])</p></td>
+<td><p>Threshold of the Functional Connectivity matrix by a threshold coming from the distribution of surrogate FC matrices</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.cluster.sortMatrix" title="analysis.cluster.sortMatrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sortMatrix</span></code></a>(X)</p></td>
+<td><p>Sort a symmetric matrix by the sum in each row (sum over the columns)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.cluster.spectralBisection" title="analysis.cluster.spectralBisection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spectralBisection</span></code></a>(L[, trisection])</p></td>
+<td><p>Performs the spectral bisection of a Laplacian matrix</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.cluster.Clustering">
+<span class="sig-prename descclassname"><span class="pre">analysis.cluster.</span></span><span class="sig-name descname"><span class="pre">Clustering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">G</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">No_Clusters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.cluster.Clustering" title="Permalink to this definition"></a></dt>
+<dd><p>Clustering a graph <strong>G</strong> in the quantity indicated by <strong>No_Clusters</strong> by the METS algorithm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>G</strong> (<em>netwokx.Graph</em>) – Graph.</p></li>
+<li><p><strong>No_Clusters</strong> (<em>int</em>) – Number of clusters, <strong>M</strong>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>G</strong> (<em>networkx.Graph</em>) – Clustered graph</p></li>
+<li><p><strong>color_map</strong> (<em>list</em>) – Color of the nodes in function of the pertenence to a cluster.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.cluster.categoryDistance">
+<span class="sig-prename descclassname"><span class="pre">analysis.cluster.</span></span><span class="sig-name descname"><span class="pre">categoryDistance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.cluster.categoryDistance" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the index <strong>j</strong> and distance of the lower distance from <strong>i</strong> element in <strong>x</strong> to <strong>j</strong> element in y</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float 1D array</em>) – Feature of interest.</p></li>
+<li><p><strong>y</strong> (<em>float</em><em> or </em><em>1D array</em>) – Central(kernel) values of the clusters.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>min_distance_index</strong> (<em>int 1D array</em>) – Index of the element in <strong>y</strong> more near to each element in <strong>x</strong></p></li>
+<li><p><strong>min_distance</strong> (<em>float</em>) – The minimum distance for each pair indicated by min_distance_index.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.cluster.cluster_colors">
+<span class="sig-prename descclassname"><span class="pre">analysis.cluster.</span></span><span class="sig-name descname"><span class="pre">cluster_colors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#analysis.cluster.cluster_colors" title="Permalink to this definition"></a></dt>
+<dd><p>A list of colors to distiguish the clusters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>colors</strong> – The list of colors.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.cluster.clusteringSpectral">
+<span class="sig-prename descclassname"><span class="pre">analysis.cluster.</span></span><span class="sig-name descname"><span class="pre">clusteringSpectral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.cluster.clusteringSpectral" title="Permalink to this definition"></a></dt>
+<dd><p>Clusters obtained by spectral bisection</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>C</strong> (<em>float 2D array</em>) – A connectivity matrix of the graph G:</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Number of clusters, <strong>M</strong>. The default value is 2.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>clusters_post</strong> – A list of the indexes of each cluster.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of int 1D arrays</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.cluster.greedyModularityClustering">
+<span class="sig-prename descclassname"><span class="pre">analysis.cluster.</span></span><span class="sig-name descname"><span class="pre">greedyModularityClustering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">G</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.cluster.greedyModularityClustering" title="Permalink to this definition"></a></dt>
+<dd><p>Clustering a grap <strong>G</strong> with the Greedy Modularity algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>G</strong> (<em>networkx.Graph</em>) – Graph.</p></li>
+<li><p><strong>resolution</strong> (<em>float</em>) – The resolution employed to ponderate ratio of the external connections with the intra-cluster connections.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>clusters</strong> (<em>dict</em>) – A dictionary with colors as key values, and the indexes of each cluster as values.</p></li>
+<li><p><strong>sort_indexes</strong> (<em>int list</em>) – The list of the node indexes sorted to join all the elements in each cluster.</p></li>
+<li><p><strong>labels</strong> (<em>int 1D array</em>) – The cluster label given to each node of the graph <strong>G</strong>.</p></li>
+<li><p><strong>M</strong> (<em>int</em>) – The number of clusters</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.cluster.hierarchyKMeans">
+<span class="sig-prename descclassname"><span class="pre">analysis.cluster.</span></span><span class="sig-name descname"><span class="pre">hierarchyKMeans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">FC</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.cluster.hierarchyKMeans" title="Permalink to this definition"></a></dt>
+<dd><p>Hierarchical clustering by average mean</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>FC</strong> (<em>float 2D array</em>) – Functional connectivity matrix. The range of its values is [-1,1].</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>Z</strong> – Clusters based in average distance.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>scipy.custer.hierarchy.linkage</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.cluster.metisClustering">
+<span class="sig-prename descclassname"><span class="pre">analysis.cluster.</span></span><span class="sig-name descname"><span class="pre">metisClustering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">G</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.cluster.metisClustering" title="Permalink to this definition"></a></dt>
+<dd><p>Clustering a grap <strong>G</strong> with the METIS algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>G</strong> (<em>networkx.Graph</em>) – Graph.</p></li>
+<li><p><strong>M</strong> (<em>int</em>) – The number of requested clusters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>clusters</strong> (<em>dict</em>) – A dictionary with colors as key values, and the indexes of each cluster as values.</p></li>
+<li><p><strong>sort_indexes</strong> (<em>int list</em>) – The list of the node indexes sorted to join all the elements in each cluster.</p></li>
+<li><p><strong>labels</strong> (<em>int 1D array</em>) – The cluster label given to each node of the graph <strong>G</strong>.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.cluster.significantFC">
+<span class="sig-prename descclassname"><span class="pre">analysis.cluster.</span></span><span class="sig-name descname"><span class="pre">significantFC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Nshuffles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.cluster.significantFC" title="Permalink to this definition"></a></dt>
+<dd><p>Threshold of the Functional Connectivity matrix by a threshold coming from
+the distribution of surrogate FC matrices</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>2D array</em>) – Phase data NxT.</p></li>
+<li><p><strong>f_low</strong> (<em>float</em><em>, </em><em>optional</em>) – Low frequency (Hz) of the bandpass filter. The default is 0.5.</p></li>
+<li><p><strong>f_high</strong> (<em>float</em><em>, </em><em>optional</em>) – High frequency (Hz) of the bandpass filter. The default is 100.</p></li>
+<li><p><strong>fs</strong> (<em>int</em><em>, </em><em>optional</em>) – Sampling rate. The default is 1000.</p></li>
+<li><p><strong>Nshuffles</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of surrogate matrices (caution&gt; each repeat almost the entire the process). The default is 20.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>originalFC</strong> (<em>2D float array</em>) – Functional connectivty matrix</p></li>
+<li><p><strong>thresholdedFC</strong> (<em>2D float array</em>) – Thresholded FC matrix.</p></li>
+<li><p><strong>threshold</strong> (<em>float</em>) – Threshold value.</p></li>
+<li><p><strong>percentil</strong> (<em>float</em>) – Percentil at where the threshold is &lt;1.</p></li>
+<li><p><strong>mean_energy</strong> (<em>float</em>) – mean energy of the envelopes used in the FC matrix calculation.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.cluster.sortMatrix">
+<span class="sig-prename descclassname"><span class="pre">analysis.cluster.</span></span><span class="sig-name descname"><span class="pre">sortMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.cluster.sortMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Sort a symmetric matrix by the sum in each row (sum over the columns)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>float 2D array</em>) – Symmetric matrix with no information on the diagonal.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>sortedX</strong> (<em>float 2D array</em>) – sorted Matrix</p></li>
+<li><p><strong>sorted_indexes</strong> (<em>int 1D array</em>) – indexes from the original matrix X to obtain the sortedX matrix.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.cluster.spectralBisection">
+<span class="sig-prename descclassname"><span class="pre">analysis.cluster.</span></span><span class="sig-name descname"><span class="pre">spectralBisection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">L</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trisection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.cluster.spectralBisection" title="Permalink to this definition"></a></dt>
+<dd><p>Performs the spectral bisection of a Laplacian matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>L</strong> (<em>float 2D array</em>) – Laplacian matrix</p></li>
+<li><p><strong>trisection</strong> (<em>boolean</em>) – Defines if the algorithm need to return tree clusters (in order to obtain odd <strong>M</strong>). The default value is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>cluster0</strong> (<em>int 1D array</em>) – List of indexes that correspond to the first cluster.</p></li>
+<li><p><strong>cluster1</strong> (<em>int 1D array</em>) – List of indexes that correspond to the second cluster.</p></li>
+<li><p><strong>cluster2</strong> (<em>int 1D array (if trisection==True)</em>) – List of indexes that correspond to the third cluster.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../analysis.html" class="btn btn-neutral float-left" title="Analysis Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="connectivityMatrices.html" class="btn btn-neutral float-right" title="Analysis of connectivity matrices" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Vibrain.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

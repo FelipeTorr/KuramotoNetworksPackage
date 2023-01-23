@@ -14,13 +14,13 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 #### Additional functions ##################
 def shannonEntropy(p):
     """
-    Calculates the shanon entropy 
-    #of the probability mass distribution p[j]
+    Calculates the Shannon entropy 
+    of the probability mass distribution p[j]
 
     Parameters
     ----------
-    p : 1D array: float
-        probability mass distirbution. All the elements sum 1.
+    p : float 1D array
+        Probability mass distirbution. All the elements must sum 1.
 
     Returns
     -------
@@ -37,16 +37,24 @@ def shannonEntropy(p):
 def shannonEntropyTimeMatrix(X,nbins=100,bin_start=None,bin_end=None):
     """
     Calculates the shanon entropy 
-    #of the probability mass distribution p[j]
+    of the probability mass distribution p[j].
+    If **bin_start** and **bin_end**, are not specified, this functions actuates similar as np.histogram
+    to get the histogram of the *i,j* element of the tensor **X**.
 
     Parameters
     ----------
-    X : 3D array: float 
-        size TxMxN where T is the number of time points
-
+    X : float 3D array 
+        A tensor of size TxMxN where T is the number of time points
+    nbins : int, optional
+        Number of bins to discretize the element *i,j* of the tensor X. The default is 100 bins.
+    bin_start : float, optional
+        Start value of the bins range. The default is None. If None
+    bin_end : float, optional
+        End value of the bins range. The default is None.        
+    
     Returns
     -------
-    S : 2D array: float
+    S : float 2D array
         Shannon Entropy matrix.
 
     """ 
@@ -79,18 +87,19 @@ def shannonEntropyTimeMatrix(X,nbins=100,bin_start=None,bin_end=None):
 
 def elementFunctionalConnectivity(x1,x2):
     """
-    Element of the functional connectivity matrix
+    Calculate the element *i,j* of the functional connectivity matrix
+    
     Parameters
     ----------
-    x1 : 1D array: float
-        Lenghth L.
-    x2 : 1D array: float
-        Length L.
+    x1 : float 1D array
+        First vector of data with lenghth L.
+    x2 : float 1D array
+        Second vector of data with lenghth L.
 
     Returns
     -------
     fc : float
-        Pearson coefficient between x1 and x2, from -1 to 1.
+        Pearson coefficient between **x1** and **x2**, from -1 to 1.
 
     """
     fc,p=stats.pearsonr(x1, x2)
@@ -99,18 +108,20 @@ def elementFunctionalConnectivity(x1,x2):
 
 def elementFunctionalConnectivityTheta(x1,x2):
     """
-    Element of the functional connectivity matrix
+    Calculate the *i,j* element of the functional connectivity matrix
+    after applying the *sin()* function to the data's vectors.
+    
     Parameters
     ----------
     x1 : 1D array: float
-        Lenghth L.
+        First vector of data with lenghth L.
     x2 : 1D array: float
-        Length L.
+        Second vector of data with lenghth L.
 
     Returns
     -------
     fc : float
-        Pearson coefficient between x1 and x2, from -1 to 1.
+        Pearson coefficient between **x1** and **x2**, from -1 to 1.
 
     """
     fc,p=stats.pearsonr(np.cos(x1), np.cos(x2))
@@ -121,11 +132,14 @@ def elementFunctionalConnectivityTheta(x1,x2):
 def entropySynchrony(x1,x2=None,n=1,m=1):
     """
     Index of synchrony based in the Shannon entropy
+    If **bin_start** and **bin_end**, are not specified, this functions actuates similar as np.histogram
+    to get the histogram of the *i,j* element of the matrix **X**.
+    Parameters
     ----------
-    x1 : 1D array: float
-        Lenghth L.
-    x2 : 1D array: float
-        Length L.
+    x1 : float 1D array
+        First vector of data with lenghth L.
+    x2 : float 1D array.
+        First vector of data with lenghth L.
     n : int, optional
         Harmonic of x1 signal. The default is 1.
     m : int, optional
@@ -147,20 +161,26 @@ def entropySynchrony(x1,x2=None,n=1,m=1):
 
 def entropySynchronyMatrix(X,nbins=100,bin_start=None,bin_end=None):
     """
-    Calculates the shanon entropy 
-    #of the probability mass distribution p[j]
+    Calculate the entropy index of synchrony
 
     Parameters
     ----------
-    X : 3D array: float 
-        size TxMxN where T is the number of time points
+    X : float 2D array
+        matrix of data with size TxN.
+    nbins : int, optional
+        Number of bins to discretize the element *i,j* of the tensor X. The default is 100 bins.
+    bin_start : float, optional
+        Start value of the bins range. The default is None. If None
+    bin_end : float, optional
+        End value of the bins range. The default is None.  
 
     Returns
     -------
-    S : 2D array: float
-        Shannon Entropy matrix.
+    rho : float
+        Entropy synchrony measurement, values from 0 to 1.
 
-    """ 
+    """
+    
     if bin_start==None and bin_end==None:
         bins=nbins
     else:
@@ -174,14 +194,14 @@ def entropySynchronyMatrix(X,nbins=100,bin_start=None,bin_end=None):
 def fourierModeIndex(x1,x2,n=1,m=1):
     """
     Fourier index based in the trigonometry 
-    identity sin**2 alpha +cos**2 alpha=1
+    identity sin^2(alpha)+cos^2 (alpha)=1
 
     Parameters
     ----------
     x1 : 1D array: float
-        Lenghth L.
+        First vector of data with lenghth L.
     x2 : 1D array: float
-        Length L.
+        Second vector of data with lenghth L.
     n : int, optional
         Harmonic of x1 signal. The default is 1.
     m : int, optional
@@ -200,7 +220,24 @@ def fourierModeIndex(x1,x2,n=1,m=1):
 
 #Array
 def completeSynchrony(x1,x2):
-    """ Absolute error between two signals"""
+    """
+    Absolute error between two signals.
+    From the use of native Python operators, the arrays could be of any dimension while
+    *np.shape* ( **x1** )==*np.shape* ( **x2** )
+
+    Parameters
+    ----------
+    x1 : float 1D (ND) vector
+        Array of data.
+    x2 : float 1D (ND) vector
+        Array of data.
+
+    Returns
+    -------
+    error : float
+        Absolute error.
+
+    """
     return np.abs(x1-x2)
     
     
@@ -211,14 +248,14 @@ def phaseLockingValueTwoNodes(x1,x2):
 
     Parameters
     ----------
-    x1 : 1D array: float
-        Lenghth L.
-    x2 : 1D array: float
-        Length L.
+    x1 : float 1D array
+        First vector of data with lenghth L.
+    x2 : float 1D array
+        Second vector of data with lenghth L.
 
     Returns
     -------
-    plv : 1D array
+    plv : float
         phase locking value
 
     """
@@ -234,13 +271,13 @@ def phaseLockingValueMatrix(X):
 
     Parameters
     ----------
-    X : 2D array: float
-        Nodes x Time 
+    X : float 2D array
+        Array of data of size Nodes x Time 
 
     Returns
     -------
-    plv : 2D array
-        phase locking value matrix
+    plv : float 2D array
+        Phase locking value matrix
 
     """
     N=np.shape(X)[0]
@@ -257,12 +294,12 @@ def phaseLockingDiffPhase(diffX):
 
     Parameters
     ----------
-    diffX : 3D array: float
+    diffX : float 3D array
         Time X Nodes X Nodes difference between phases
 
     Returns
     -------
-    plv : 2D array
+    plv : float 2D array
         phase locking value matrix
     """
     T=np.shape(diffX)[0]
@@ -275,9 +312,9 @@ def conditionalProbabiliy(x1,x2,theta=1.999*np.pi,epsilon=0.001,n=1,m=1):
 
     Parameters
     ----------
-    x1 : 1D array: float
-        Lenghth L.
-    x2 : 1D array: float
+    x1 : 1D array
+        float Lenghth L.
+    x2 : float 1D array
         Length L.
     theta : float, optional
          Target-phase at where the signals must coincide. 
@@ -288,10 +325,11 @@ def conditionalProbabiliy(x1,x2,theta=1.999*np.pi,epsilon=0.001,n=1,m=1):
         Harmonic of x1 signal. The default is 1.
     m : int, optional
         Harmonic of x2 signal. The default is 1.
+    
     Returns
     -------
     eta : float
-        percentage of coincident points
+        Percentage of coincident points
 
     """
     index_sort=np.argwhere((x1%(2*np.pi*m))>=theta)
@@ -310,11 +348,12 @@ def KuramotoOrderParameter(X,δ=-1,σ=0,T=-1,dt=-1):
     Kuramoto order parameter, 
     optional: subnetwork with indexes δ
     optional: frequency correction σ=stim frequency, T: tmax, dt:Ts 
+    
     Parameters
     ----------
     X : 2D array
         Nodes x time.
-    δ : 1D array, optional
+    δ : int 1D array, optional
         nodes indexes. The default is -1.
     σ : float, optional
         stim frequency. The default is 0.
@@ -345,6 +384,7 @@ def localOrderParameter(x):
     """
     Local order parameter
     Relation of each node phase with the global order parameter
+    
     Parameters
     ----------
     x : 2D array
@@ -352,8 +392,8 @@ def localOrderParameter(x):
 
     Returns
     -------
-    1D float array
-        array of local order parameter.
+    LOP: float 1D array
+        Array with values of the local order parameter.
 
     """
         
@@ -368,9 +408,10 @@ def localOrderParameter(x):
 def coherence(x,nperseg=4096,noverlap=3600,fs=1000):
     """
     Coherence for each pair of signals in x
+    
     Parameters
     ----------
-    x : 2D array.
+    x : float 2D array.
         Nodes x Time.
     nperseg : int, optional
         Number of samples of the time window. The default is 4096.
@@ -379,9 +420,9 @@ def coherence(x,nperseg=4096,noverlap=3600,fs=1000):
 
     Returns
     -------
-    freqs: 1D float array
+    freqs: float 1D array
         frequency bins 
-    Cxx : 3D float array
+    Cxx : float 3D array
         Tensor of coherences of each pair of nodes.
         Node x Node x Frequency
 
@@ -396,6 +437,33 @@ def coherence(x,nperseg=4096,noverlap=3600,fs=1000):
 
 
 def synchronyTwoNodes(x1,x2,n=1,m=1):
+    """
+    Return multiple synchrony measurements for two vector of data with the same length
+
+    Parameters
+    ----------
+    x1 : float 1D array
+        First data vector with length L.
+    x2 : float 1D array
+        Second data vector with length L.
+    n : int, optional
+        Mode (Harmonic) of **x1**. The default is 1.
+    m : int, optional
+        Mode (Harmonic) of **x2**. The default is 1.
+
+    Returns
+    -------
+    plv : float
+        Phase locking value.
+    gamma : float
+        Fourier mode index.
+    phi : float
+        Absolute error.
+    rho : float
+        Entropy Synchrony.
+
+    """
+    
     #absolute error
     phi=np.abs(n*x1-m*x2)%(2*np.pi)
     #Shanon entropy
@@ -407,6 +475,30 @@ def synchronyTwoNodes(x1,x2,n=1,m=1):
     return plv,gamma, phi, rho
 
 def synchronyMatrices(X,start_time=0,end_time=20000):
+    """
+    Return multiple synchrony measurements for a data matrix with size NxT
+       
+    Parameters
+    ----------
+    X : float 2D array
+        Data matrix of size N x T 
+    start_time : int, optional
+        Initial time point. The default is 0.
+    end_time : int, optional
+        Final time point. The default is 20000.
+       
+    Returns
+    -------
+    plv_matrix : float 2D array
+        Phase locking value array.
+    gamma_matrix : float 2D array
+        Fourier mode index array.
+    phi_matrix : float 2D array
+        Absolute error array.
+    SE_matrix : float 2D array
+        Entropy Synchrony array.
+       
+    """ 
     N=np.shape(X)[0]
     phi_matrix=np.zeros((N,N,end_time-start_time))
     plv_matrix=np.zeros((N,N,end_time-start_time))
@@ -415,10 +507,38 @@ def synchronyMatrices(X,start_time=0,end_time=20000):
     for i in range(N):
         for j in range(N):
             plv_matrix[i,j,:],gamma_matrix[i,j],phi_matrix[i,j,:],SE_matrix[i,j]=synchronyTwoNodes(X[i,start_time:end_time], X[j,start_time:end_time])
- 
+     
     return plv_matrix,phi_matrix,gamma_matrix,SE_matrix
 
 def hilbertTheta(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simulated=True):
+    """
+    Calculate to envelope and phase of a signal in the frequency band specified by [**f_loww** , **f_high** ] Hz.
+    Uses the hilbert transform, then the result has more accuraccy as narrower is the frequency band.
+
+    Parameters
+    ----------
+    X : float 2D array
+        Data matrix of size NxT.
+    f_low : float, optional
+        Low frequency limit of the pass-band filter. The default is 0.5 Hz.
+    f_high : float, optional
+        High frequency limit of the pass-band filter. The default is 100 Hz.
+    fs : int, optional
+        Sampling frequency. The default is 1000 samples/second.
+    type : str, optional
+        Type of the pass-band filter. The default is 'butterworth', the other option is 'chebysev'.
+    simulated : boolean, optional
+        Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
+
+    Returns
+    -------
+    amplitudes : 1D array
+        Envelope from the Hilbert transform.
+    angles : 1D array
+        Phase time serie from the Hilbert transform.
+
+    """
+    
     #Define the filter 2nd order
     if type=='butterworth':
         b,a=signal.butter(2,[2*f_low/fs,2*f_high/fs],btype='bandpass')
@@ -438,6 +558,35 @@ def hilbertTheta(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simulated=Tru
     return amplitudes, angles
 
 def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
+    """
+    Calculates the Functional Connectivity matrix from the low-pass filterd envelopes of the 
+    signals in X. The envelopes correspond to the frequency band specified by [**f_low** , **f_high** ] Hz.
+
+    Parameters
+    ----------
+    X : float 2D array
+        Data matrix of size NxT.
+    f_low : float, optional
+        Low frequency limit of the pass-band filter. The default is 0.5 Hz.
+    f_high : float, optional
+        High frequency limit of the pass-band filter. The default is 100 Hz.
+    fs : int, optional
+        Sampling frequency. The default is 1000 samples/second.
+    type : str, optional
+        Type of the pass-band filter. The default is 'butterworth', the other option is 'chebysev'.
+    simulated : boolean, optional
+        Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
+
+
+    Returns
+    -------
+    FC : float 2D array
+        Functional connectivity matrix, uses the pearson coefficient, then the values are in the range [-1,1].
+    mean_energy : float
+        Average of the energy from the envelopes of the signal in **X**.
+
+    """
+    
     #Signal duration must be higher than 5 seconds, or the same np.shape(X)[1]>5*fs
     #This limitation assures that the filter works well for the frequncy bands where is not signal in simulated data
     #Assume X is NxT
@@ -461,6 +610,39 @@ def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
     return FC, mean_energy
 
 def FC_filtered_windowed(X,t_start=20000,t_end=40000,f_low=0.5,f_high=100,fs=1000,simulated=True):
+    """
+    Calculates the Functional Connectivity matrix from the low-pass filterd envelopes of the 
+    signals in X. The envelopes correspond to the frequency band specified by [**f_low** , **f_high** ] Hz,
+    and between the time points specified by [**t_start** , **t_end** ) samples.
+
+    Parameters
+    ----------
+    X : float 2D array
+        Data matrix of size NxT.
+    f_low : float, optional
+        Low frequency limit of the pass-band filter. The default is 0.5 Hz.
+    f_high : float, optional
+        High frequency limit of the pass-band filter. The default is 100 Hz.
+    fs : int, optional
+        Sampling frequency. The default is 1000 samples/second.
+    type : str, optional
+        Type of the pass-band filter. The default is 'butterworth', the other option is 'chebysev'.
+    simulated : boolean, optional
+        Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
+    t_start : int, optional
+        Initial time point. The default is 20000 samples.
+    t_end : int, optional
+        Final time point. The default is 40000 samples.
+    
+    Returns
+    -------
+    FC : float 2D array
+        Functional connectivity matrix, uses the pearson coefficient, then the values are in the range [-1,1].
+    mean_energy : float
+        Average of the energy from the envelopes of the signal in **X**.
+
+    """
+    
     #Signal duration must be higher than 5 seconds, or the same np.shape(X)[1]>5*fs
     #This limitation assures that the filter works well for the frequncy bands where is not signal in simulated data
     #Assume X is NxT
@@ -490,6 +672,33 @@ def FC_filtered_windowed(X,t_start=20000,t_end=40000,f_low=0.5,f_high=100,fs=100
     return FC, mean_energy
 
 def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000,simulated=True):
+    """
+    Difference of phases from applying the Hilbert Transform in the signals of **X**.
+
+    Parameters
+    ----------
+    X : float 2D array
+        Data matrix of size NxT.
+    f_low : float, optional
+        Low frequency limit of the pass-band filter. The default is 0.5 Hz.
+    f_high : float, optional
+        High frequency limit of the pass-band filter. The default is 100 Hz.
+    fs : int, optional
+        Sampling frequency. The default is 1000 samples/second.
+    type : str, optional
+        Type of the pass-band filter. The default is 'butterworth', the other option is 'chebysev'.
+    simulated : boolean, optional
+        Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
+
+    Returns
+    -------
+    angles float 2D array
+        Phase time series.
+    diff : float 2D arrat
+        Difference of the phases. Size TxNxN
+
+    """
+    
     #Assume X is NxT
     amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
     N=np.shape(X)[0]
@@ -501,6 +710,23 @@ def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000,simulated=True):
     return angles.T, diff   
 
 def diffPhaseTheta(X):
+    """
+    Difference of phases assuming that **X** contains phase time series.
+
+    Parameters
+    ----------
+    X : float 2D array
+        Matrix of phase time series. Size N x T. 
+
+    Returns
+    -------
+    angles float 2D array
+        The transpose of X and applied a module of 2 pi
+    diff : float 2D arrat
+        Difference of the phases. Size TxNxN
+
+    """
+    
     #Assume X is NxT
     angles=X%(2*np.pi)
     N=np.shape(X)[0]
@@ -512,6 +738,22 @@ def diffPhaseTheta(X):
     return angles.T, diff   
 
 def absDiffPhase(x):
+    """
+    The absolute difference between phases time series. The max value in the absolute difference between phases is pi.
+    
+
+    Parameters
+    ----------
+    x : float (ND array)
+        Array that contains difference of phases information.
+
+    Returns
+    -------
+    abs_diff same as x
+        Difference of phases in degrees. Useful for the visualization of synchrony with one node as reference.
+
+    """
+    
     return np.abs(x)%np.pi*180/np.pi
     
 
@@ -520,9 +762,12 @@ def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,coldata=False,mode='co
     Created on Wed Apr 27 15:57:38 2016
     @author: jmaidana
     @author: porio
+    
+    Source: https://github.com/vandal-uv/anarpy/blob/master/src/anarpy/utils/FCDutil/fcd.py
     Functional Connectivity Dynamics from a collection of time series
-    Parameters:
-    -----------
+    
+    Parameters
+    ----------
     data : array-like
         2-D array of data, with time series in rows (unless coldata is True)
     wwidth : integer
@@ -540,16 +785,15 @@ def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,coldata=False,mode='co
         'plock' : Pair-wise phase locking.
         'tdcorr' : Time-delayed correlation, looks for the maximum value in a cross-correlation of the data series 
         
-    Returns:
-    --------
+    Returns
+    -------
     FCDmatrix : numpy array
         Correlation matrix between all the windowed FCs.
     CorrVectors : numpy array
         Collection of FCs, linearized. Only the lower triangle values (excluding the diagonal) are returned
     shift : integer
         The distance between windows that was actually used (in samples)
-            
-        
+             
     """
     
     if olap>=1:

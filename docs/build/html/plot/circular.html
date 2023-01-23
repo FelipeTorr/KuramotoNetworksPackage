@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circular plots &mdash; KuramotoNetworksPackage 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Networkx plots" href="networks.html" />
+    <link rel="prev" title="Animation of Kuramoto Order Parameter" href="animation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> KuramotoNetworksPackage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../model.html">Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../analysis.html">Analysis Tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../plot.html">Plot Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="animation.html">Animation of Kuramoto Order Parameter</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Circular plots</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#plot.circular.circ_hist"><code class="docutils literal notranslate"><span class="pre">circ_hist()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot.circular.polar_statistics"><code class="docutils literal notranslate"><span class="pre">polar_statistics()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="networks.html">Networkx plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scatter.html">Scatter plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="video_twonodes.html">Video for the two nodes system</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../simulations.html">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Summary</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">KuramotoNetworksPackage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../plot.html">Plot Tools</a></li>
+      <li class="breadcrumb-item active">Circular plots</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/plot/circular.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-plot.circular">
+<span id="circular-plots"></span><h1>Circular plots<a class="headerlink" href="#module-plot.circular" title="Permalink to this heading"></a></h1>
+<p>Created on Fri Jun 10 00:01:11 2022</p>
+<p>&#64;author: felipe</p>
+<p><strong>Functions:</strong></p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#plot.circular.circ_hist" title="plot.circular.circ_hist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">circ_hist</span></code></a>(a, ax[, bins, bottom, mean_axis, ...])</p></td>
+<td><p>Circular histogram with mean value and standard deviation a: 2D floay array     angles data ax: matplotlib.pyplot.axes     matplotlib.pyplot.axes with projection='polar' bins: int, optional. Default value is 10     number of bins in the range [0,360) or [0,2pi) mean_axis: int, optional. Default value is 0     The average is calculated along this axis density: boolean, optional. Default value is False     if is True it plots a pmf type histogram cmap: plt.cm.colormap, optional. Default is plt.cm.Blues     Colormap colorscale=float, optional. Default is 10.0     Scale factor for the colomap plotmeanstd: boolean, optional. Default is True     Plot or not the mean and standard deviation markers.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#plot.circular.polar_statistics" title="plot.circular.polar_statistics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">polar_statistics</span></code></a>(angles[, axis, nan_policy])</p></td>
+<td><p>Polar statisitcs Return the mean and standard deviation of circular data.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="plot.circular.circ_hist">
+<span class="sig-prename descclassname"><span class="pre">plot.circular.</span></span><span class="sig-name descname"><span class="pre">circ_hist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins=10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_axis=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap=&lt;matplotlib.colors.LinearSegmentedColormap</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorscale=10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotmeanstd=True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.circular.circ_hist" title="Permalink to this definition"></a></dt>
+<dd><p>Circular histogram with mean value and standard deviation
+a: 2D floay array</p>
+<blockquote>
+<div><p>angles data</p>
+</div></blockquote>
+<dl class="simple">
+<dt>ax: matplotlib.pyplot.axes</dt><dd><p>matplotlib.pyplot.axes with projection=’polar’</p>
+</dd>
+<dt>bins: int, optional. Default value is 10</dt><dd><p>number of bins in the range [0,360) or [0,2pi)</p>
+</dd>
+<dt>mean_axis: int, optional. Default value is 0</dt><dd><p>The average is calculated along this axis</p>
+</dd>
+<dt>density: boolean, optional. Default value is False</dt><dd><p>if is True it plots a pmf type histogram</p>
+</dd>
+<dt>cmap: plt.cm.colormap, optional. Default is plt.cm.Blues</dt><dd><p>Colormap</p>
+</dd>
+<dt>colorscale=float, optional. Default is 10.0</dt><dd><p>Scale factor for the colomap</p>
+</dd>
+<dt>plotmeanstd: boolean, optional. Default is True</dt><dd><p>Plot or not the mean and standard deviation markers</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>matplotlib.pyplot.axes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot.circular.polar_statistics">
+<span class="sig-prename descclassname"><span class="pre">plot.circular.</span></span><span class="sig-name descname"><span class="pre">polar_statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nan_policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'omit'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plot.circular.polar_statistics" title="Permalink to this definition"></a></dt>
+<dd><p>Polar statisitcs
+Return the mean and standard deviation of circular data.
+np.circmean returns same value
+np.circstd returns different value
+:param angles: data of angles.
+:type angles: 2D float array
+:param axis: Selected axis to calculate the statistic. The default is 0.
+:type axis: int, optional
+:param nan_policy: Policy for nan values. The default is ‘omit’.
+:type nan_policy: string, optional</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>meanpolar</strong> (<em>float</em>) – average angle.</p></li>
+<li><p><strong>stdpolar</strong> (<em>float</em>) – standard deviation of angles.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="animation.html" class="btn btn-neutral float-left" title="Animation of Kuramoto Order Parameter" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="networks.html" class="btn btn-neutral float-right" title="Networkx plots" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Vibrain.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

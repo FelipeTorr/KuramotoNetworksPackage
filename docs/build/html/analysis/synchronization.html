@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synchrony analysis tools &mdash; KuramotoNetworksPackage 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Plot Tools" href="../plot.html" />
+    <link rel="prev" title="Frequency-domain analysis tools" href="frequency.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> KuramotoNetworksPackage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../model.html">Model</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../analysis.html">Analysis Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cluster.html">Cluster analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="connectivityMatrices.html">Analysis of connectivity matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frequency.html">Frequency-domain analysis tools</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Synchrony analysis tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.FC_filtered"><code class="docutils literal notranslate"><span class="pre">FC_filtered()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.FC_filtered_windowed"><code class="docutils literal notranslate"><span class="pre">FC_filtered_windowed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.KuramotoOrderParameter"><code class="docutils literal notranslate"><span class="pre">KuramotoOrderParameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.absDiffPhase"><code class="docutils literal notranslate"><span class="pre">absDiffPhase()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.coherence"><code class="docutils literal notranslate"><span class="pre">coherence()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.completeSynchrony"><code class="docutils literal notranslate"><span class="pre">completeSynchrony()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.conditionalProbabiliy"><code class="docutils literal notranslate"><span class="pre">conditionalProbabiliy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.diffPhaseHilbert"><code class="docutils literal notranslate"><span class="pre">diffPhaseHilbert()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.diffPhaseTheta"><code class="docutils literal notranslate"><span class="pre">diffPhaseTheta()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.elementFunctionalConnectivity"><code class="docutils literal notranslate"><span class="pre">elementFunctionalConnectivity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.elementFunctionalConnectivityTheta"><code class="docutils literal notranslate"><span class="pre">elementFunctionalConnectivityTheta()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.entropySynchrony"><code class="docutils literal notranslate"><span class="pre">entropySynchrony()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.entropySynchronyMatrix"><code class="docutils literal notranslate"><span class="pre">entropySynchronyMatrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.extract_FCD"><code class="docutils literal notranslate"><span class="pre">extract_FCD()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.fourierModeIndex"><code class="docutils literal notranslate"><span class="pre">fourierModeIndex()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.hilbertTheta"><code class="docutils literal notranslate"><span class="pre">hilbertTheta()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.localOrderParameter"><code class="docutils literal notranslate"><span class="pre">localOrderParameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.phaseLockingDiffPhase"><code class="docutils literal notranslate"><span class="pre">phaseLockingDiffPhase()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.phaseLockingValueMatrix"><code class="docutils literal notranslate"><span class="pre">phaseLockingValueMatrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.phaseLockingValueTwoNodes"><code class="docutils literal notranslate"><span class="pre">phaseLockingValueTwoNodes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.shannonEntropy"><code class="docutils literal notranslate"><span class="pre">shannonEntropy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.shannonEntropyTimeMatrix"><code class="docutils literal notranslate"><span class="pre">shannonEntropyTimeMatrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.synchronyMatrices"><code class="docutils literal notranslate"><span class="pre">synchronyMatrices()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.synchronization.synchronyTwoNodes"><code class="docutils literal notranslate"><span class="pre">synchronyTwoNodes()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plot.html">Plot Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../simulations.html">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Summary</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">KuramotoNetworksPackage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../analysis.html">Analysis Tools</a></li>
+      <li class="breadcrumb-item active">Synchrony analysis tools</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/analysis/synchronization.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-analysis.synchronization">
+<span id="synchrony-analysis-tools"></span><h1>Synchrony analysis tools<a class="headerlink" href="#module-analysis.synchronization" title="Permalink to this heading"></a></h1>
+<p><strong>Functions:</strong></p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.synchronization.FC_filtered" title="analysis.synchronization.FC_filtered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FC_filtered</span></code></a>(X[, f_low, f_high, fs, simulated])</p></td>
+<td><p>Calculates the Functional Connectivity matrix from the low-pass filterd envelopes of the signals in X.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.synchronization.FC_filtered_windowed" title="analysis.synchronization.FC_filtered_windowed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FC_filtered_windowed</span></code></a>(X[, t_start, t_end, ...])</p></td>
+<td><p>Calculates the Functional Connectivity matrix from the low-pass filterd envelopes of the signals in X.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.synchronization.KuramotoOrderParameter" title="analysis.synchronization.KuramotoOrderParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">KuramotoOrderParameter</span></code></a>(X, δ=None, σ=None[, ...])</p></td>
+<td><p>Kuramoto order parameter, optional: subnetwork with indexes δ optional: frequency correction σ=stim frequency, T: tmax, dt:Ts</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.synchronization.absDiffPhase" title="analysis.synchronization.absDiffPhase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">absDiffPhase</span></code></a>(x)</p></td>
+<td><p>The absolute difference between phases time series.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.synchronization.coherence" title="analysis.synchronization.coherence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coherence</span></code></a>(x[, nperseg, noverlap, fs])</p></td>
+<td><p>Coherence for each pair of signals in x</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.synchronization.completeSynchrony" title="analysis.synchronization.completeSynchrony"><code class="xref py py-obj docutils literal notranslate"><span class="pre">completeSynchrony</span></code></a>(x1, x2)</p></td>
+<td><p>Absolute error between two signals.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.synchronization.conditionalProbabiliy" title="analysis.synchronization.conditionalProbabiliy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">conditionalProbabiliy</span></code></a>(x1, x2[, theta, ...])</p></td>
+<td><p>Conditional probability</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.synchronization.diffPhaseHilbert" title="analysis.synchronization.diffPhaseHilbert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">diffPhaseHilbert</span></code></a>(X[, f_low, f_high, fs, ...])</p></td>
+<td><p>Difference of phases from applying the Hilbert Transform in the signals of <strong>X</strong>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.synchronization.diffPhaseTheta" title="analysis.synchronization.diffPhaseTheta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">diffPhaseTheta</span></code></a>(X)</p></td>
+<td><p>Difference of phases assuming that <strong>X</strong> contains phase time series.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.synchronization.elementFunctionalConnectivity" title="analysis.synchronization.elementFunctionalConnectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">elementFunctionalConnectivity</span></code></a>(x1, x2)</p></td>
+<td><p>Calculate the element <em>i,j</em> of the functional connectivity matrix</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.synchronization.elementFunctionalConnectivityTheta" title="analysis.synchronization.elementFunctionalConnectivityTheta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">elementFunctionalConnectivityTheta</span></code></a>(x1, x2)</p></td>
+<td><p>Calculate the <em>i,j</em> element of the functional connectivity matrix after applying the <em>sin()</em> function to the data's vectors.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.synchronization.entropySynchrony" title="analysis.synchronization.entropySynchrony"><code class="xref py py-obj docutils literal notranslate"><span class="pre">entropySynchrony</span></code></a>(x1[, x2, n, m])</p></td>
+<td><p>Index of synchrony based in the Shannon entropy If <strong>bin_start</strong> and <strong>bin_end</strong>, are not specified, this functions actuates similar as np.histogram to get the histogram of the <em>i,j</em> element of the matrix <strong>X</strong>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.synchronization.entropySynchronyMatrix" title="analysis.synchronization.entropySynchronyMatrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">entropySynchronyMatrix</span></code></a>(X[, nbins, ...])</p></td>
+<td><p>Calculate the entropy index of synchrony</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.synchronization.extract_FCD" title="analysis.synchronization.extract_FCD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_FCD</span></code></a>(data[, wwidth, maxNwindows, ...])</p></td>
+<td><p>Created on Wed Apr 27 15:57:38 2016 &#64;author: jmaidana &#64;author: porio</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.synchronization.fourierModeIndex" title="analysis.synchronization.fourierModeIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fourierModeIndex</span></code></a>(x1, x2[, n, m])</p></td>
+<td><p>Fourier index based in the trigonometry identity sin^2(alpha)+cos^2 (alpha)=1</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.synchronization.hilbertTheta" title="analysis.synchronization.hilbertTheta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hilbertTheta</span></code></a>(X[, f_low, f_high, fs, type, ...])</p></td>
+<td><p>Calculate to envelope and phase of a signal in the frequency band specified by [<strong>f_loww</strong> , <strong>f_high</strong> ] Hz.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.synchronization.localOrderParameter" title="analysis.synchronization.localOrderParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">localOrderParameter</span></code></a>(x)</p></td>
+<td><p>Local order parameter Relation of each node phase with the global order parameter</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.synchronization.phaseLockingDiffPhase" title="analysis.synchronization.phaseLockingDiffPhase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phaseLockingDiffPhase</span></code></a>(diffX)</p></td>
+<td><p>Phase locking value given the phase difference matrix</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.synchronization.phaseLockingValueMatrix" title="analysis.synchronization.phaseLockingValueMatrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phaseLockingValueMatrix</span></code></a>(X)</p></td>
+<td><p>Phase locking value for pairs in matrix of phases X</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.synchronization.phaseLockingValueTwoNodes" title="analysis.synchronization.phaseLockingValueTwoNodes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">phaseLockingValueTwoNodes</span></code></a>(x1, x2)</p></td>
+<td><p>Phase locking between x1 and X2</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.synchronization.shannonEntropy" title="analysis.synchronization.shannonEntropy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shannonEntropy</span></code></a>(p)</p></td>
+<td><p>Calculates the Shannon entropy of the probability mass distribution p[j]</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.synchronization.shannonEntropyTimeMatrix" title="analysis.synchronization.shannonEntropyTimeMatrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shannonEntropyTimeMatrix</span></code></a>(X[, nbins, ...])</p></td>
+<td><p>Calculates the shanon entropy of the probability mass distribution p[j].</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.synchronization.synchronyMatrices" title="analysis.synchronization.synchronyMatrices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synchronyMatrices</span></code></a>(X[, start_time, end_time])</p></td>
+<td><p>Return multiple synchrony measurements for a data matrix with size NxT</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.synchronization.synchronyTwoNodes" title="analysis.synchronization.synchronyTwoNodes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synchronyTwoNodes</span></code></a>(x1, x2[, n, m])</p></td>
+<td><p>Return multiple synchrony measurements for two vector of data with the same length</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.FC_filtered">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">FC_filtered</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.FC_filtered" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the Functional Connectivity matrix from the low-pass filterd envelopes of the
+signals in X. The envelopes correspond to the frequency band specified by [<strong>f_low</strong> , <strong>f_high</strong> ] Hz.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>float 2D array</em>) – Data matrix of size NxT.</p></li>
+<li><p><strong>f_low</strong> (<em>float</em><em>, </em><em>optional</em>) – Low frequency limit of the pass-band filter. The default is 0.5 Hz.</p></li>
+<li><p><strong>f_high</strong> (<em>float</em><em>, </em><em>optional</em>) – High frequency limit of the pass-band filter. The default is 100 Hz.</p></li>
+<li><p><strong>fs</strong> (<em>int</em><em>, </em><em>optional</em>) – Sampling frequency. The default is 1000 samples/second.</p></li>
+<li><p><strong>type</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of the pass-band filter. The default is ‘butterworth’, the other option is ‘chebysev’.</p></li>
+<li><p><strong>simulated</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Defines if the data comes from simulation, then the impulse response time is removed. The default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>FC</strong> (<em>float 2D array</em>) – Functional connectivity matrix, uses the pearson coefficient, then the values are in the range [-1,1].</p></li>
+<li><p><strong>mean_energy</strong> (<em>float</em>) – Average of the energy from the envelopes of the signal in <strong>X</strong>.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.FC_filtered_windowed">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">FC_filtered_windowed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.FC_filtered_windowed" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the Functional Connectivity matrix from the low-pass filterd envelopes of the
+signals in X. The envelopes correspond to the frequency band specified by [<strong>f_low</strong> , <strong>f_high</strong> ] Hz,
+and between the time points specified by [<strong>t_start</strong> , <strong>t_end</strong> ) samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>float 2D array</em>) – Data matrix of size NxT.</p></li>
+<li><p><strong>f_low</strong> (<em>float</em><em>, </em><em>optional</em>) – Low frequency limit of the pass-band filter. The default is 0.5 Hz.</p></li>
+<li><p><strong>f_high</strong> (<em>float</em><em>, </em><em>optional</em>) – High frequency limit of the pass-band filter. The default is 100 Hz.</p></li>
+<li><p><strong>fs</strong> (<em>int</em><em>, </em><em>optional</em>) – Sampling frequency. The default is 1000 samples/second.</p></li>
+<li><p><strong>type</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of the pass-band filter. The default is ‘butterworth’, the other option is ‘chebysev’.</p></li>
+<li><p><strong>simulated</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Defines if the data comes from simulation, then the impulse response time is removed. The default is True.</p></li>
+<li><p><strong>t_start</strong> (<em>int</em><em>, </em><em>optional</em>) – Initial time point. The default is 20000 samples.</p></li>
+<li><p><strong>t_end</strong> (<em>int</em><em>, </em><em>optional</em>) – Final time point. The default is 40000 samples.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>FC</strong> (<em>float 2D array</em>) – Functional connectivity matrix, uses the pearson coefficient, then the values are in the range [-1,1].</p></li>
+<li><p><strong>mean_energy</strong> (<em>float</em>) – Average of the energy from the envelopes of the signal in <strong>X</strong>.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.KuramotoOrderParameter">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">KuramotoOrderParameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">δ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">σ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.KuramotoOrderParameter" title="Permalink to this definition"></a></dt>
+<dd><p>Kuramoto order parameter,
+optional: subnetwork with indexes δ
+optional: frequency correction σ=stim frequency, T: tmax, dt:Ts</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>2D array</em>) – Nodes x time.</p></li>
+<li><p><strong>δ</strong> (<em>int 1D array</em><em>, </em><em>optional</em>) – nodes indexes. The default is -1.</p></li>
+<li><p><strong>σ</strong> (<em>float</em><em>, </em><em>optional</em>) – stim frequency. The default is 0.</p></li>
+<li><p><strong>T</strong> (<em>float</em><em>, </em><em>optional</em>) – t_max. The default is -1.</p></li>
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – sampling time. The default is -1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>KOP</strong> – Kuramoto order parameter. Between 0 and 1.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.absDiffPhase">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">absDiffPhase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.absDiffPhase" title="Permalink to this definition"></a></dt>
+<dd><p>The absolute difference between phases time series. The max value in the absolute difference between phases is pi.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>float</em><em> (</em><em>ND array</em><em>)</em>) – Array that contains difference of phases information.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Difference of phases in degrees. Useful for the visualization of synchrony with one node as reference.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>abs_diff same as x</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.coherence">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">coherence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nperseg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noverlap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.coherence" title="Permalink to this definition"></a></dt>
+<dd><p>Coherence for each pair of signals in x</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float 2D array.</em>) – Nodes x Time.</p></li>
+<li><p><strong>nperseg</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of samples of the time window. The default is 4096.</p></li>
+<li><p><strong>noverlap</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of samples of the overlap window. The default is 3600.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>freqs</strong> (<em>float 1D array</em>) – frequency bins</p></li>
+<li><p><strong>Cxx</strong> (<em>float 3D array</em>) – Tensor of coherences of each pair of nodes.
+Node x Node x Frequency</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.completeSynchrony">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">completeSynchrony</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.completeSynchrony" title="Permalink to this definition"></a></dt>
+<dd><p>Absolute error between two signals.
+From the use of native Python operators, the arrays could be of any dimension while
+<em>np.shape</em> ( <strong>x1</strong> )==*np.shape* ( <strong>x2</strong> )</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x1</strong> (<em>float 1D</em><em> (</em><em>ND</em><em>) </em><em>vector</em>) – Array of data.</p></li>
+<li><p><strong>x2</strong> (<em>float 1D</em><em> (</em><em>ND</em><em>) </em><em>vector</em>) – Array of data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>error</strong> – Absolute error.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.conditionalProbabiliy">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">conditionalProbabiliy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.280043714525997</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.conditionalProbabiliy" title="Permalink to this definition"></a></dt>
+<dd><p>Conditional probability</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x1</strong> (<em>1D array</em>) – float Lenghth L.</p></li>
+<li><p><strong>x2</strong> (<em>float 1D array</em>) – Length L.</p></li>
+<li><p><strong>theta</strong> (<em>float</em><em>, </em><em>optional</em>) – Target-phase at where the signals must coincide.
+The default is 1.999*np.pi.</p></li>
+<li><p><strong>epsilon</strong> (<em>float</em><em>, </em><em>optional</em>) – error around the target-phase</p></li>
+<li><p><strong>n</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic of x1 signal. The default is 1.</p></li>
+<li><p><strong>m</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic of x2 signal. The default is 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>eta</strong> – Percentage of coincident points</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.diffPhaseHilbert">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">diffPhaseHilbert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.diffPhaseHilbert" title="Permalink to this definition"></a></dt>
+<dd><p>Difference of phases from applying the Hilbert Transform in the signals of <strong>X</strong>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>float 2D array</em>) – Data matrix of size NxT.</p></li>
+<li><p><strong>f_low</strong> (<em>float</em><em>, </em><em>optional</em>) – Low frequency limit of the pass-band filter. The default is 0.5 Hz.</p></li>
+<li><p><strong>f_high</strong> (<em>float</em><em>, </em><em>optional</em>) – High frequency limit of the pass-band filter. The default is 100 Hz.</p></li>
+<li><p><strong>fs</strong> (<em>int</em><em>, </em><em>optional</em>) – Sampling frequency. The default is 1000 samples/second.</p></li>
+<li><p><strong>type</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of the pass-band filter. The default is ‘butterworth’, the other option is ‘chebysev’.</p></li>
+<li><p><strong>simulated</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Defines if the data comes from simulation, then the impulse response time is removed. The default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>angles float 2D array</em> – Phase time series.</p></li>
+<li><p><strong>diff</strong> (<em>float 2D arrat</em>) – Difference of the phases. Size TxNxN</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.diffPhaseTheta">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">diffPhaseTheta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.diffPhaseTheta" title="Permalink to this definition"></a></dt>
+<dd><p>Difference of phases assuming that <strong>X</strong> contains phase time series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>float 2D array</em>) – Matrix of phase time series. Size N x T.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>angles float 2D array</em> – The transpose of X and applied a module of 2 pi</p></li>
+<li><p><strong>diff</strong> (<em>float 2D arrat</em>) – Difference of the phases. Size TxNxN</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.elementFunctionalConnectivity">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">elementFunctionalConnectivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.elementFunctionalConnectivity" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the element <em>i,j</em> of the functional connectivity matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x1</strong> (<em>float 1D array</em>) – First vector of data with lenghth L.</p></li>
+<li><p><strong>x2</strong> (<em>float 1D array</em>) – Second vector of data with lenghth L.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>fc</strong> – Pearson coefficient between <strong>x1</strong> and <strong>x2</strong>, from -1 to 1.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.elementFunctionalConnectivityTheta">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">elementFunctionalConnectivityTheta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.elementFunctionalConnectivityTheta" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the <em>i,j</em> element of the functional connectivity matrix
+after applying the <em>sin()</em> function to the data’s vectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x1</strong> (<em>1D array: float</em>) – First vector of data with lenghth L.</p></li>
+<li><p><strong>x2</strong> (<em>1D array: float</em>) – Second vector of data with lenghth L.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>fc</strong> – Pearson coefficient between <strong>x1</strong> and <strong>x2</strong>, from -1 to 1.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.entropySynchrony">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">entropySynchrony</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.entropySynchrony" title="Permalink to this definition"></a></dt>
+<dd><p>Index of synchrony based in the Shannon entropy
+If <strong>bin_start</strong> and <strong>bin_end</strong>, are not specified, this functions actuates similar as np.histogram
+to get the histogram of the <em>i,j</em> element of the matrix <strong>X</strong>.
+:param x1: First vector of data with lenghth L.
+:type x1: float 1D array
+:param x2: First vector of data with lenghth L.
+:type x2: float 1D array.
+:param n: Harmonic of x1 signal. The default is 1.
+:type n: int, optional
+:param m: Harmonic of x2 signal. The default is 1.
+:type m: int, optional</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>rho</strong> – Synchrony index from 0 t0 1.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.entropySynchronyMatrix">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">entropySynchronyMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.entropySynchronyMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the entropy index of synchrony</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>float 2D array</em>) – matrix of data with size TxN.</p></li>
+<li><p><strong>nbins</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of bins to discretize the element <em>i,j</em> of the tensor X. The default is 100 bins.</p></li>
+<li><p><strong>bin_start</strong> (<em>float</em><em>, </em><em>optional</em>) – Start value of the bins range. The default is None. If None</p></li>
+<li><p><strong>bin_end</strong> (<em>float</em><em>, </em><em>optional</em>) – End value of the bins range. The default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>rho</strong> – Entropy synchrony measurement, values from 0 to 1.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.extract_FCD">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">extract_FCD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wwidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxNwindows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">olap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coldata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'corr'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.extract_FCD" title="Permalink to this definition"></a></dt>
+<dd><p>Created on Wed Apr 27 15:57:38 2016
+&#64;author: jmaidana
+&#64;author: porio</p>
+<p>Source: <a class="reference external" href="https://github.com/vandal-uv/anarpy/blob/master/src/anarpy/utils/FCDutil/fcd.py">https://github.com/vandal-uv/anarpy/blob/master/src/anarpy/utils/FCDutil/fcd.py</a>
+Functional Connectivity Dynamics from a collection of time series</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>array-like</em>) – 2-D array of data, with time series in rows (unless coldata is True)</p></li>
+<li><p><strong>wwidth</strong> (<em>integer</em>) – Length of data windows in which the series will be divided, in samples</p></li>
+<li><p><strong>maxNwindows</strong> (<em>integer</em>) – Maximum number of windows to be used. wwidth will be increased if necessary</p></li>
+<li><p><strong>olap</strong> (<em>float between 0 and 1</em>) – Overlap between neighboring data windows, in fraction of window length</p></li>
+<li><p><strong>coldata</strong> (<em>Boolean</em>) – if True, the time series are arranged in columns and rows represent time</p></li>
+<li><p><strong>mode</strong> (<em>'corr'</em><em> | </em><em>'psync'</em><em> | </em><em>'plock'</em><em> | </em><em>'tdcorr'</em>) – Measure to calculate the Functional Connectivity (FC) between nodes.
+‘corr’ : Pearson correlation. Uses the corrcoef function of numpy.
+‘psync’ : Pair-wise phase synchrony.
+‘plock’ : Pair-wise phase locking.
+‘tdcorr’ : Time-delayed correlation, looks for the maximum value in a cross-correlation of the data series</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>FCDmatrix</strong> (<em>numpy array</em>) – Correlation matrix between all the windowed FCs.</p></li>
+<li><p><strong>CorrVectors</strong> (<em>numpy array</em>) – Collection of FCs, linearized. Only the lower triangle values (excluding the diagonal) are returned</p></li>
+<li><p><strong>shift</strong> (<em>integer</em>) – The distance between windows that was actually used (in samples)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.fourierModeIndex">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">fourierModeIndex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.fourierModeIndex" title="Permalink to this definition"></a></dt>
+<dd><p>Fourier index based in the trigonometry
+identity sin^2(alpha)+cos^2 (alpha)=1</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x1</strong> (<em>1D array: float</em>) – First vector of data with lenghth L.</p></li>
+<li><p><strong>x2</strong> (<em>1D array: float</em>) – Second vector of data with lenghth L.</p></li>
+<li><p><strong>n</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic of x1 signal. The default is 1.</p></li>
+<li><p><strong>m</strong> (<em>int</em><em>, </em><em>optional</em>) – Harmonic of x2 signal. The default is 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>gamma</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.hilbertTheta">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">hilbertTheta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'butterworth'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.hilbertTheta" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate to envelope and phase of a signal in the frequency band specified by [<strong>f_loww</strong> , <strong>f_high</strong> ] Hz.
+Uses the hilbert transform, then the result has more accuraccy as narrower is the frequency band.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>float 2D array</em>) – Data matrix of size NxT.</p></li>
+<li><p><strong>f_low</strong> (<em>float</em><em>, </em><em>optional</em>) – Low frequency limit of the pass-band filter. The default is 0.5 Hz.</p></li>
+<li><p><strong>f_high</strong> (<em>float</em><em>, </em><em>optional</em>) – High frequency limit of the pass-band filter. The default is 100 Hz.</p></li>
+<li><p><strong>fs</strong> (<em>int</em><em>, </em><em>optional</em>) – Sampling frequency. The default is 1000 samples/second.</p></li>
+<li><p><strong>type</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of the pass-band filter. The default is ‘butterworth’, the other option is ‘chebysev’.</p></li>
+<li><p><strong>simulated</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Defines if the data comes from simulation, then the impulse response time is removed. The default is True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>amplitudes</strong> (<em>1D array</em>) – Envelope from the Hilbert transform.</p></li>
+<li><p><strong>angles</strong> (<em>1D array</em>) – Phase time serie from the Hilbert transform.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.localOrderParameter">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">localOrderParameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.localOrderParameter" title="Permalink to this definition"></a></dt>
+<dd><p>Local order parameter
+Relation of each node phase with the global order parameter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>2D array</em>) – Nodes x time.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>LOP</strong> – Array with values of the local order parameter.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float 1D array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.phaseLockingDiffPhase">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">phaseLockingDiffPhase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diffX</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.phaseLockingDiffPhase" title="Permalink to this definition"></a></dt>
+<dd><p>Phase locking value given the phase difference matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>diffX</strong> (<em>float 3D array</em>) – Time X Nodes X Nodes difference between phases</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>plv</strong> – phase locking value matrix</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float 2D array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.phaseLockingValueMatrix">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">phaseLockingValueMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.phaseLockingValueMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Phase locking value for pairs in matrix of phases X</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>float 2D array</em>) – Array of data of size Nodes x Time</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>plv</strong> – Phase locking value matrix</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float 2D array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.phaseLockingValueTwoNodes">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">phaseLockingValueTwoNodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.phaseLockingValueTwoNodes" title="Permalink to this definition"></a></dt>
+<dd><p>Phase locking between x1 and X2</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x1</strong> (<em>float 1D array</em>) – First vector of data with lenghth L.</p></li>
+<li><p><strong>x2</strong> (<em>float 1D array</em>) – Second vector of data with lenghth L.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>plv</strong> – phase locking value</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.shannonEntropy">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">shannonEntropy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.shannonEntropy" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the Shannon entropy
+of the probability mass distribution p[j]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>p</strong> (<em>float 1D array</em>) – Probability mass distirbution. All the elements must sum 1.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>S</strong> – Shannon Entropy.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.shannonEntropyTimeMatrix">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">shannonEntropyTimeMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.shannonEntropyTimeMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the shanon entropy
+of the probability mass distribution p[j].
+If <strong>bin_start</strong> and <strong>bin_end</strong>, are not specified, this functions actuates similar as np.histogram
+to get the histogram of the <em>i,j</em> element of the tensor <strong>X</strong>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>float 3D array</em>) – A tensor of size TxMxN where T is the number of time points</p></li>
+<li><p><strong>nbins</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of bins to discretize the element <em>i,j</em> of the tensor X. The default is 100 bins.</p></li>
+<li><p><strong>bin_start</strong> (<em>float</em><em>, </em><em>optional</em>) – Start value of the bins range. The default is None. If None</p></li>
+<li><p><strong>bin_end</strong> (<em>float</em><em>, </em><em>optional</em>) – End value of the bins range. The default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>S</strong> – Shannon Entropy matrix.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float 2D array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.synchronyMatrices">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">synchronyMatrices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.synchronyMatrices" title="Permalink to this definition"></a></dt>
+<dd><p>Return multiple synchrony measurements for a data matrix with size NxT</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>float 2D array</em>) – Data matrix of size N x T</p></li>
+<li><p><strong>start_time</strong> (<em>int</em><em>, </em><em>optional</em>) – Initial time point. The default is 0.</p></li>
+<li><p><strong>end_time</strong> (<em>int</em><em>, </em><em>optional</em>) – Final time point. The default is 20000.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>plv_matrix</strong> (<em>float 2D array</em>) – Phase locking value array.</p></li>
+<li><p><strong>gamma_matrix</strong> (<em>float 2D array</em>) – Fourier mode index array.</p></li>
+<li><p><strong>phi_matrix</strong> (<em>float 2D array</em>) – Absolute error array.</p></li>
+<li><p><strong>SE_matrix</strong> (<em>float 2D array</em>) – Entropy Synchrony array.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.synchronization.synchronyTwoNodes">
+<span class="sig-prename descclassname"><span class="pre">analysis.synchronization.</span></span><span class="sig-name descname"><span class="pre">synchronyTwoNodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.synchronization.synchronyTwoNodes" title="Permalink to this definition"></a></dt>
+<dd><p>Return multiple synchrony measurements for two vector of data with the same length</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x1</strong> (<em>float 1D array</em>) – First data vector with length L.</p></li>
+<li><p><strong>x2</strong> (<em>float 1D array</em>) – Second data vector with length L.</p></li>
+<li><p><strong>n</strong> (<em>int</em><em>, </em><em>optional</em>) – Mode (Harmonic) of <strong>x1</strong>. The default is 1.</p></li>
+<li><p><strong>m</strong> (<em>int</em><em>, </em><em>optional</em>) – Mode (Harmonic) of <strong>x2</strong>. The default is 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>plv</strong> (<em>float</em>) – Phase locking value.</p></li>
+<li><p><strong>gamma</strong> (<em>float</em>) – Fourier mode index.</p></li>
+<li><p><strong>phi</strong> (<em>float</em>) – Absolute error.</p></li>
+<li><p><strong>rho</strong> (<em>float</em>) – Entropy Synchrony.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="frequency.html" class="btn btn-neutral float-left" title="Frequency-domain analysis tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../plot.html" class="btn btn-neutral float-right" title="Plot Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Vibrain.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

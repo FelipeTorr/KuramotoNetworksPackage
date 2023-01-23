@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analysis of connectivity matrices &mdash; KuramotoNetworksPackage 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Frequency-domain analysis tools" href="frequency.html" />
+    <link rel="prev" title="Cluster analysis" href="cluster.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> KuramotoNetworksPackage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../model.html">Model</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../analysis.html">Analysis Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cluster.html">Cluster analysis</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Analysis of connectivity matrices</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.connectivityMatrices.Laplacian"><code class="docutils literal notranslate"><span class="pre">Laplacian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.connectivityMatrices.adjacencyMatrix"><code class="docutils literal notranslate"><span class="pre">adjacencyMatrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.connectivityMatrices.applyMeanDelay"><code class="docutils literal notranslate"><span class="pre">applyMeanDelay()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.connectivityMatrices.booleanDegree"><code class="docutils literal notranslate"><span class="pre">booleanDegree()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.connectivityMatrices.constructErdosRenyiConnectome"><code class="docutils literal notranslate"><span class="pre">constructErdosRenyiConnectome()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.connectivityMatrices.degreeMatrix"><code class="docutils literal notranslate"><span class="pre">degreeMatrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.connectivityMatrices.eigen"><code class="docutils literal notranslate"><span class="pre">eigen()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.connectivityMatrices.intensities"><code class="docutils literal notranslate"><span class="pre">intensities()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.connectivityMatrices.loadConnectome"><code class="docutils literal notranslate"><span class="pre">loadConnectome()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.connectivityMatrices.loadDelays"><code class="docutils literal notranslate"><span class="pre">loadDelays()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis.connectivityMatrices.loadLabels"><code class="docutils literal notranslate"><span class="pre">loadLabels()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="frequency.html">Frequency-domain analysis tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="synchronization.html">Synchrony analysis tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plot.html">Plot Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../simulations.html">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Summary</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">KuramotoNetworksPackage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../analysis.html">Analysis Tools</a></li>
+      <li class="breadcrumb-item active">Analysis of connectivity matrices</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/analysis/connectivityMatrices.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="analysis-of-connectivity-matrices">
+<h1>Analysis of connectivity matrices<a class="headerlink" href="#analysis-of-connectivity-matrices" title="Permalink to this heading"></a></h1>
+<p>Tools for the analysis of structural connectivity and functional connectivity matrices.</p>
+<span class="target" id="module-analysis.connectivityMatrices"></span><p><strong>Functions:</strong></p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.connectivityMatrices.Laplacian" title="analysis.connectivityMatrices.Laplacian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Laplacian</span></code></a>(C[, asAdjancency])</p></td>
+<td><p>Lplacian matrix of a graph from the connectivity matrix.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.connectivityMatrices.adjacencyMatrix" title="analysis.connectivityMatrices.adjacencyMatrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adjacencyMatrix</span></code></a>(C)</p></td>
+<td><p>Boolean logic in a 2D float array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.connectivityMatrices.applyMeanDelay" title="analysis.connectivityMatrices.applyMeanDelay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">applyMeanDelay</span></code></a>(D, C[, mean_delay])</p></td>
+<td><p>Apply the mean_delay scaling to the matrix of disatances <strong>D</strong>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.connectivityMatrices.booleanDegree" title="analysis.connectivityMatrices.booleanDegree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">booleanDegree</span></code></a>(C)</p></td>
+<td><p>Sum of the rows of the boolean adjacency matrix.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.connectivityMatrices.constructErdosRenyiConnectome" title="analysis.connectivityMatrices.constructErdosRenyiConnectome"><code class="xref py py-obj docutils literal notranslate"><span class="pre">constructErdosRenyiConnectome</span></code></a>(No_nodes[, p, ...])</p></td>
+<td><p>Construct a random connected network</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.connectivityMatrices.degreeMatrix" title="analysis.connectivityMatrices.degreeMatrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">degreeMatrix</span></code></a>(C)</p></td>
+<td><p>Diagonal degree matrix.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.connectivityMatrices.eigen" title="analysis.connectivityMatrices.eigen"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eigen</span></code></a>(C)</p></td>
+<td><p>Calculate and sort the eigenvalues and eigenvectors of the matrix C.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.connectivityMatrices.intensities" title="analysis.connectivityMatrices.intensities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">intensities</span></code></a>(C)</p></td>
+<td><p>Sum of the rows of the connectivity matrix.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.connectivityMatrices.loadConnectome" title="analysis.connectivityMatrices.loadConnectome"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadConnectome</span></code></a>(No_nodes[, filename, field])</p></td>
+<td><p>Load a square connectivity matrix</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#analysis.connectivityMatrices.loadDelays" title="analysis.connectivityMatrices.loadDelays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadDelays</span></code></a>(No_nodes[, filename, field])</p></td>
+<td><p>Load the matrix of delays between nodes</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#analysis.connectivityMatrices.loadLabels" title="analysis.connectivityMatrices.loadLabels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadLabels</span></code></a>([filename, field])</p></td>
+<td><p>Load labels of the graph nodes</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.connectivityMatrices.Laplacian">
+<span class="sig-prename descclassname"><span class="pre">analysis.connectivityMatrices.</span></span><span class="sig-name descname"><span class="pre">Laplacian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asAdjancency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.connectivityMatrices.Laplacian" title="Permalink to this definition"></a></dt>
+<dd><p>Lplacian matrix of a graph from the connectivity matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>C</strong> (<em>2D float array</em>) – Connectivity matrix.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>L</strong> – Laplacian matrix.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>2D float array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.connectivityMatrices.adjacencyMatrix">
+<span class="sig-prename descclassname"><span class="pre">analysis.connectivityMatrices.</span></span><span class="sig-name descname"><span class="pre">adjacencyMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.connectivityMatrices.adjacencyMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Boolean logic in a 2D float array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>C</strong> (<em>2D float array</em>) – Conectome or adjacency matrix.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>A</strong> – Boolean adjacency matrix, 1 if c[i,j]!=0.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>2D int array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.connectivityMatrices.applyMeanDelay">
+<span class="sig-prename descclassname"><span class="pre">analysis.connectivityMatrices.</span></span><span class="sig-name descname"><span class="pre">applyMeanDelay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.connectivityMatrices.applyMeanDelay" title="Permalink to this definition"></a></dt>
+<dd><p>Apply the mean_delay scaling to the matrix of disatances <strong>D</strong>.
+Take in account for the mean of <strong>D</strong> only the nonzero elements of C.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>D</strong> (<em>float</em><em>, </em><em>2D array</em>) – Distances matrix (meters).</p></li>
+<li><p><strong>C</strong> (<em>float</em><em>, </em><em>2D array</em>) – Structural connectivity matrix (a. u.).</p></li>
+<li><p><strong>mean_delay</strong> (<em>float</em><em>, </em><em>optional</em>) – The <strong>mean_delay</strong> . The default is 1.0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>D</strong> – DESCRIPTION.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>TYPE</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.connectivityMatrices.booleanDegree">
+<span class="sig-prename descclassname"><span class="pre">analysis.connectivityMatrices.</span></span><span class="sig-name descname"><span class="pre">booleanDegree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.connectivityMatrices.booleanDegree" title="Permalink to this definition"></a></dt>
+<dd><p>Sum of the rows of the boolean adjacency matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>C</strong> (<em>2D float array</em>) – Conectivity matrix.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>k_i</strong> – degree of each node.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>1D int array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.connectivityMatrices.constructErdosRenyiConnectome">
+<span class="sig-prename descclassname"><span class="pre">analysis.connectivityMatrices.</span></span><span class="sig-name descname"><span class="pre">constructErdosRenyiConnectome</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">No_nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.connectivityMatrices.constructErdosRenyiConnectome" title="Permalink to this definition"></a></dt>
+<dd><p>Construct a random connected network</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>No_nodes</strong> (<em>int</em>) – Number of nodes.</p></li>
+<li><p><strong>p</strong> (<em>float</em><em>, </em><em>optional</em>) – Degree of connectivity. The default is 1, corresponds to fully-connected network.
+A value of 0, is a empty connectome (full of zeros).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>C</strong> – Adjacency matrix with the defined connectivity degree for each node.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>2D float array (boolean)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.connectivityMatrices.degreeMatrix">
+<span class="sig-prename descclassname"><span class="pre">analysis.connectivityMatrices.</span></span><span class="sig-name descname"><span class="pre">degreeMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.connectivityMatrices.degreeMatrix" title="Permalink to this definition"></a></dt>
+<dd><p>Diagonal degree matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>C</strong> (<em>2D float array</em>) – Conectome or Adjacency matrix.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>degree_matrix</strong> – Diagonal matrix.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>2D float array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.connectivityMatrices.eigen">
+<span class="sig-prename descclassname"><span class="pre">analysis.connectivityMatrices.</span></span><span class="sig-name descname"><span class="pre">eigen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.connectivityMatrices.eigen" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate and sort the eigenvalues and eigenvectors of the matrix C.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>C</strong> (<em>float 2D square array</em>) – Connectivity or Laplacian matrix.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>eig_values</strong> (<em>1D complex array</em>) – sorted eigenvalues of C.</p></li>
+<li><p><strong>eig_vectors</strong> (<em>2D complex array</em>) – eigenvectors of C sorted by eigenvalues.</p></li>
+<li><p><strong>count_zeros_eigvalues</strong> (<em>int</em>) – Quantity of zeros eigenvalues.</p></li>
+<li><p><strong>algebraic_connectivty</strong> (<em>float</em>) – Second eigenvalue of C.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.connectivityMatrices.intensities">
+<span class="sig-prename descclassname"><span class="pre">analysis.connectivityMatrices.</span></span><span class="sig-name descname"><span class="pre">intensities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.connectivityMatrices.intensities" title="Permalink to this definition"></a></dt>
+<dd><p>Sum of the rows of the connectivity matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>C</strong> (<em>2D float array</em>) – Conectivity matrix.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>intensities</strong> – sum of the rows.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>1D float array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.connectivityMatrices.loadConnectome">
+<span class="sig-prename descclassname"><span class="pre">analysis.connectivityMatrices.</span></span><span class="sig-name descname"><span class="pre">loadConnectome</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">No_nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'../input_data/AAL_matrices.mat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.connectivityMatrices.loadConnectome" title="Permalink to this definition"></a></dt>
+<dd><p>Load a square connectivity matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>No_nodes</strong> (<em>int</em>) – Number of nodes to load.</p></li>
+<li><p><strong>filename</strong> (<em>String</em><em>, </em><em>optional</em>) – The <strong>filename</strong>, including the directory, where the connection matrix is stored.
+The default is the AAL90 filename</p></li>
+<li><p><strong>field</strong> (<em>String</em><em>, </em><em>optional</em>) – The <em>file</em> of the <strong>filename</strong> that contains the connection weights matrix.
+The default is ‘C’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>C</strong> – Connectome matrix.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>2D float array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.connectivityMatrices.loadDelays">
+<span class="sig-prename descclassname"><span class="pre">analysis.connectivityMatrices.</span></span><span class="sig-name descname"><span class="pre">loadDelays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">No_nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'../input_data/AAL_matrices.mat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'D'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.connectivityMatrices.loadDelays" title="Permalink to this definition"></a></dt>
+<dd><p>Load the matrix of delays between nodes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>No_nodes</strong> (<em>int</em>) – Number of nodes to load.</p></li>
+<li><p><strong>filename</strong> (<em>String</em><em>, </em><em>optional</em>) – The <strong>filename</strong>, including the directory, where the delay matrix is stored. The default is the AAL90 filename</p></li>
+<li><p><strong>field</strong> (<em>String</em><em>, </em><em>optional</em>) – The <em>file</em> of the <strong>filename</strong> that contains the delays matrix. The default is ‘D’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>D</strong> – Matrix of delays, unit: seconds. (Or could be meters, if the <strong>mean_delay</strong> parameter has unit second/meter.)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>2D float array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="analysis.connectivityMatrices.loadLabels">
+<span class="sig-prename descclassname"><span class="pre">analysis.connectivityMatrices.</span></span><span class="sig-name descname"><span class="pre">loadLabels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'../input_data/AAL_labels.mat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'label90'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#analysis.connectivityMatrices.loadLabels" title="Permalink to this definition"></a></dt>
+<dd><p>Load labels of the graph nodes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>String</em><em>, </em><em>optional</em>) – The <strong>filename</strong>, including the directory, where the labels are stored. The default is ‘../input_data/AAL_labels.mat’.</p></li>
+<li><p><strong>field</strong> (<em>String</em><em>, </em><em>optional</em>) – The name of the <em>file</em> inside ‘filename’ that contains the labels.
+The default is ‘label90’ for the AAL90 connectivity matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>labels</strong> – Physiologycall related names of the oscillatory nodes.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>String array or list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cluster.html" class="btn btn-neutral float-left" title="Cluster analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="frequency.html" class="btn btn-neutral float-right" title="Frequency-domain analysis tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Vibrain.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

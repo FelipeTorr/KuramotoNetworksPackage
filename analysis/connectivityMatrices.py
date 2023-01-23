@@ -9,7 +9,7 @@ import networkx as nx
 
 def loadConnectome(No_nodes, filename='../input_data/AAL_matrices.mat', field='C'):
     """
-    Load a square matrix
+    Load a square connectivity matrix
 
     Parameters
     ----------
@@ -17,15 +17,17 @@ def loadConnectome(No_nodes, filename='../input_data/AAL_matrices.mat', field='C
         Number of nodes to load.
         
     filename : String, optional
-        The filename where the connection matrix is stored. The default is the AAL90 filename    
+        The **filename**, including the directory, where the connection matrix is stored. 
+        The default is the AAL90 filename    
 
     field: String, optional
-        The filed of file of the filename that contains the connections matrix.
+        The *file* of the **filename** that contains the connection weights matrix.
+        The default is 'C'.
         
     Returns
     -------
     C : 2D float array
-        Conectome matrix.
+        Connectome matrix.
 
     """
     C = loadmat(filename)[field]
@@ -45,20 +47,21 @@ def loadConnectome(No_nodes, filename='../input_data/AAL_matrices.mat', field='C
 def loadDelays(No_nodes,filename='../input_data/AAL_matrices.mat',field='D'):
     """
     Load the matrix of delays between nodes
+    
     Parameters
     ----------
     No_nodes : int
         Number of nodes to load.
     
     filename : String, optional
-        The filename where the delay matrix is stored. The default is the AAL90 filename    
+        The **filename**, including the directory, where the delay matrix is stored. The default is the AAL90 filename    
 
     field: String, optional
-        The filed of file of the filename that contains the delays matrix.
+        The *file* of the **filename** that contains the delays matrix. The default is 'D'.
     Returns
     -------
     D : 2D float array
-        Matrix of delays, unit: seconds.
+        Matrix of delays, unit: seconds. (Or could be meters, if the **mean_delay** parameter has unit second/meter.)
 
     """
     D = loadmat(filename)[field]
@@ -69,26 +72,24 @@ def loadDelays(No_nodes,filename='../input_data/AAL_matrices.mat',field='D'):
     
     return D
 
-def loadLabels(filename=None, field=None):
+def loadLabels(filename='../input_data/AAL_labels.mat', field='label90'):
     """
+    Load labels of the graph nodes
+    
     Parameters
     ----------
     filename : String, optional
-        The filename where the labels are stored. The default is None.
+        The **filename**, including the directory, where the labels are stored. The default is '../input_data/AAL_labels.mat'.
     field : String, optional
-        The field o file inside 'filename' that contains the labels. The default is None.
-
+        The name of the *file* inside 'filename' that contains the labels. 
+        The default is 'label90' for the AAL90 connectivity matrix.
+        
     Returns
     -------
     labels : String array or list
-        Physiologycall related names of the oscillating nodes.
+        Physiologycall related names of the oscillatory nodes.
 
     """
-    #Default values for AAL90
-    if filename==None:
-        filename='../input_data/AAL_labels.mat'
-    if field==None:
-        field='label90'
     
     file=loadmat('filename')
     labels=file[field]
@@ -98,6 +99,7 @@ def loadLabels(filename=None, field=None):
 def constructErdosRenyiConnectome(No_nodes,p=1,seed=2):
     """
     Construct a random connected network
+    
     Parameters
     ----------
     No_nodes : int
@@ -118,13 +120,34 @@ def constructErdosRenyiConnectome(No_nodes,p=1,seed=2):
     return C 
 
 def applyMeanDelay(D,C,mean_delay=1.0):
+    """
+    Apply the mean_delay scaling to the matrix of disatances **D**.
+    Take in account for the mean of **D** only the nonzero elements of C.
+    
+    Parameters
+    ----------
+    D : float, 2D array
+        Distances matrix (meters).
+    C : float, 2D array
+        Structural connectivity matrix (a. u.).
+    mean_delay : float, optional
+        The **mean_delay** . The default is 1.0.
+
+    Returns
+    -------
+    D : TYPE
+        DESCRIPTION.
+
+    """
+    
     meanD=np.mean(D[C>0])
     D=D/meanD*mean_delay
     return D
 
 def degreeMatrix(C):
     """
-    Diagonal degree matrix
+    Diagonal degree matrix.
+    
     Parameters
     ----------
     C : 2D float array
@@ -145,7 +168,8 @@ def degreeMatrix(C):
 
 def adjacencyMatrix(C):
     """
-    Boolean logic in a 2D float array
+    Boolean logic in a 2D float array.
+    
     Parameters
     ----------
     C : 2D float array
@@ -167,7 +191,7 @@ def adjacencyMatrix(C):
 
 def intensities(C):
     """
-    Sum of the rows of the connectivity matrix
+    Sum of the rows of the connectivity matrix.
 
     Parameters
     ----------
@@ -185,7 +209,8 @@ def intensities(C):
 
 def booleanDegree(C):
     """
-    Sum of the rows of the boolean adjacency matrix
+    Sum of the rows of the boolean adjacency matrix.
+    
     Parameters
     ----------
     C : 2D float array
@@ -203,7 +228,7 @@ def booleanDegree(C):
 
 def Laplacian(C,asAdjancency=False):
     """
-    Lplacian matrix of a graph from the connectivity matrix
+    Lplacian matrix of a graph from the connectivity matrix.
 
     Parameters
     ----------
@@ -226,9 +251,11 @@ def Laplacian(C,asAdjancency=False):
 
 def eigen(C):
     """
+    Calculate and sort the eigenvalues and eigenvectors of the matrix C.
+    
     Parameters
     ----------
-    C : 2D float square array
+    C : float 2D square array
         Connectivity or Laplacian matrix.
 
     Returns

@@ -7,25 +7,60 @@ import analysis.synchronization as synchronization
 import analysis.connectivityMatrices as connectivityMatrices
 import metis
 from networkx.algorithms.community import k_clique_communities
+from networkx.algorithms.community import greedy_modularity_communities
 from scipy.cluster.hierarchy import dendrogram, linkage
 import numpy as np
 import matplotlib.pyplot as plt
 
+def cluster_colors():
+    """
+    A list of colors to distiguish the clusters
+
+    Returns
+    -------
+    colors: list
+        The list of colors.
+
+    """
+    return ['red','blue','yellow','cyan','green','brown','black','magenta',
+          'olive','purple','orange','lightblue','lightgreen',plt.cm.tab10(0),
+          plt.cm.tab10(1),plt.cm.tab10(2),plt.cm.tab10(3),plt.cm.tab10(4),
+          plt.cm.tab10(5),plt.cm.tab10(6),plt.cm.tab10(7),plt.cm.tab10(8),
+          plt.cm.tab10(9),plt.cm.Set1(0),plt.cm.Set1(1),plt.cm.Set1(2),plt.cm.Set1(3),
+          plt.cm.Set1(4),plt.cm.Set1(5),plt.cm.Set1(6),plt.cm.Set1(7),plt.cm.Set1(8),
+          plt.cm.Set2(0),plt.cm.Set2(1),plt.cm.Set2(2),plt.cm.Set2(3),
+          plt.cm.Set2(4),plt.cm.Set2(5),plt.cm.Set2(6),plt.cm.Set3(0),
+          plt.cm.Set3(1),plt.cm.Set3(2),plt.cm.Set3(3),plt.cm.Set3(4),
+          plt.cm.Set3(5),plt.cm.Set3(6),plt.cm.Set3(7),plt.cm.Set3(8),
+          plt.cm.Set3(9),plt.cm.Set3(10),plt.cm.Set3(11),plt.cm.tab20b(0),
+          plt.cm.tab20b(1),plt.cm.tab20b(2),plt.cm.tab20b(3),plt.cm.tab20b(4),
+          plt.cm.tab20b(5),plt.cm.tab20b(6),plt.cm.tab20b(7),plt.cm.tab20b(8),
+          plt.cm.tab20b(9),plt.cm.tab20b(10),plt.cm.tab20b(11),plt.cm.tab20b(12),
+          plt.cm.tab20b(13),plt.cm.tab20b(14),plt.cm.tab20b(15),plt.cm.tab20b(16),
+          plt.cm.tab20b(17),plt.cm.tab20b(18),plt.cm.tab20b(19),plt.cm.tab20c(0),
+          plt.cm.tab20c(1),plt.cm.tab20c(2),plt.cm.tab20c(3),plt.cm.tab20c(4),
+          plt.cm.tab20c(5),plt.cm.tab20c(6),plt.cm.tab20c(7),plt.cm.tab20c(8),
+          plt.cm.tab20c(9),plt.cm.tab20c(10),plt.cm.tab20c(11),plt.cm.tab20c(12),
+          plt.cm.tab20c(13),plt.cm.tab20c(14),plt.cm.tab20c(15),plt.cm.tab20c(16),
+          plt.cm.tab20c(17),plt.cm.tab20c(18),plt.cm.tab20c(19)]
+
 def Clustering(G,No_Clusters):
     """
-    Clustering a graph in the quantity indicated by No_Clusters 
+    Clustering a graph **G** in the quantity indicated by **No_Clusters** by the METS algorithm
 
     Parameters
     ----------
     G : netwokx.Graph
         Graph.
     No_Clusters : int
-        Number of clusters.
+        Number of clusters, **M**.
 
     Returns
     -------
-    G: clustered graph
-    color_map: color of the nodes in function of the pertenence to a cluster
+    G: networkx.Graph
+        Clustered graph
+    color_map: list
+        Color of the nodes in function of the pertenence to a cluster.
 
     """
     color_map = []
@@ -34,20 +69,91 @@ def Clustering(G,No_Clusters):
         No_Clusters=10
     # No_Clusters=9 # Can be assigned, But add extra colors below
     (edgecuts, parts) = metis.part_graph(G, No_Clusters,recursive=True)
-    colors = ['red','blue','cyan','yellow','green','brown','black','magenta',
-              'olive','purple','orange','light blue','light green',plt.cm.tab10(0),plt.cm.tab10(1),plt.cm.tab10(2),
-              plt.cm.tab10(3),plt.cm.tab10(4),plt.cm.tab10(5),
-              plt.cm.tab10(6),plt.cm.tab10(7),plt.cm.tab10(8),
-              plt.cm.tab10(9)]
+    colors = cluster_colors()
     for i, p in enumerate(parts):
         G.nodes[i]['color'] = colors[p]
         color_map.append(colors[p])
     return (G,color_map)
 
+def metisClustering(G,M=2):
+    """
+    Clustering a grap **G** with the METIS algorithm.
+
+    Parameters
+    ----------
+    G : networkx.Graph
+        Graph.
+    M : int
+        The number of requested clusters
+
+    Returns
+    -------
+    clusters : dict
+        A dictionary with colors as key values, and the indexes of each cluster as values.
+    sort_indexes: int list
+        The list of the node indexes sorted to join all the elements in each cluster.
+    labels: int 1D array
+        The cluster label given to each node of the graph **G**. 
+    """
+
+    labels=np.zeros((len(G.nodes),))
+    (edgecuts, parts) = metis.part_graph(G, M,recursive=True)
+    parts=np.array(parts)
+    colors=cluster_colors()
+    communities=[]
+    for nn in range(M):
+        communities.append(np.where(parts==nn)[0])
+    clusters={}
+    sort_indexes=[]
+    for n_label, color,com in zip(range(M),colors,communities):
+        clusters[color]=(sorted(com))
+        labels[sorted(com)]=n_label
+        for indx in sorted(com):
+            sort_indexes.append(indx)
+    
+    return clusters, sort_indexes, labels
+
+def greedyModularityClustering(G, resolution=1):
+    """
+    Clustering a grap **G** with the Greedy Modularity algorithm.
+
+    Parameters
+    ----------
+    G : networkx.Graph
+        Graph.
+    resolution : float
+        The resolution employed to ponderate ratio of the external connections with the intra-cluster connections. 
+
+    Returns
+    -------
+    clusters : dict
+        A dictionary with colors as key values, and the indexes of each cluster as values.
+    sort_indexes: int list
+        The list of the node indexes sorted to join all the elements in each cluster.
+    labels: int 1D array
+        The cluster label given to each node of the graph **G**. 
+    M : int
+        The number of clusters
+    """
+    communities=greedy_modularity_communities(G,weight='weight',resolution=resolution)
+    clusters={}
+    sort_indexes=[]
+    labels=np.zeros((len(G.nodes),))
+    colors=cluster_colors()
+    for n_label,color,com in zip(range(len(communities)),colors,communities):
+        clusters[color]=(sorted(com))
+        labels[sorted(com)]=n_label
+        for indx in sorted(com):
+            sort_indexes.append(indx)
+    M=len(communities)
+
+    return clusters, sort_indexes, labels, M
+
 def significantFC(X,f_low=0.5,f_high=100,fs=1000,Nshuffles=20):
     """
     Threshold of the Functional Connectivity matrix by a threshold coming from 
     the distribution of surrogate FC matrices
+    
     Parameters
     ----------
     X : 2D array
@@ -103,14 +209,14 @@ def sortMatrix(X):
 
     Parameters
     ----------
-    X : 2D array
+    X : float 2D array
         Symmetric matrix with no information on the diagonal.
 
     Returns
     -------
-    sortedX : 2D array
+    sortedX : float 2D array
         sorted Matrix 
-    sorted_indexes : 1D array
+    sorted_indexes : int 1D array
         indexes from the original matrix X to obtain the sortedX matrix.
 
     """
@@ -125,8 +231,8 @@ def hierarchyKMeans(FC):
 
     Parameters
     ----------
-    FC : 2D array with range [-1,1]
-        Functional connectivity matrix.
+    FC : float 2D array 
+        Functional connectivity matrix. The range of its values is [-1,1].
 
     Returns
     -------
@@ -139,19 +245,20 @@ def hierarchyKMeans(FC):
 
 def categoryDistance(x,y):
     """
-    returns the index j and distance of the lower distance from i element in x to j element in y
+    Returns the index **j** and distance of the lower distance from **i** element in **x** to **j** element in y
+    
     Parameters
     ----------
-    x : 1D array 
+    x : float 1D array 
         Feature of interest.
     y : float or 1D array
         Central(kernel) values of the clusters.
 
     Returns
     -------
-    min_distance_index : 1D int array
-        Index of the element in y more near to each element in x
-    min_distance : TYPE
+    min_distance_index : int 1D array
+        Index of the element in **y** more near to each element in **x**
+    min_distance : float
         The minimum distance for each pair indicated by min_distance_index.
 
     """
@@ -168,6 +275,24 @@ def categoryDistance(x,y):
     return min_distance_index,min_distance
 
 def spectralBisection(L, trisection=False):
+    """
+    Performs the spectral bisection of a Laplacian matrix
+
+    Parameters
+    ----------
+    L : float 2D array
+        Laplacian matrix
+    trisection: boolean
+        Defines if the algorithm need to return tree clusters (in order to obtain odd **M**). The default value is False.
+    Returns
+    -------
+    cluster0 : int 1D array
+        List of indexes that correspond to the first cluster.
+    cluster1 : int 1D array
+        List of indexes that correspond to the second cluster.
+    cluster2 : int 1D array (if trisection==True)
+        List of indexes that correspond to the third cluster.
+    """
     eig_values, eig_vectors, count_zeros_eigvalues, algebraic_connectivty=connectivityMatrices.eigen(L)
     real_fiedler_vector=np.real(eig_vectors[:,1])
     if trisection:
@@ -180,15 +305,31 @@ def spectralBisection(L, trisection=False):
         cluster1=np.argwhere(real_fiedler_vector<0)[:,0]
         return cluster0, cluster1
     
-def clusteringSpectral(C,N=2):
+def clusteringSpectral(C,M=2):
+    """
+    Clusters obtained by spectral bisection
+
+    Parameters
+    ----------
+    C : float 2D array 
+        A connectivity matrix of the graph G:
+    N : int
+        Number of clusters, **M**. The default value is 2. 
+
+
+    Returns
+    -------
+    clusters_post : list of int 1D arrays
+        A list of the indexes of each cluster.
+    """
     num_nodes=np.shape(C)[0]
     all_nodes=np.arange(num_nodes)
-    if N==1:
+    if M==1:
         return all_nodes
     else:
         flag_odd=False
-        iter_num=int(N//2)
-        if (N%2)==1:
+        iter_num=int(M//2)
+        if (M%2)==1:
            flag_odd=True
 
         L=connectivityMatrices.Laplacian(C)

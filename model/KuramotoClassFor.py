@@ -24,46 +24,52 @@ import time as tm
 
 
 class Kuramoto:
-    """Kuramoto
-
+    """
     Kuramoto model class
 
     Parameters
-    -------
-
+    ----------
     struct_connectivity: float 2D array, optional
     	Structural connectivty matrix, a weighted adjacency matrix. The default is the AAL90 matrix
-    
     delays_matrix: float 2D array, optional
     	Matrix of the delays between connections. The default is the AAL90 distances matrix in meters.
     K: float, optional 
-    	Global coupling parameter $$K$$ (it will be normalized by the number of nodes). The default is 5.
+    	Global coupling parameter **K** (it will be normalized by the number of nodes). The default is 5.
     dt: float, optional
-    	Integration time step. The default is 1e-4.
+    	Integration time step. 
+        The default is 1e-4 seconds.
     simulation_period: float, optional
-    	Total time of the simulation. The default is 100.
+    	Total time of the simulation. 
+        The default is 100 seconds.
     StimTstart: float, optional. 
-    	Starting time of the stimulaiton (PFDK only! The default is 0.)
+    	Starting time of the stimulaiton
+        (PFDK only! The default is 0 seconds.)
     StimTend: float, optional. 
-    	Final time of the stimulaiton (PFDK only! The default is 0.)
+    	Final time of the stimulation 
+        (PFDK only! The default is 0 seconds.)
     StimFreq: float, optional. 
-    	Stimulation frequency, $$\\sigma$$ (PFDK only! The default is 0.) 
+    	Stimulation frequency, **sigma** 
+        (PFDK only! The default is 0 seconds.) 
     StimAmplitude: float, optional. 
-    	Stimulation force amplitude, $$F$$ (PFDK only! The default is 0.)
+    	Stimulation force amplitude, **F** 
+        PFDK only! The default is 0 seconds.)
     n_nodes: int, optional.
-    	Number of oscillatory nodes. The default is 90.	
+    	Number of oscillatory nodes. 
+        The default is 90 nodes.	
     natfreqs: float 1D array, optional.
-    	Natural frequencies, $$\\omega_n$$, of the system oscillators. The default is None, in order to use the **nat_freq_mean** and **nat_freq_std** to build the array.
+    	Natural frequencies, **omega_n**, of the system oscillators. 
+        The default is None, in order to use the **nat_freq_mean** and **nat_freq_std** to build the array.
     nat_freq_mean: float, optional.
-    	Average natural frequency. The default is 0 (only used if natfreqs is None).
+    	Average natural frequency. The default is 0 Hz (only used if **natfreqs** is None).
     nat_freq_std: float, optional.
-    	The standard deviation for a Gaussian distribution. The dafult is 2 (only used if natfreqs is None).
+    	The standard deviation for a Gaussian distribution. The dafult is 2 Hz (only used if natfreqs is None).
     GenerateRandom: boolean, optional.
     	Set if the natural frequencies comes from the same random seed for each simulation.
     SEED: int, optional.
     	The simulation seed. The default is 2. 	 
     mean_delay: float, optional.
-    	The mean delay to scale the distance matrix. It also could be seen as the inverse of the conduction speed. The default is 0.1. 
+    	The mean delay to scale the distance matrix. It also could be seen as the inverse of the conduction speed. 
+        The default is 0.1 seconds/meter. 
     	
     Returns
     -------
@@ -231,9 +237,9 @@ class Kuramoto:
         self.random_nat_freq=parameters['random_nat_freq'] #Flag: random nat. frequency for each realization
         nat_freqs=parameters['nat_freqs'] #natural frequencies
         try:
-        	self.initializeForcingNodes(parameters['ForcingNodes'])
+            self.initializeForcingNodes(parameters['ForcingNodes'])
         except:
-        	self.initializeForcingNodes(None)
+            self.initializeForcingNodes(None)
         self.natfreqs=self.initializeNatFreq(nat_freqs)
         self.struct_connectivity=matrices.loadConnectome(self.n_nodes,parameters['struct_connectivity']) #structural connectivity matrix
         self.delays_matrix=matrices.loadDelays(self.n_nodes,parameters['delay_matrix']) #delay matrix
@@ -261,10 +267,10 @@ class Kuramoto:
         self.ForcingNodes=np.zeros((self.n_nodes,1))
         if forcingNodes is not None:
             if type(forcingNodes)==int:
-            	self.ForcingNodes[forcingNodes]=1
+                self.ForcingNodes[forcingNodes]=1
             elif type(forcingNodes)==str:
-            	fnodes=eval(forcingNodes)
-            	for node in fnodes:
+                fnodes=eval(forcingNodes)
+                for node in fnodes:
                     self.ForcingNodes[node]=1
             else:
                 for node in forcingNodes:
@@ -360,7 +366,7 @@ class Kuramoto:
     def param(self,y,arg):
         """
         Auxiliar function in order to present the stimulation from **StimTstart** to **StimTend** 
-        Add the maximum of the delays matrix, because for the stored data $$t_{0}=max(delays_matrix)$$.
+        Add the maximum of the delays matrix, because for the stored data t_0=max(**delays_matrix**).
 
         Parameters
         ----------
@@ -550,8 +556,8 @@ class Kuramoto:
         """
         Main function. Simulate the Kuramoto model.
         To avoid the additional overload from using the Partially Forced Kuramoto you shoul pass 
-        False in the Forced argument. 
-        On the other hand, if you need to appli stimulation, use Forced=True 
+        False in the Forced argument.
+        On the other hand, if you need to apply stimulation, use Forced=True 
 
         Parameters
         ----------
@@ -569,7 +575,7 @@ class Kuramoto:
         
         self.Forced=Forced
         dynamics=self.IntegrateDD()
-        R=self.calculateOrderParameter(Dynamics)
+        R=self.calculateOrderParameter(dynamics)
         return R,dynamics
 
     def testIntegrateForced(self):
@@ -607,12 +613,12 @@ class Kuramoto:
         Parameters
         ----------
         angles_vec : float 1D array
-            Phases of the oscillators at time $$t$$.
+            Phases of the oscillators at time t.
 
         Returns
         -------
         R(t): float            
-        	A time point of the Kuramoto order parameter: $$abs(\\exp{(\\theta_n(t))})$$ 
+        	A time point of the Kuramoto order parameter: abs(exp{(theta_n(t))}) 
 
         """
         
@@ -623,7 +629,8 @@ class Kuramoto:
     def calculateOrderParameter(self,dynamics):
         """
         Calculate Kuramoto order parameter
-        $$R=abs((1/N)* \\sum_{n} ( e^{(i*\\theta_{n})}))$$
+
+        R=abs((1/N)* \\sum_{n} ( e^{(i*\\theta_{n})}))
 
         Parameters
         ----------

@@ -11,39 +11,43 @@ import scipy.ndimage as ndimage
 
 def effectiveFrequency(x,T):
     """
-
+    Calculate the effective frequency of a phase serie.
+    It is defined as (final_phase - initial_phase)/(2(pi)T)
+    
     Parameters
     ----------
     x : 2D array
-        Nodes x time.
+        Nodes x time samples.
     T : float
-        total time.
+        Total time (seconds).
 
     Returns
     -------
     1D float array
-        effective frequency.
+        Effective frequency (Hz).
 
     """
     return (x[:,-2]-x[:,1])/(2*np.pi*T)
     
 def peak_freqs(x,fs=1000,nperseg=4096,noverlap=2048,applySin=True,includeDC=False):
-    """"
+    """
     The peak of the Welch's periodogram.
+    
     Parameters
     ----------
     x : 1D float
         data NxT.
     fs : int
-    	sampling frequency
+    	sampling frequency (samples/second)
     nperseg : int, optional
-        time window in number of samples. The default is 4096.
+        time window in number of samples. The default is 4096 samples.
     noverlap : int, optional
-        overlap time in number of samples. The default is 2048.
-    applySin : boolean, deafult=True
-        apply the sin function before calculate the spectrum
+        overlap time in number of samples. The default is 2048 samples.
+    applySin : boolean
+        Apply or not the *sin()* function before calculate the spectrum. The default is True.
     includeDC : boolean, default=False
         include or not the DC component to find the peak frequency
+    
     Returns
     -------
     f : 1D float array
@@ -83,18 +87,19 @@ def peak_freqs(x,fs=1000,nperseg=4096,noverlap=2048,applySin=True,includeDC=Fals
 def countSumPeaks(x,fs=1000,nperseg=4096,noverlap=2048,applySin=True,minProminence=0.5,maxProminence=1000,distance=0.5):
     """"
     The peaks of the sum of the all nodes Welch's periodograms.
+    
     Parameters
     ----------
     x : 1D float
         data NxT.
     fs : int
-    	sampling frequency
+    	sampling frequency (samples/second)
     nperseg : int, optional
-        time window in number of samples. The default is 4096.
+        time window in number of samples. The default is 4096 samples.
     noverlap : int, optional
-        overlap time in number of samples. The default is 2048.
-    applySin : boolean, deafult=True
-        apply the sin function before calculate the spectrum
+        overlap time in number of samples. The default is 2048 samples.
+    applySin : boolean
+        Apply or not the *sin()* function before calculate the spectrum. The default is True.
     minProminence: float
         minimum value of ratio between the peak and its neighborhood
     maxProminence: float
@@ -138,20 +143,23 @@ def countSumPeaks(x,fs=1000,nperseg=4096,noverlap=2048,applySin=True,minProminen
         
     return f, sumPxx, npeaks, peaks_array
     
-def peaksSpectrum(f,Pxx,Npeaks=10,deltaf=5):
+def peaksSpectrum(f,Pxx,Npeaks=10,deltaf=5,useScipy=True):
     """
-    Find the N harmonics
+    Find **Npeaks** in the spectrum **Npeaks**
+    
     Parameters
     ----------
     f : 1D float array
-        frequencies list.
+        frequencies list (Hz).
     Pxx : 1D or 2D float array
         N x Spectrum.
-    Npeaks : int 
-        Number of peaks. Default is 10
+    Npeaks : int, optional
+        Number of peaks. Default is 10.
     deltaf : int, optional
         Frequency range for tolerance between peaks. The default is 5 Hz.
-
+    useScipy : boolean, optional
+        Set to use scipy method, or use the own peaks-search method
+    
     Returns
     -------
     pindex : 1D int array
@@ -165,19 +173,55 @@ def peaksSpectrum(f,Pxx,Npeaks=10,deltaf=5):
     delta=int(deltaf/df)+1 
         
     if len(np.shape(Pxx))==1:
-        pindex=findPeaks(Pxx,tolF=delta,Nmax=Npeaks)
+        if useScipy:
+            pindex=findPeaksScipy(Pxx,tolF=delta)
+        else:
+            pindex=findPeaks(Pxx,tolF=delta,Nmax=Npeaks)
         pfreqs=f[pindex]
     else:
         N=np.shape(Pxx)[0]
         pindex=np.zeros((N,Npeaks))
         pfreqs=np.zeros((N,Npeaks))
         for j in range(N):
-            pindex[j,:]=findPeaks(Pxx[j,:],tolF=delta,Nmax=Npeaks)
-            pfreqs[j,:]=f[pindex]
+            if useScipy:
+                pindex_j=findPeaksScipy(Pxx,tolF=delta)
+                npeaks_j=len(pindex_j)
+            else:
+                pindex_j=findPeaks(Pxx,tolF=delta,Nmax=Npeaks)
+                npeaks_j=Npeaks
+            pindex[j,0:npeaks_j]=pindex_j    
+            pfreqs[j,0:npeaks_j]=f[pindex]
     
     return pindex,pfreqs
 
 def findPeaks(Pxx,tolPercentile=1,tolF=10,Nmax=10,power_quotient=2):
+    """
+    Find the peaks in the spectrum *Pxx* that accomplish:
+    1. Derivative value less that **tolPercentile**(diff(**Pxx**))
+    2. At least separated **tolF** bins.
+    3. Amplitude value higher than max(**Pxx**)/**power_quotient**
+    
+
+    Parameters
+    ----------
+    Pxx : float 1D array
+        Spectrum.
+    tolPercentile : int, optional
+        Percentil of low diff values where search for peaks. The default is 1%.
+    tolF : int, optional
+        Number of frequency bins that should be at least between peaks. The default is 10 bins.
+    Nmax : int, optional
+        Maximum number of frequency peaks to find. The default is 10.
+    power_quotient : float, optional
+        Inverse scaling of the maximum power that a peak must achieve to be considered as a 'good' one. The default is 2.
+
+    Returns
+    -------
+    peak_indexes : int 1D array
+        Array of position indexes of the peaks in **Pxx**.
+
+    """
+    
     peak_indexes=np.zeros((Nmax,),dtype=int)
     diffPxx=Pxx[1::]-Pxx[0:-1]
     absdiffPxx=np.abs(diffPxx)
@@ -206,7 +250,38 @@ def findPeaks(Pxx,tolPercentile=1,tolF=10,Nmax=10,power_quotient=2):
         current_f+=1
         next_f+=1
     return peak_indexes
-    
+
+def findPeaksScipy(Pxx,tolPercentile=1,tolF=10,power_quotient=0.2):
+    """
+    Find the peaks in the spectrum **Pxx** that accomplish:
+    1. Prominence of peaks larger than the  **tolPercentile** of the diff(**Pxx**).
+    2. At least separated **tolF** bins.
+    3. Amplitude value higher than **power_quotient**
+
+    Parameters
+    ----------
+    Pxx : float 1D array
+        Spectrum.
+    tolPercentile : int, optional
+        Prominence of the peaks. The default is 1.
+    tolF : int, optional
+        Number of frequency bins that should be at least between peaks. The default is 10 bins.
+    power_quotient : float, optional
+        Threshold of power between neighborhood peaks. The default is 0.2.
+
+    Returns
+    -------
+    peak_indexes : int 1D array
+        Array of position indexes of the peaks in **Pxx**.
+
+    """
+    diffPxx=Pxx[1::]-Pxx[0:-1]
+    absdiffPxx=np.abs(diffPxx)
+    tol=np.percentile(absdiffPxx,tolPercentile)
+    peak_indexes,properties=signal.find_peaks(Pxx,distance=tolF,prominence=tol,threshold=power_quotient)
+
+    return peak_indexes
+
 def waveletMorlet(x,fs=1000, f_start=0.5,f_end=200, numberFreq=500, omega0=15, correctF=False):
     """
     Wavelet scalogram usign the Morlet mother wavelet
@@ -227,7 +302,7 @@ def waveletMorlet(x,fs=1000, f_start=0.5,f_end=200, numberFreq=500, omega0=15, c
         Number of scales (frequency bins). The default is 500.
     omega0 : float, optional
         Central wavelet frequency. Modifies the bandwidth of the scalogram.
-        The default is 15.
+        The default is 15 Hz.
     correctF : boolean, optional
         If True, the result is normalized by 1/scale(frequency).
         Necessary to identify peaks if the spectrum has 1/f trend.
@@ -236,11 +311,11 @@ def waveletMorlet(x,fs=1000, f_start=0.5,f_end=200, numberFreq=500, omega0=15, c
     Returns
     -------
     freqs: 1D float array 
-        Equivalent frequencies
+        Equivalent frequencies (Hz)
     scales: 1D float array
         Wavelet scales
     coefs: 2D float array: freqs x len(x) 
-        Scalogram coefficients
+        Scalogram coefficients (a. u.)
         Wavelet transform is calculated for each time point.
 
     """
@@ -298,12 +373,14 @@ def spectrogram(X,fs=1000,nperseg=4096,noverlap=2048):
 def ARparameters(x,P=2):
     """
     Estimation of the parameters of an Auto-regressive process
+    
     Parameters
     ----------
     x : 1D float array
         time serie.
     P : int, optional
         Number of AR parameters (number of poles, then it is strictly related to peaks). The default is 2.
+    
     Returns
     -------
     a : float array
@@ -351,7 +428,7 @@ def ARpsd(a,worN=1000,fs=100,sigma=1e-3):
 
     Returns
     -------
-    psd. 1D float array
+    psd : float 1D array
     Power spectral density of large worN
     """
     
@@ -366,8 +443,19 @@ def ARpsd(a,worN=1000,fs=100,sigma=1e-3):
     return psd
 
 def spectralEntropy(Pxx):
-    """ Pxx : 1D float arry
-    N x frequency bins
+    """ 
+    Calculates the spectral entropy from the spectrum **Pxx**.
+    **Pxx** could also be an array of spectrums.
+    
+    Parameters
+    ----------
+    Pxx : float 1D (2D) array
+        Spectrum or spectrums' array N x frequency bins
+    
+    Returns
+    -------
+    H : float (1D array)
+        Spectral entropy
     """
     H=0
     if Pxx.sum()==0:
@@ -384,8 +472,19 @@ def spectralEntropy(Pxx):
         return H
 
 def spectralEntropy2D(Cxx):
-    """ Pxx : 2D float arry
-    frequency bins x frequency bins
+    """ 
+    Calculates the spectral/correlation entropy of a coherence/correlation matrix
+    
+    
+    Parameters
+    ----------
+    Cxx : float 2D array
+        Coherence or correlation matrix frequency bins x frequency bins
+    
+    Returns
+    -------
+    H : float
+        Spectral/correlation entropy
     """
 
     N=np.shape(Cxx)[0]*np.shape(Cxx)[1]
