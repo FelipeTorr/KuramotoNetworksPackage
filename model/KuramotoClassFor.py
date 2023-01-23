@@ -20,14 +20,56 @@ from symengine import sin, Symbol
 import symengine
 import sympy
 import gc
-
-# from KuramotoClass import Kuramoto
 import time as tm
-
-# from networkx.algorithms.community import k_clique_communities
 
 
 class Kuramoto:
+    """Kuramoto
+
+    Kuramoto model class
+
+    Parameters
+    -------
+
+    struct_connectivity: float 2D array, optional
+    	Structural connectivty matrix, a weighted adjacency matrix. The default is the AAL90 matrix
+    
+    delays_matrix: float 2D array, optional
+    	Matrix of the delays between connections. The default is the AAL90 distances matrix in meters.
+    K: float, optional 
+    	Global coupling parameter $$K$$ (it will be normalized by the number of nodes). The default is 5.
+    dt: float, optional
+    	Integration time step. The default is 1e-4.
+    simulation_period: float, optional
+    	Total time of the simulation. The default is 100.
+    StimTstart: float, optional. 
+    	Starting time of the stimulaiton (PFDK only! The default is 0.)
+    StimTend: float, optional. 
+    	Final time of the stimulaiton (PFDK only! The default is 0.)
+    StimFreq: float, optional. 
+    	Stimulation frequency, $$\\sigma$$ (PFDK only! The default is 0.) 
+    StimAmplitude: float, optional. 
+    	Stimulation force amplitude, $$F$$ (PFDK only! The default is 0.)
+    n_nodes: int, optional.
+    	Number of oscillatory nodes. The default is 90.	
+    natfreqs: float 1D array, optional.
+    	Natural frequencies, $$\\omega_n$$, of the system oscillators. The default is None, in order to use the **nat_freq_mean** and **nat_freq_std** to build the array.
+    nat_freq_mean: float, optional.
+    	Average natural frequency. The default is 0 (only used if natfreqs is None).
+    nat_freq_std: float, optional.
+    	The standard deviation for a Gaussian distribution. The dafult is 2 (only used if natfreqs is None).
+    GenerateRandom: boolean, optional.
+    	Set if the natural frequencies comes from the same random seed for each simulation.
+    SEED: int, optional.
+    	The simulation seed. The default is 2. 	 
+    mean_delay: float, optional.
+    	The mean delay to scale the distance matrix. It also could be seen as the inverse of the conduction speed. The default is 0.1. 
+    	
+    Returns
+    -------
+    model: Kuramoto
+    	Kuramoto model that implements itself integration method
+    """
     def __init__(self,
                 struct_connectivity=None,
                 delays_matrix=None,
@@ -35,13 +77,12 @@ class Kuramoto:
                 dt=1.e-4,
                 simulation_period=100,
                 StimTstart=0,StimTend=0,StimFreq=0,StimAmp=0,
-                n_nodes=4,natfreqs=None,
+                n_nodes=90,natfreqs=None,
                 nat_freq_mean=0,nat_freq_std=2,
                 GenerateRandom=True,SEED=2,
                 mean_delay=0.10):
-
-        '''
-        struct_connectivity: is the adjacency matrix (struct_connectivity).
+        """
+        struct_connectivity: is the weigthed adjacency matrix (struct_connectivity).
         K: is the global coupling strength.
         simulation_period    : is the simulation time.
         dt: is the integration time step.
@@ -55,8 +96,7 @@ class Kuramoto:
         mean_delay: is the mean delay (in Cabral, this delay is a scale like global coupling strength)
         random_nat_freq: random natural frequencies every time if True, if False
         SEED: guarantees that the natfreqs are the same at each run
-        
-        '''
+        """
         if n_nodes is None and natfreqs is None:
             raise ValueError("n_nodes or natfreqs must be specified")
         self.n_nodes=n_nodes
@@ -96,14 +136,42 @@ class Kuramoto:
         self.act_mat=None # When the simulation run, this value is updated with the dynamics. 
     
     def applyMean_Delay(self):
-        #Apply a scaling factor to the delays matrix in order to obtain the specified mean delay
+        """
+        Scale the delays matrix by the mean_delay factor.
+        If **mean_delay** ==0, the delay matrix becomes a zeros matrix
+        in other case, the delays matrix is divided by the its mean valuem
+        and then multiplied by the scaling factor.
+
+        
+        Returns
+        -------
+        None.
+
+        """
+        
+        #
         if self.mean_delay==0:
             self.delays_matrix=np.zeros((self.n_nodes,self.n_nodes))
         else:
             self.delays_matrix=self.delays_matrix/np.mean(self.delays_matrix[self.struct_connectivity>0])*self.mean_delay
     
     def initializeNatFreq(self,natfreqs):
-        #Set the natural(intrinsic) frequencies of the oscillators
+        """
+        Set the vector of the natural frequencies of the oscillators with:
+            Single value por all nodes 
+
+        Parameters
+        ----------
+        natfreqs : float (single | 1D array) 
+           Natural frequencies of the oscillators, could be a single value if 
+           it is the same for all the nodes.
+
+        Returns
+        -------
+        natfreqs : float 1D array
+            N x 1 array with the natural frequencies of the oscillators.
+
+        """
         
         if natfreqs is not None:
             if type(natfreqs)==int or type(natfreqs)==float or type(natfreqs)==np.float32:
@@ -133,33 +201,63 @@ class Kuramoto:
 
     
     def loadParameters(self,parameters):
-        self.K=parameters['K']
-        self.n_nodes=parameters['n_nodes']
-        self.mean_delay=parameters['mean_delay']
-        self.dt=parameters['dt']
-        self.simulation_period=parameters['simulation_period']
-        self.StimTstart=parameters['StimTstart']
-        self.StimTend=parameters['StimTend']
-        self.StimAmp=parameters['StimAmp']
-        self.StimFreq=parameters['StimFreq']
-        self.seed=parameters['seed']
-        self.nat_freq_mean=parameters['nat_freq_mean']
-        self.nat_freq_std=parameters['nat_freq_std']
-        self.random_nat_freq=parameters['random_nat_freq']
-        nat_freqs=parameters['nat_freqs']
+        """
+
+        Load the parameters of the model
+        
+        Parameters
+        ----------
+        parameters : dict
+            Dictionary with the parameters.
+
+        Returns
+        -------
+        None.
+
+        """
+        
+        self.K=parameters['K'] #global coupling
+        self.n_nodes=parameters['n_nodes'] #Number of nodes
+        self.mean_delay=parameters['mean_delay'] #mean delay
+        self.dt=parameters['dt'] #simulation/storage time step
+        self.simulation_period=parameters['simulation_period'] #Duration of stimulus
+        self.StimTstart=parameters['StimTstart'] #starting time of stimulation
+        self.StimTend=parameters['StimTend'] #ending time of stimulation
+        self.StimAmp=parameters['StimAmp'] #Amplitude of stimulation
+        self.StimFreq=parameters['StimFreq'] #Frequency of the stimulation 
+        self.seed=parameters['seed'] #random seed
+        self.nat_freq_mean=parameters['nat_freq_mean'] #mean of the natural frequencies
+        self.nat_freq_std=parameters['nat_freq_std'] #deviation of the natural frequencies
+        self.random_nat_freq=parameters['random_nat_freq'] #Flag: random nat. frequency for each realization
+        nat_freqs=parameters['nat_freqs'] #natural frequencies
         try:
         	self.initializeForcingNodes(parameters['ForcingNodes'])
         except:
         	self.initializeForcingNodes(None)
         self.natfreqs=self.initializeNatFreq(nat_freqs)
-        self.struct_connectivity=matrices.loadConnectome(self.n_nodes,parameters['struct_connectivity'])
-        self.delays_matrix=matrices.loadDelays(self.n_nodes,parameters['delay_matrix'])
+        self.struct_connectivity=matrices.loadConnectome(self.n_nodes,parameters['struct_connectivity']) #structural connectivity matrix
+        self.delays_matrix=matrices.loadDelays(self.n_nodes,parameters['delay_matrix']) #delay matrix
         self.applyMean_Delay()
-        self.ω = 2*np.pi*self.natfreqs
+        self.ω = 2*np.pi*self.natfreqs #from Hz to rads
         
-        self.global_coupling=self.K/self.n_nodes
+        self.global_coupling=self.K/self.n_nodes #scaling of the global coupling
 
     def initializeForcingNodes(self,forcingNodes):
+        """
+        Set the binary vector of forcing/no-forcing nodes
+        
+
+        Parameters
+        ----------
+        forcingNodes : list
+            List of the indexes of the forcing nodes.
+
+        Returns
+        -------
+        None.
+
+        """
+        
         self.ForcingNodes=np.zeros((self.n_nodes,1))
         if forcingNodes is not None:
             if type(forcingNodes)==int:
@@ -174,6 +272,18 @@ class Kuramoto:
             
     
     def initializeTimeDelays(self):
+        """
+        
+        Initialize the default matrix **D**: the delays matrix of AAL90.
+        Only if the matrix was not specified in the input parameters
+
+        Returns
+        -------
+        D : float 2D array
+            Delays matrix.
+
+        """
+        
         No_nodes=self.n_nodes
         D = loadmat('../input_data/AAL_matrices.mat')['D']
         D=D[-No_nodes:,-No_nodes:]
@@ -187,6 +297,17 @@ class Kuramoto:
         return D
 
     def load_struct_connectivity(self):
+        """
+        Intialize the default structural connectivity matrix **C** from AAL90
+        Only if the matrix was not specified in the input parameters
+        
+        Returns
+        -------
+        C : float 2D array
+            Structural connectivity matrix.
+
+        """
+        
         n=self.n_nodes
         
         C = loadmat('../input_data/AAL_matrices.mat')['C']
@@ -197,21 +318,63 @@ class Kuramoto:
         C[np.diag(np.ones(n))==0] /= C[np.diag(np.ones(n))==0].mean()
 
         return C
+    
     def setMeanTimeDelay(self, mean_delay):
+        """
+        Set the **mean_delay** parameter
+
+        Parameters
+        ----------
+        mean_delay : float
+            Mean delay value that scales the delays matrix **D**.
+
+        Returns
+        -------
+        None.
+
+        """
+        
         self.mean_delay=mean_delay
         self.applyMean_Delay()
 
     def setGlobalCoupling(self,K):
+        """
+        Set the global coupling parameter **K**
+
+        Parameters
+        ----------
+        K : float
+            Scaling factor for the structural connectivity matrix **C**.
+            The value using this function is scaled by the number of nodes
+            then **K** =K/N.
+
+        Returns
+        -------
+        None.
+
+        """
+        
         self.K=K
         self.global_coupling=self.K/self.n_nodes
 
     def param(self,y,arg):
-        '''
-        This function present the stimulation from Tstart to Tend 
-        It is used below in the integration function, 
-        t is here because of the default parameters of the odeint function.
-        Add the maximum of the delays matrix, because for the stored data t_0=max(delays_matrix) 
-        '''
+        """
+        Auxiliar function in order to present the stimulation from **StimTstart** to **StimTend** 
+        Add the maximum of the delays matrix, because for the stored data $$t_{0}=max(delays_matrix)$$.
+
+        Parameters
+        ----------
+        y : Not needed, internal function of Jitcdde
+            
+        arg : Not needed, internal function of Jitcdde 
+            
+        Returns
+        -------
+        int(boolean)
+            True if the simulation time is inside the stimulation window. 
+
+        """
+        
 
         if self.StimTend>self.simulation_period:
             print("Tend Cannot be larger than the simulation time which is"+'%.1f' %self.T)
@@ -223,14 +386,52 @@ class Kuramoto:
             return 0
             
     def initial_phases(self):
+        """
+        Set the initial values of the variables
+
+        Returns
+        -------
+        Initial_values: float 1D array
+            Array with the initial values of the ocillators' phases.
+
+        """
+        
         return 2*np.pi*np.random.random(size=self.n_nodes)
     
     def kuramotosZero(self,y,t):
+        """
+        Easiest way to define in python the classical Kuramoto model
+        It works (and solves faster) with scipy ODE solvers 
+
+        Parameters
+        ----------
+        y : float 1D array
+            Current (previous) value of the oscillators phases.
+        t : float
+            Current time (actually not used, but usefull to plot or further analysis).
+
+        Returns
+        -------
+        dphi_dt : float 1D array
+            derivate value at the current time step.
+
+        """
+        
         ϴ_i,ϴ_j=np.meshgrid(y,y)
         dphi_dt= self.ω + (self.global_coupling)*( self.struct_connectivity * np.sin( ϴ_j - ϴ_i ) ).sum(axis=0)
         return dphi_dt
 
     def kuramotos(self):
+        """
+        Delayed Kuramoto model (from Jitcdde documentation)
+
+        Yields
+        ------
+        Jitcdde Model
+            Delayed Kuramoto. Structural connectivity and delays matrices are required.
+
+        """
+        
         for i in range(self.n_nodes):
             yield self.ω[i] +self.global_coupling*sum(
                 self.struct_connectivity[i, j] * sin( y(j,t - (self.delays_matrix[i, j])) - y(i))
@@ -238,6 +439,16 @@ class Kuramoto:
             )
 
     def kuramotosForced(self):
+        """
+        Forced and delayed Kuramoto model
+
+        Yields
+        ------
+        Jitcdde Model
+            Forced and Delayed Kuramoto model. The stimulation parameters are required.
+
+        """
+        
         Delta=self.ForcingNodes
         for i in range(self.n_nodes):
             yield self.ω[i] + Delta[i,0]*self.param_sym_func(t)*self.StimAmp*sin(self.StimFreq*t-y(i))+self.global_coupling*sum(
@@ -247,6 +458,18 @@ class Kuramoto:
 
 
     def IntegrateDD(self):
+        """
+        Jitcdde solver (integration) function.
+
+        Returns
+        -------
+        output : float 2D array
+            
+            Oscillator phases at the sampling times.
+            T x N array.   
+
+        """
+        
         print('Simulating %d nodes network using K=%.3f and MD=%.3f at f=%.3fHz'%(self.n_nodes,self.K,self.mean_delay,self.nat_freq_mean))
         simulation_period=self.simulation_period
         dt=self.dt
@@ -286,6 +509,7 @@ class Kuramoto:
         gc.collect()
         return output
         
+    ## Solve the classical system with odeint
         #else:
         #    ϴ_o=self.initial_phases()
 
@@ -297,9 +521,24 @@ class Kuramoto:
 
         
         
-    def interact(self,K):
+    def gui_interact(self,K):
+        """
+        Jupyter notebook function for "online" change of the **K** parameter
+        (Note that this method can be used to change any model parameter with the appropiate modifications)
+
+        Parameters
+        ----------
+        K : float
+            Global coupling parameter (it will be normalized by the number of nodes).
+
+        Returns
+        -------
+        None.
+
+        """
+        
         import matplotlib.pyplot as plt
-        self.K=K
+        self.setGlobalCoupling(K) #Modify this line to change another parameter or change more parameters  
         R,Dynamics=self.simulate()
         t=np.linspace(0,self.simulation_period,int(self.simulation_period//self.dt)+1)
         plt.figure(figsize=(12,4))
@@ -308,54 +547,95 @@ class Kuramoto:
 
     
     def simulate(self,Forced=False):
+        """
+        Main function. Simulate the Kuramoto model.
+        To avoid the additional overload from using the Partially Forced Kuramoto you shoul pass 
+        False in the Forced argument. 
+        On the other hand, if you need to appli stimulation, use Forced=True 
+
+        Parameters
+        ----------
+        Forced : boolean, optional
+            Set if the simulation is going to use or not the Partially Forced Kuramoto. The default is False.
+
+        Returns
+        -------
+        R : float 1D array
+            Kuramoto order parameter. Array with dimensions T x 1.
+        dynamics : float 2D array
+            Kuramoto oscillators phases. Array with dimensions T x N
+
+        """
+        
         self.Forced=Forced
-        Dynamics=self.IntegrateDD()
+        dynamics=self.IntegrateDD()
         R=self.calculateOrderParameter(Dynamics)
-        # del Dynamics
-        # gc.collect()
-        return R,Dynamics
+        return R,dynamics
 
     def testIntegrateForced(self):
-        R=self.simulate(Forced=True)
-        self.plotOrderParameter(R)
+        """
+        Test the Partially forced and delayed model
 
+        Returns
+        -------
+        None.
+
+        """
+        
+        R,_=self.simulate(Forced=True)
+        print(np.mean(R))
         
     def testIntegrate(self):
+        """
+        Test the Delayed Kuramoto
 
-        R=self.simulate(Forced=True)
-        self.plotOrderParameter(R)
-        # OP=OrderParameter(output)
-        # Step=10 # This is for the frames in GIF, If decreased --> more frames Ex. T-10 , Step= 10, dt=10^-3 --> Thus 1000 frame 
+        Returns
+        -------
+        None.
         
-        # animateSync(simulation_period,dt,Step,Dynamics) # Ram Warning, This saves each frame -> GIF -> Deleted the images. 
+        """
+        
+        R,_=self.simulate(Forced=True)
+        print(np.mean(R))
 
-        return R
+    
     @staticmethod
     def phase_coherence(angles_vec):
+        """
+        Calculate the Kuramoto Order parameter for each time step
 
-        '''
-        Compute global order parametr R_t - mean length of resultant vector
-        re^(i*epsi)=(1/N)* sum ( e^(i*theta_m))
-        '''
+        Parameters
+        ----------
+        angles_vec : float 1D array
+            Phases of the oscillators at time $$t$$.
+
+        Returns
+        -------
+        R(t): float            
+        	A time point of the Kuramoto order parameter: $$abs(\\exp{(\\theta_n(t))})$$ 
+
+        """
+        
         suma=sum([np.exp(1j*i) for i in angles_vec ])
         return abs(suma/len(angles_vec))
 
-    def calculateOrderParameter(self,act_mat):
-        R=[self.phase_coherence(vec) for vec in act_mat]
-        # plt.plot(R)
-        # plt.ylabel('Order parameter at'+str(self.K)+str(self.mean_delay), fontsize=25)
-        # plt.title(r'$<T>=$'+'%.001f ' % self.mean_delay+ r'$  <K>=$'+'%.1f ' % self.K)
-        # plt.xlabel('Time', fontsize=25)
-        # plt.ylim((-0.01, 1))
-        # plt.savefig('OP vs Time'+str(self.K)+str(self.mean_delay)+'.png')
-        # # self.plotOnOffSet()
-        # plt.show()
-        # gc.collect()
-        del act_mat
+
+    def calculateOrderParameter(self,dynamics):
+        """
+        Calculate Kuramoto order parameter
+        $$R=abs((1/N)* \\sum_{n} ( e^{(i*\\theta_{n})}))$$
+
+        Parameters
+        ----------
+        dynamics : float 2D array
+            T x N matrix with the oscillators phases.
+
+        Returns
+        -------
+        R : float 1D array
+            Kuramoto order parameter.
+        """
+        R=[self.phase_coherence(vec) for vec in dynamics]
+        del dynamics
         gc.collect()
         return R
-
-
-
-
-

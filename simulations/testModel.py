@@ -48,30 +48,31 @@ def RunKuramotoFor(param_tuple):
     del model
     gc.collect()
 
-mean_delay_Array=np.arange(0,0.2,0.1).tolist()
-K_Array=np.arange(0, 2, 1.0).tolist()
-#Single process
-#param_tuple=[K_Array[0],mean_delay_Array[0],1]
-#RunKuramotoFor(param_tuple)
-
-#Multiprocessing
-for j in range(1):
-    print('Starting simulations')
-    lock = Lock()
-    with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
-        executor.map(RunKuramotoFor, itertools.product(K_Array, mean_delay_Array,[j]))
-
-#Load and plot stored data
-N=16
-seed=2
-
-directory='../output_timeseries/'
-for K in K_Array:
-    for MD in mean_delay_Array: 
-        filename=directory+'testModel_N%d_K%.3f_MD%.3f_seed%d.mat'%(N,K,MD,2)
-        file_dict=sio.loadmat(filename)
-        theta=file_dict['theta']
-        kop=file_dict['kop'][0]
-        plt.plot(kop,label='K=%.3f MD=%.3f'%(K,MD))
-plt.legend()
-plt.show()
+if __name__=='__main__':
+    mean_delay_Array=np.arange(0,0.2,0.1).tolist()
+    K_Array=np.arange(0, 2, 1.0).tolist()
+    #Single process
+    #param_tuple=[K_Array[0],mean_delay_Array[0],1]
+    #RunKuramotoFor(param_tuple)
+    
+    #Multiprocessing
+    for j in range(1):
+        print('Starting simulations')
+        lock = Lock()
+        with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
+            executor.map(RunKuramotoFor, itertools.product(K_Array, mean_delay_Array,[j]))
+    
+    #Load and plot stored data
+    N=16
+    seed=2
+    
+    directory='../output_timeseries/'
+    for K in K_Array:
+        for MD in mean_delay_Array: 
+        	filename=directory+'testModel_N%d_K%.3f_MD%.3f_seed%d.mat'%(N,K,MD,2)
+        	file_dict=sio.loadmat(filename)
+        	theta=file_dict['theta']
+        	kop=file_dict['kop'][0]
+        	plt.plot(kop,label='K=%.3f MD=%.3f'%(K,MD))
+    plt.legend()
+    plt.show()

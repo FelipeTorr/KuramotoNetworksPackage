@@ -1,13 +1,13 @@
-emd==0.5.5
 jitcdde==1.8.1
 jitcode==1.7.0
 matplotlib==3.5.1
 networkx==2.7.1
 npy-append-array==0.9.13
 numba==0.56.0
-numpy==1.21.6
-scipy==1.8.0
+numpy>=1.21.6
+scipy>=1.8.0
 symengine==0.9.2
 sympy==1.10.1
 tqdm==4.63.1
+pygame==2.0.2
 multiprocessing
