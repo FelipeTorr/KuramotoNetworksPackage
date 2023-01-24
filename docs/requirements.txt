@@ -15,4 +15,3 @@ sympy==1.10.1
 tqdm==4.63.1
 pygame==2.0.2
 moviepy==1.0.0
-multiprocessing
