@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-import analysis.Wavelets as Wavelets
+try:
+    import analysis.Wavelets as Wavelets
+except ModuleNotFoundError:
+    import KuramotoNetworksPackage.analyisis.Wavelets as Wavelets
 import numpy as np
 import numpy.linalg as linalg
 import scipy.signal as signal
