@@ -558,7 +558,7 @@ def hilbertTheta(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simulated=Tru
     return amplitudes, angles
 
 
-def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
+def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True,applyLow=True):
     """
     Returns the envelpes of the Hilbert transform of the signal at a specific frequency
 
@@ -574,9 +574,10 @@ def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
         Sampling frequency. The default is 1000 samples/second.
     simulated : boolean, optional
         Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
+    applyLow: boolean, optional
+        Defines if the envelopes are low-pass filtered or if they are directly returned from the Hilbert transform.
 
-
-    Returns
+    Returns 
     -------
     envelopes : 2D array
         Low-pass filtered envelopes. Size N x (T-5*fs)
@@ -588,12 +589,15 @@ def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
     #Assume X is NxT
     amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
     #The output from HilbertTheta has two seconds less in duration
-    #Low-pass 0.5 Hz, removes 1 second of the Analytical signal before filtering
-    b,a=signal.butter(4,2*0.5/fs,btype='lowpass')
-    envelopes=signal.filtfilt(b,a,amplitudes[:,fs:-fs],axis=1)
-    envelopes=envelopes[:,fs//2:-fs//2] #removes half second after filtering
-    #Warning! envelopes has three seconds lesser than X
+    if applyLow:
+        #Low-pass 0.5 Hz, removes 1 second of the Analytical signal before filtering
+        b,a=signal.butter(4,2*0.5/fs,btype='lowpass')
+        envelopes=signal.filtfilt(b,a,amplitudes[:,fs:-fs],axis=1)
+        envelopes=envelopes[:,fs//2:-fs//2] #removes half second after filtering
+    else:
+        envelopes=amplitudes[:,fs//2:-fs//2] #removes half second after filtering
     
+    #Warning! envelopes has five seconds lesser than X
     
     return envelopes
 
