@@ -32,8 +32,8 @@ def RunKuramotoFor(configFile):
     None.
 
     """
-    
     time.sleep(0.1)
+    out_directory='../output_timeseries/'
     model=Kuramoto()
     num_of_realizations=1
     parameters=parser.loadData(configFile)
@@ -47,8 +47,7 @@ def RunKuramotoFor(configFile):
     for i in range(num_of_realizations):
         print('Simulating %s with %d nodes network using K=%.3f and MD=%.3f'%(experiment,N,K,MD))
         R,Dynamics=model.simulate(Forced=True)
-        directory='../output_timeseries/'
-        filename=directory+'%s_N%d_K%.3F_MD%.3f_seed%d.mat'%(experiment,N,K,MD,seed)
+        filename=out_directory+'%s_N%d_K%.3F_MD%.3f_seed%d.mat'%(experiment,N,K,MD,seed)
         data={'theta':Dynamics,'kop':R}
         sio.savemat(filename,data)  
         del R,Dynamics
@@ -57,7 +56,7 @@ def RunKuramotoFor(configFile):
     gc.collect()
 
 if __name__=='__main__':
-    config_directory='../input_config/multiple/'
+    config_directory=sys.argv[1]
     config_files=[]
     for file in os.listdir(config_directory):
         if file.split('.')[1]=='txt':
@@ -74,3 +73,5 @@ if __name__=='__main__':
         lock = Lock()
         with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
             executor.map(RunKuramotoFor, config_files)
+    
+    

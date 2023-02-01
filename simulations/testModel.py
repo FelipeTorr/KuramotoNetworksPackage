@@ -13,6 +13,25 @@ from npy_append_array import NpyAppendArray
 import matplotlib.pyplot as plt
 import time 
 def RunKuramotoFor(param_tuple):
+    """
+    Perform the simulation of the Kuramoto model with constant parameters specified inside this
+    function, and with variable parameter specified by the param_tuple argument. 
+    
+    The output directory should be manually specified in this script,
+    by deafult is the folder '../output_timeseries/'
+    
+    Parameters
+    ----------
+    param_tuple : tuple
+        tuple (list) of the parameter values.
+        In this example the varying parameter are the  global coupling **K** , and the **mean_delay**
+
+    Returns
+    -------
+    None.
+
+    """
+    
     time.sleep(0.1)
     #fully connected graph for Structural Connectivty
     #Homogeneous delay

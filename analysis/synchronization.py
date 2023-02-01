@@ -557,6 +557,46 @@ def hilbertTheta(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simulated=Tru
     amplitudes=np.abs(Xa)
     return amplitudes, angles
 
+
+def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
+    """
+    Returns the envelpes of the Hilbert transform of the signal at a specific frequency
+
+    Parameters
+    ----------
+    X : float 2D array
+        Data matrix of size N x T.
+    f_low : float, optional
+        Low frequency limit of the pass-band filter. The default is 0.5 Hz.
+    f_high : float, optional
+        High frequency limit of the pass-band filter. The default is 100 Hz.
+    fs : int, optional
+        Sampling frequency. The default is 1000 samples/second.
+    simulated : boolean, optional
+        Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
+
+
+    Returns
+    -------
+    envelopes : 2D array
+        Low-pass filtered envelopes. Size N x (T-5*fs)
+
+    """
+    
+    #Signal duration must be higher than 5 seconds, or the same np.shape(X)[1]>5*fs
+    #This limitation assures that the filter works well for the frequncy bands where is not signal in simulated data
+    #Assume X is NxT
+    amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
+    #The output from HilbertTheta has two seconds less in duration
+    #Low-pass 0.5 Hz, removes 1 second of the Analytical signal before filtering
+    b,a=signal.butter(4,2*0.5/fs,btype='lowpass')
+    envelopes=signal.filtfilt(b,a,amplitudes[:,fs:-fs],axis=1)
+    envelopes=envelopes[:,fs//2:-fs//2] #removes half second after filtering
+    #Warning! envelopes has three seconds lesser than X
+    
+    
+    return envelopes
+
 def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
     """
     Calculates the Functional Connectivity matrix from the low-pass filterd envelopes of the 
@@ -586,18 +626,11 @@ def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
         Average of the energy from the envelopes of the signal in **X**.
 
     """
-    
-    #Signal duration must be higher than 5 seconds, or the same np.shape(X)[1]>5*fs
-    #This limitation assures that the filter works well for the frequncy bands where is not signal in simulated data
-    #Assume X is NxT
-    amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
-    #The output from HilbertTheta has two seconds less in duration
-    #Low-pass 0.5 Hz, removes 1 second of the Analytical signal before filtering
-    b,a=signal.butter(4,2*0.5/fs,btype='lowpass')
-    envelopes=signal.filtfilt(b,a,amplitudes[:,fs:-fs],axis=1)
-    envelopes=envelopes[:,fs//2:-fs//2] #removes half second after filtering
-    #Warning! envelopes has five seconds lesser than X
-    #The mean energy indicates something about how significant is the analysis in the specific frequency band
+    #Low frequency envelopes (low-pass at 0.5 Hz of the envelope of
+    #the Hilbert transform of the filtered signal between f_low and f_high)
+    envelopes=lowFrequency_envelopes(X=X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
+    #The mean energy indicates something about how significant is the analysis 
+    #in the specific frequency band
     mean_energy=np.mean(envelopes**2)
     N=np.shape(X)[0]
     FC=np.zeros((N,N))
@@ -609,6 +642,8 @@ def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
                 FC[i,j]=1
     return FC, mean_energy
 
+    
+    
 def FC_filtered_windowed(X,t_start=20000,t_end=40000,f_low=0.5,f_high=100,fs=1000,simulated=True):
     """
     Calculates the Functional Connectivity matrix from the low-pass filterd envelopes of the 
@@ -643,16 +678,7 @@ def FC_filtered_windowed(X,t_start=20000,t_end=40000,f_low=0.5,f_high=100,fs=100
 
     """
     
-    #Signal duration must be higher than 5 seconds, or the same np.shape(X)[1]>5*fs
-    #This limitation assures that the filter works well for the frequncy bands where is not signal in simulated data
-    #Assume X is NxT
-    amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
-    #The output from HilbertTheta has two seconds less in duration
-    #Low-pass 0.5 Hz, removes 1 second of the Analytical signal before filtering
-    b,a=signal.butter(4,2*0.5/fs,btype='lowpass')
-    envelopes=signal.filtfilt(b,a,amplitudes[:,fs:-fs],axis=1)
-    envelopes=envelopes[:,fs//2:-fs//2] #removes half second after filtering
-    #Warning! envelopes has five seconds lesser than X
+    envelopes=lowFrequency_envelopes(X=X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
     #The mean energy indicates something about how significant is the analysis in the specific frequency band
     mean_energy=np.mean(envelopes**2)
     N=np.shape(X)[0]
