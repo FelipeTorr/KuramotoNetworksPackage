@@ -23,21 +23,21 @@ try:
 except ModuleNotFoundError:
 	#To avoid error when using in Google Colab
 	#Model
-	import KuramotosNetworksPackage.model.KuramotoClassFor
-	import KuramotosNetworksPackage.model.parserConfig
+	import KuramotoNetworksPackage.model.KuramotoClassFor
+	import KuramotoNetworksPackage.model.parserConfig
 	#analysis
-	import KuramotosNetworksPackage.analysis.frequency
-	import KuramotosNetworksPackage.analysis.synchronization
-	import KuramotosNetworksPackage.analysis.cluster
-	import KuramotosNetworksPackage.analysis.connectivityMatrices
-	import KuramotosNetworksPackage.analysis.Wavelets
+	import KuramotoNetworksPackage.analysis.frequency
+	import KuramotoNetworksPackage.analysis.synchronization
+	import KuramotoNetworksPackage.analysis.cluster
+	import KuramotoNetworksPackage.analysis.connectivityMatrices
+	import KuramotoNetworksPackage.analysis.Wavelets
 	#simulations
-	from KuramotosNetworksPackage.simulations.testModel import RunKuramotoFor
-	from KuramotosNetworksPackage.simulations.testModelConfig import RunKuramotoFor
+	from KuramotoNetworksPackage.simulations.testModel import RunKuramotoFor
+	from KuramotoNetworksPackage.simulations.testModelConfig import RunKuramotoFor
 	 
 	#plot
-	import KuramotosNetworksPackage.plot.circular
-	import KuramotosNetworksPackage.plot.animation
-	import KuramotosNetworksPackage.plot.networks
-	import KuramotosNetworksPackage.plot.scatter
-	import KuramotosNetworksPackage.plot.video_twonodes 
+	import KuramotoNetworksPackage.plot.circular
+	import KuramotoNetworksPackage.plot.animation
+	import KuramotoNetworksPackage.plot.networks
+	import KuramotoNetworksPackage.plot.scatter
+	import KuramotoNetworksPackage.plot.video_twonodes 
