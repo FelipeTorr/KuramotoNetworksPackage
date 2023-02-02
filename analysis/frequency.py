@@ -3,7 +3,7 @@
 try:
     import analysis.Wavelets as Wavelets
 except ModuleNotFoundError:
-    import KuramotoNetworksPackage.analyisis.Wavelets as Wavelets
+    import KuramotoNetworksPackage.analysis.Wavelets as Wavelets
 import numpy as np
 import numpy.linalg as linalg
 import scipy.signal as signal
