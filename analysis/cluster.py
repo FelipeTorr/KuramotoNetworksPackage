@@ -3,8 +3,12 @@
 import os
 import sys
 sys.path.append(os.path.abspath('../'))
-import analysis.synchronization as synchronization
-import analysis.connectivityMatrices as connectivityMatrices
+try:
+    import analysis.synchronization as synchronization
+    import analysis.connectivityMatrices as connectivityMatrices
+except ModuleNotFoundError:
+    import KuramotoNetworksPackage.analysis.synchronization as synchronization
+    import KuramotoNetworksPackage.analysis.connectivityMatrices as connectivityMatrices
 import metis
 from networkx.algorithms.community import k_clique_communities
 from networkx.algorithms.community import greedy_modularity_communities
