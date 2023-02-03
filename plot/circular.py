@@ -48,26 +48,31 @@ def polar_statistics(angles,axis=0,nan_policy='omit'):
 def circ_hist(a,ax,bins=10,bottom=1,mean_axis=0,density=False,cmap=plt.cm.Blues,colorscale=10.0,plotmeanstd=True):
     """
     Circular histogram with mean value and standard deviation
+    
+    Parameters
+    ----------
     a: 2D floay array 
         angles data
     ax: matplotlib.pyplot.axes
         matplotlib.pyplot.axes with projection='polar'
-    bins: int, optional. Default value is 10 
-        number of bins in the range [0,360) or [0,2pi)
-    mean_axis: int, optional. Default value is 0 
-        The average is calculated along this axis
-    density: boolean, optional. Default value is False 
-        if is True it plots a pmf type histogram
+    bins: int, optional. 
+        number of bins in the range [0,360) or [0,2pi). Default value is 10 bins. 
+    mean_axis: int, optional. 
+        The average is calculated along this axis. Default value is 0 
+    density: boolean, optional
+        if is True it plots a pmf type histogram. Default value is False 
     cmap: plt.cm.colormap, optional. Default is plt.cm.Blues
         Colormap
-    colorscale=float, optional. Default is 10.0
-        Scale factor for the colomap
-    plotmeanstd: boolean, optional. Default is True
-        Plot or not the mean and standard deviation markers
+    colorscale=float, optional
+        Scale factor for the colomap. Default is 10.0
+    plotmeanstd: boolean, optional
+        Plot or not the mean and standard deviation markers. Default is True
     
     Returns
     -------
-    matplotlib.pyplot.axes
+    ax: matplotlib.pyplot.axes
+        The axes that could be shown in a subplot of a figure.
+        Usually the same of the 'ax' parameter.
     """
     
     ###Calcualte the histogram

@@ -558,7 +558,7 @@ def hilbertTheta(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simulated=Tru
     return amplitudes, angles
 
 
-def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True,applyLow=True):
+def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True,applyLow=True,f_lowpass=0.5):
     """
     Returns the envelpes of the Hilbert transform of the signal at a specific frequency
 
@@ -576,6 +576,8 @@ def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True,applyLo
         Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
     applyLow: boolean, optional
         Defines if the envelopes are low-pass filtered or if they are directly returned from the Hilbert transform.
+    f_lowpass: float, optional
+        Defines the stop band of the low-pass filter applied to the Hilbert envelopes
 
     Returns 
     -------
@@ -591,7 +593,7 @@ def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True,applyLo
     #The output from HilbertTheta has two seconds less in duration
     if applyLow:
         #Low-pass 0.5 Hz, removes 1 second of the Analytical signal before filtering
-        b,a=signal.butter(4,2*0.5/fs,btype='lowpass')
+        b,a=signal.butter(4,2*f_lowpass/fs,btype='lowpass')
         envelopes=signal.filtfilt(b,a,amplitudes[:,fs:-fs],axis=1)
         envelopes=envelopes[:,fs//2:-fs//2] #removes half second after filtering
     else:
@@ -873,3 +875,44 @@ def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,coldata=False,mode='co
     
     return np.corrcoef(CV_centered),corr_vectors,shift
     
+def FCD_from_envelopes(X,f_low=8,f_high=13,fs=1000,wwidth=1000,olap=0.9,mode='corr',simulated=True):
+    """
+    Extract the FCD from the low-pass band filtered envelopes 
+
+    Parameters
+    ----------
+    X : float 2D array
+        Data matrix of size NxT.
+    f_low : float, optional
+        Low frequency limit of the pass-band filter. The default is 5 Hz.
+    f_high : float, optional
+        High frequency limit of the pass-band filter. The default is 13 Hz.
+    fs : int, optional
+        Sampling frequency. The default is 1000 samples/second.
+    wwidth : integer, optional
+        Length of data windows in which the series will be divided to calculate each FC, in samples the default is 1000
+    olap : float between 0 and 1, optional
+        Overlap between neighboring data windows, in fraction of window length
+    mode : str, 'corr' | 'psync' | 'plock' | 'tdcorr'
+        Measure to calculate the Functional Connectivity (FC) between nodes.
+        'corr' : Pearson correlation. Uses the corrcoef function of numpy.
+        'psync' : Pair-wise phase synchrony.
+        'plock' : Pair-wise phase locking.
+        'tdcorr' : Time-delayed correlation, looks for the maximum value in a cross-correlation of the data series
+    simulated : boolean, optional
+        Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
+    
+
+    Returns
+    -------
+    FCDmatrix : numpy array
+        Correlation matrix between all the windowed FCs.
+    CorrVectors : numpy array
+        Collection of FCs, linearized. Only the lower triangle values (excluding the diagonal) are returned
+    shift : integer
+        The distance between windows that was actually used (in samples)
+    """
+    
+    envelopes = lowFrequency_envelopes(X=X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
+    FCDmatrix, corr_vectors, shift = extract_FCD(envelopes,wwidth=wwidth,olap=olap,mode=mode)
+    return FCDmatrix, corr_vectors, shift

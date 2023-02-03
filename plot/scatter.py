@@ -8,21 +8,54 @@ import matplotlib.pyplot as plt
 import matplotlib.axes as axes
 
 #Scatter plots
-def bivariable_std(datax,datay,ax,meanx_zero=0,meany_zero=0,stdx_zero=1,stdy_zero=1,mean_axis=0,cmap=plt.cm.Blues,marker='o',
-                   flagstdx=False,flagstdy=False,meanzero_type='dot',relative_diference=True,labels=[''],colormap='None'):
+def bivariable_std(datax,datay,ax,meanx_zero=0,meany_zero=0,stdx_zero=1,stdy_zero=1,mean_axis=1,cmap=plt.cm.Blues,marker='o',
+                   flagstdx=False,flagstdy=False,meanzero_type='dot',relative_diference=True,labels=[''],colormap='None',cmap_scale=0.12):
     """
-    Formatted 2D scatter plot 
-    datax and datay: 1-D array
-    meanx_zero and meany_zero: means of baseline data
-    stdx_zero and stdy_zero: standard deviation of baseline data
-    cmap: colormap
-    marker: type of marker
-    flagstdx: plot the standard deviation in the x-axis
-    flagstdy: plot the stadard deviation in the y-axis
-    relative_diference: plot in percentages of realive error with respect the means of the baseline data
+    Formatted 2D scatter plot to compare 2 features with the same features of the baseline case or from another class.
+    
+    Parameters:
+    -----------
+    
+    datax: float 2D array
+        Data matrix for the feature x.
+    datay: float 2D array
+        Data matrix for the feature y. Could be None to only compare one feature. 
+    ax : pyplot.plot.axes
+        An axes from a subplot in a matplotlib figure.
+    meanx_zero: float
+        Mean value of the feature x of the baseline case or from another class.
+    meany_zero: float
+        means of baseline data of the feature y of the baseline case or from another class.
+    stdx_zero: float
+        standard deviation of the feature x of the baseline data.
+    stdy_zero: float
+        standard deviation of of the feature y of the baseline data.
+    mean_axis= int, optional
+        Defines which axis is the time/samples of the data matrices **datax** and **datay** . The default is 1, which means the matrices has size N X samples.
+    cmap: pyplot.plot.colormap
+        A valid matplotlib colormap.
+    marker: str, plot marker 
+        type of marker for the data.
+    flagstdx: boolean, optional 
+        plot the standard deviation in the x-axis. Default is False.
+    flagstdy: boolean, optional
+        plot the stadard deviation in the y-axis. Default is False.
+    
+    relative_diference: boolean, optional 
+        plot in percentages of realive error with respect the means of the baseline data. Default is true.
+    labels : list
+        List with the labels for names of the N patterns/subjects. 
+    colormap: str, 'direct'/'None', optional
+        'direct': Apply the specified cmap one by one to the N patterns. cmap must contain at less N colors.
+        'None' (Default): Apply the normalized cmap, with a factor scale to make more 'pretty' the result.
+    cmap_scale: float between 0 and 1, optional
+        Scale factor for the markers colors. Note that with zero, all markers are the same color, with 1 the color is the less intense of the cmap.
+        Default is 0.12, works well for a single color cmap and N between 5 and 10. 
+    
     Returns 
     -------
-    ax: a matplotlib.pyplot.axes instance
+    ax: matplotlib.pyplot.axes
+        Axes that show the result. Usually assigned to the same in the **ax** parameter.
     """
     ###Statisitic of the data
     flag_error=0
@@ -121,7 +154,7 @@ def bivariable_std(datax,datay,ax,meanx_zero=0,meany_zero=0,stdx_zero=1,stdy_zer
                     if flagstdy:
                         ax.plot([x,x],[y-sy,y+sy],':',color=cmap(n),linewidth=0.5)
                 else:
-                    ax.plot(x,y,marker=marker,color=cmap(1.0-n*.12),markersize=6,label=labels[n]) 
+                    ax.plot(x,y,marker=marker,color=cmap(1.0-n*cmap_scale),markersize=6,label=labels[n]) 
                     if flagstdx:
                         ax.plot([x-sx,x+sx],[y,y],':',color=cmap(0.8),linewidth=0.5)
                     if flagstdy:
