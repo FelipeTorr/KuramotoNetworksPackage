@@ -357,7 +357,7 @@ def spectrogram(X,fs=1000,nperseg=4096,noverlap=2048):
     Sxx: 2D or 3D float array: N x len(f) x len(t) 
         Spectrogram with spectral power density units (x^2/Hz). 
     """
-    t,f,Sxx=signal.spectrogram(X,fs=fs,nperseg=nperseg,noverlap=noverlap,scaling='density')
+    t,f,Sxx=signal.spectrogram(X,fs=fs,window='hamming',nperseg=nperseg,noverlap=noverlap,scaling='density')
     	         
     return t,f,Sxx
 
