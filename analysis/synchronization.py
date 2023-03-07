@@ -533,9 +533,9 @@ def hilbertTheta(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simulated=Tru
     Returns
     -------
     amplitudes : 1D array
-        Envelope from the Hilbert transform.
+        Envelope from the Hilbert transform. The length is 4*fs less than the length of X.
     angles : 1D array
-        Phase time serie from the Hilbert transform.
+        Phase time serie from the Hilbert transform. The length is 4*fs less than the length of X.
 
     """
     
@@ -549,7 +549,7 @@ def hilbertTheta(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simulated=Tru
     #The final order of the filters is 4th
     Xf=signal.filtfilt(b,a,sinX)
     if simulated:
-       Xf=Xf[:,fs:-fs]
+       Xf=Xf[:,2*fs:-2*fs]
     #Hilbert transform
     Xfiltered=np.copy(Xf) #Copy of the array as scipy.signal.Hilbert modifies the input 
     Xa=signal.hilbert(Xfiltered,axis=1)
@@ -594,10 +594,10 @@ def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True,applyLo
     if applyLow:
         #Low-pass 0.5 Hz, removes 1 second of the Analytical signal before filtering
         b,a=signal.butter(4,2*f_lowpass/fs,btype='lowpass')
-        envelopes=signal.filtfilt(b,a,amplitudes[:,fs:-fs],axis=1)
-        envelopes=envelopes[:,fs//2:-fs//2] #removes half second after filtering
+        envelopes=signal.filtfilt(b,a,amplitudes[:,:],axis=1)
+        envelopes=envelopes[:,2*fs:-2*fs] #removes half second after filtering
     else:
-        envelopes=amplitudes[:,fs//2:-fs//2] #removes half second after filtering
+        envelopes=amplitudes[:,2*fs:-2*fs] #removes half second after filtering
     
     #Warning! envelopes has five seconds lesser than X
     

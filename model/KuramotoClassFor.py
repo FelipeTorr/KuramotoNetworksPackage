@@ -232,6 +232,7 @@ class Kuramoto:
         self.StimAmp=parameters['StimAmp'] #Amplitude of stimulation
         self.StimFreq=parameters['StimFreq'] #Frequency of the stimulation 
         self.seed=parameters['seed'] #random seed
+        self.noise_std=parameters['noise_std']#noise
         self.nat_freq_mean=parameters['nat_freq_mean'] #mean of the natural frequencies
         self.nat_freq_std=parameters['nat_freq_std'] #deviation of the natural frequencies
         self.random_nat_freq=parameters['random_nat_freq'] #Flag: random nat. frequency for each realization
@@ -342,7 +343,9 @@ class Kuramoto:
         
         self.mean_delay=mean_delay
         self.applyMean_Delay()
-
+    def setNoiseSD(self,noise):
+        self.noise_std=noise
+        
     def setGlobalCoupling(self,K):
         """
         Set the global coupling parameter **K**
@@ -457,7 +460,8 @@ class Kuramoto:
         
         Delta=self.ForcingNodes
         for i in range(self.n_nodes):
-            yield self.ω[i] + Delta[i,0]*self.param_sym_func(t)*self.StimAmp*sin(self.StimFreq*t-y(i))+self.global_coupling*sum(
+            epsilon=np.random.rand(1)[0]
+            yield self.ω[i] + self.noise_std*epsilon+Delta[i,0]*self.param_sym_func(t)*self.StimAmp*sin(self.StimFreq*t-y(i))+self.global_coupling*sum(
                 self.struct_connectivity[i, j] * sin( y(j , t - (self.delays_matrix[i, j])) - y(i))
                 for j in range(self.n_nodes)
             )
