@@ -17,8 +17,9 @@ def polar_statistics(angles,axis=0,nan_policy='omit'):
     """
     Polar statisitcs
     Return the mean and standard deviation of circular data.
-    np.circmean returns same value 
-    np.circstd returns different value
+    np.circmean returns the same mean value 
+    np.circstd returns different standard deviation value
+    
     Parameters
     ----------
     angles : 2D float array
