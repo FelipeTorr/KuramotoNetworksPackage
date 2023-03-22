@@ -510,7 +510,7 @@ def synchronyMatrices(X,start_time=0,end_time=20000):
      
     return plv_matrix,phi_matrix,gamma_matrix,SE_matrix
 
-def hilbertTheta(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simulated=True):
+def hilbertFrequencyBand(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simulated=True):
     """
     Calculate to envelope and phase of a signal in the frequency band specified by [**f_loww** , **f_high** ] Hz.
     Uses the hilbert transform, then the result has more accuraccy as narrower is the frequency band.
@@ -589,8 +589,8 @@ def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True,applyLo
     #Signal duration must be higher than 5 seconds, or the same np.shape(X)[1]>5*fs
     #This limitation assures that the filter works well for the frequncy bands where is not signal in simulated data
     #Assume X is NxT
-    amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
-    #The output from HilbertTheta has two seconds less in duration
+    amplitudes,angles=hilbertFrequencyBand(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
+    #The output from hilbertFrequencyBand has two seconds less in duration
     if applyLow:
         #Low-pass 0.5 Hz, removes 1 second of the Analytical signal before filtering
         b,a=signal.butter(4,2*f_lowpass/fs,btype='lowpass')
@@ -732,7 +732,7 @@ def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000,simulated=True):
     """
     
     #Assume X is NxT
-    amplitudes,angles=hilbertTheta(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
+    amplitudes,angles=hilbertFrequencyBand(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
     N=np.shape(X)[0]
     diff=np.zeros((np.shape(angles)[1],N,N))
     for i in range(N):
@@ -916,3 +916,104 @@ def FCD_from_envelopes(X,f_low=8,f_high=13,fs=1000,wwidth=1000,olap=0.9,mode='co
     envelopes = lowFrequency_envelopes(X=X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
     FCDmatrix, corr_vectors, shift = extract_FCD(envelopes,wwidth=wwidth,olap=olap,mode=mode)
     return FCDmatrix, corr_vectors, shift
+
+
+def extractEventsTimes(x,high_value=1,min_duration=3):
+    """
+    Returns a list with the starting and ending time points from the  binary time serie 
+    of the thresholded events
+    
+    Parameters
+    ----------
+    x : 1D int
+        Thresholded events or excerpts of the signal at a specific frequency band.
+    high_value : int, optional
+        The integer that codifies the event. The default is 1 for binary signals.
+    min_duration : int, optional
+        The minimum duration of the event. The default is 3 samples.
+
+    Returns
+    -------
+    2D int array
+        Array of the events with the index of the node (row 0), starting time (row 1) and ending time (row 2). The size is 3 x N_events.
+    """ 
+    x[:,-1]=0
+    y=np.roll(x,shift=1)
+    start_times=np.where((x ==high_value ) & (y < high_value))
+    end_times=np.where((x <high_value ) & (y == high_value))
+    start_times=np.array(start_times)
+    end_times=np.array(end_times)
+    end_times[1,:]-=1
+    durations=end_times[1,:]-start_times[1,:]
+    start_times=start_times[:,durations>=min_duration]
+    end_times=end_times[:,durations>=min_duration]
+    events_times=np.vstack((start_times,end_times[1,:]))
+    return events_times
+
+
+def high_order_cooccurrences(events_times):
+    """
+    Find the co-occurrences
+
+    Parameters
+    ----------
+    events_times : 2D int array
+        Array of the events with the index of the node (row 0), starting time (row 1) and ending time (row 2). The size is 3 x N_events.
+
+    Returns
+    -------
+    co_occurrences : list
+        List of the co-occurrent events. 
+        Each co-occurrence is a tuple with the starting time point, and a list with the nodes' indexes. 
+
+    """    
+    co_occurrences=[]
+    last_end_event=0
+    list_events=list(events_times[1,:])
+    list_events_without_repetitions=list(dict.fromkeys(list_events))
+    for event_start in list_events_without_repetitions:
+        if list_events.count(event_start)>1:
+            nodes_with_same_start=np.argwhere(events_times[1,:]==event_start)[:,0]
+            end_times=events_times[2,nodes_with_same_start]
+            last_end_event=np.max(end_times)
+            
+            node_indexes=events_times[0,nodes_with_same_start]
+            nodes_with_different_start=np.argwhere((events_times[1,:]>event_start) & (events_times[2,:]<last_end_event))[:,0]
+            node_indexes=np.append(node_indexes,events_times[0,nodes_with_different_start])
+            co_occurrences.append([event_start,last_end_event-event_start,[node_indexes]])
+    return co_occurrences
+
+
+def extractTimeStatisticsEvents(X,min_duration=5):
+    """
+    
+
+    Parameters
+    ----------
+    X : TYPE
+        DESCRIPTION.
+    min_duration : TYPE, optional
+        DESCRIPTION. The default is 5.
+
+    Returns
+    -------
+    durations : TYPE
+        DESCRIPTION.
+    occupancy : TYPE
+        DESCRIPTION.
+    co_occurrences : TYPE
+        DESCRIPTION.
+
+    """
+    
+    N=np.shape(X)[0]
+    T=np.shape(X)[1]
+    occupancy=np.zeros((N,))
+    events_times=extractEventsTimes(X,min_duration=min_duration)
+    durations=events_times[2,:]-events_times[1,:]
+    occupancy=np.zeros((90,))
+    for n in range(N):
+        occupancy[n]=np.sum(durations[np.argwhere(events_times[0,:]==n)[:,0]])/T
+    co_occurrences=high_order_cooccurrences(events_times)  
+    
+    return durations, occupancy, co_occurrences

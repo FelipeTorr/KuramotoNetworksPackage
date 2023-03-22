@@ -120,7 +120,7 @@ class Kuramoto:
         self.nat_freq_std=nat_freq_std
         self.seed=SEED
         self.random_nat_freq=GenerateRandom
-
+        self.noise_std=0.0
         if struct_connectivity is None:
             self.struct_connectivity=self.load_struct_connectivity()
         else:
@@ -343,6 +343,7 @@ class Kuramoto:
         
         self.mean_delay=mean_delay
         self.applyMean_Delay()
+        
     def setNoiseSD(self,noise):
         self.noise_std=noise
         

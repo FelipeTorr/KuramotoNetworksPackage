@@ -52,12 +52,12 @@ def colorizeMatrix(clusters,C):
     return C_colored, colors, sorted_indexes
     
 def colorizeBrain(clusters,C):
-    N=90
-    x=np.zeros((90,),dtype=float)
-    y=np.zeros((90,),dtype=float)
-    z=np.zeros((90,),dtype=float)
-    s=np.zeros((90,),dtype=float)
-    c=np.zeros((90,),dtype=int)
+    N=np.shape(C)[0]
+    x=np.zeros((N,),dtype=float)
+    y=np.zeros((N,),dtype=float)
+    z=np.zeros((N,),dtype=float)
+    s=np.zeros((N,),dtype=float)
+    c=np.zeros((N,),dtype=int)
     label=[]
     C_colored, colors, sorted_indexes=colorizeMatrix(clusters, C)
     G=nx.Graph()
@@ -78,6 +78,7 @@ def colorizeBrain(clusters,C):
                     except TypeError:
                         if (n_row-1)==clusters[key]:
                             node_color=key
+                print(node_color)
                 G.add_node(n_row, pos=(x[n_row-1],y[n_row-1],z[n_row-1]),color=node_color)
     
                 for n_col in range(N):
@@ -89,12 +90,12 @@ def colorizeBrain(clusters,C):
 
 def plotClustersBrain(clusters,C,threshold_connections=1e-3,figname='clusteredNetwork'):
     from matplotlib.colors import ListedColormap
-    N=90
-    x=np.zeros((90,),dtype=float)
-    y=np.zeros((90,),dtype=float)
-    z=np.zeros((90,),dtype=float)
-    s=np.zeros((90,),dtype=float)
-    c=np.zeros((90,),dtype=int)
+    N=np.shape(C)[0]
+    x=np.zeros((N,),dtype=float)
+    y=np.zeros((N,),dtype=float)
+    z=np.zeros((N,),dtype=float)
+    s=np.zeros((N,),dtype=float)
+    c=np.zeros((N,),dtype=int)
     label=[]
     Cn=np.ma.masked_where(C==0, C)
     
@@ -120,6 +121,8 @@ def plotClustersBrain(clusters,C,threshold_connections=1e-3,figname='clusteredNe
                     except TypeError:
                         if (n_row-1)==clusters[key]:
                             node_color=key
+                    
+                            
                 G.add_node(n_row, pos=(x[n_row-1],y[n_row-1],z[n_row-1]),color=node_color)
     
                 for n_col in range(N):
@@ -165,3 +168,84 @@ def plotClustersBrain(clusters,C,threshold_connections=1e-3,figname='clusteredNe
     plt.show()
     fig1.savefig(figname+'.pdf',dpi=300)
     return Cn_colored, sorted_indexes
+
+def plotSubnetworks(subnetworks,N=90,figname='subnetworks',non_color='gray'):
+    """
+    Plot the top and front vision of the 90 nodes in the brain positions.
+    Colorize the nodes following the key colors in the dictionary *subnetworks*.
+
+    Parameters
+    ----------
+    subnetworks : dict
+        A dicitionary which keys are color names and their values are a list of 
+        nodes that correspond to a particular subnetwork.
+    N : int, optional
+        Number of nodes. For further development with more atlas, for now it is always the default: 90.
+    figname : str, optional
+        Name of the generate and stored figure. The default is 'subnetworks'.
+
+    Returns
+    -------
+    axes. List of matplotlib.axes with the top[0] and front[1] perspectives. 
+    
+    Also Saves a .png file in the disk.
+
+    """
+    
+    from matplotlib.colors import ListedColormap
+    x=np.zeros((N,),dtype=float)
+    y=np.zeros((N,),dtype=float)
+    z=np.zeros((N,),dtype=float)
+    s=np.zeros((N,),dtype=float)
+    c=np.zeros((N,),dtype=int)
+    label=[]
+    C=np.ones((N,N))
+    colors_subnets=list(subnetworks.keys())
+    colors_subnets.append(non_color)
+    clustercolors=ListedColormap(colors_subnets)
+    G=nx.Graph()
+    with open('../input_data/Node_AAL90.node', newline='\r\n') as csvfile:
+        reader=csv.reader(csvfile, delimiter='\t', quotechar='|')
+        for row,n_row in zip(reader,range(N+1)):
+            if n_row>0:
+                x[n_row-1]=float(row[0])
+                y[n_row-1]=float(row[1])
+                z[n_row-1]=float(row[2])
+                c[n_row-1]=row[3]
+                s[n_row-1]=row[4]
+                label.append(row[5])
+                for n_key, key in enumerate(subnetworks.keys()):
+                    try:
+                        if (n_row-1) in subnetworks[key]:
+                            node_color=key
+                    except TypeError:
+                        if (n_row-1)==subnetworks[key]:
+                            node_color=key
+                    
+                            
+                G.add_node(n_row, pos=(x[n_row-1],y[n_row-1],z[n_row-1]),color=node_color)
+    
+                for n_col in range(N):
+                    G.add_edge(n_row, n_col+1, weight=C[n_row-1,n_col]/np.sum(C))
+    fig1=plt.figure()
+    ax1 = fig1.add_subplot(2,1,1,projection="3d")
+    ax2 = fig1.add_subplot(2,1,2,projection="3d")
+    pos=nx.get_node_attributes(G,'pos')
+    node_xyz=np.array([pos[v] for v in range(1,N+1)])
+    edge_xyz = np.array([(pos[u], pos[v]) for u, v in G.edges()])
+    nodes,node_color=zip(*nx.get_node_attributes(G, 'color').items())
+    edges, weights = zip(*nx.get_edge_attributes(G, 'weight').items())
+    # nx.draw_networkx(G,pos,ax=ax1,edge_color=weights,edge_cmap=plt.cm.turbo,node_color=node_color,font_color='white')
+    ax1.scatter(*node_xyz.T,s=20,c=node_color)
+    ax2.scatter(*node_xyz.T,s=20,c=node_color)
+    ax1.set_title('Top')
+    ax2.set_title('Front')
+    # Plot the edges
+    # for vizedge,vizweight in zip(edge_xyz,weights):
+    #     if vizweight>threshold_connections:
+    #         ax1.plot(*vizedge.T, color=plt.cm.jet(vizweight*10*N))
+    ax1.set_axis_off()
+    ax1.view_init(89,270)
+    ax2.set_axis_off()
+    ax2.view_init(0,90)
+    return [ax1,ax2]
