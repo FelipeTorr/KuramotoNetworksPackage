@@ -1,0 +1,28 @@
+#Config file for a Kuramoto model simulation
+experiment_name=TestConfigHigh0
+#Network structure
+n_nodes=9
+struct_connectivity=../input_data/structural_connectivity.mat
+delay_matrix=../input_data/delays_matrix.mat
+#Global parameters
+K=8.00
+mean_delay=0.20
+#Intrinsic/Natural frequencies
+nat_freqs=
+nat_freq_mean=40
+nat_freq_std=0
+#Time parameters 
+simulation_period=30
+dt=1e-3
+#Stimulation
+ForcingNodes=[0]
+StimTstart=15
+StimTend=20
+StimFreq=30
+StimAmp=200
+#Stochastic parameters
+seed=3423
+random_nat_freq=False
+noise_std=0
+#Parallel process
+max_workers=2
