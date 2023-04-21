@@ -73,14 +73,14 @@ def peak_freqs(x,fs=1000,nperseg=4096,noverlap=2048,applySin=True,includeDC=Fals
             if includeDC==True:
                 pfreqs[n]=f[np.argmax(Pxx[n,:])]
             else:
-                pfreqs[n]=f[np.argmax(Pxx[n,1::])]
+                pfreqs[n]=f[np.argmax(Pxx[n,1::])+1]
     else:
         #Single node
         f,Pxx=signal.welch(X,fs=fs,window='hamming',nperseg=nperseg,noverlap=noverlap)
         if includeDC==True:
             pfreqs=f[np.argmax(Pxx)]
         else:
-            index_max_freq=np.argmax(Pxx[1::])
+            index_max_freq=np.argmax(Pxx[1::])+1
             if index_max_freq==0 or index_max_freq==len(Pxx):
                 index_max_freq==0
             pfreqs=f[index_max_freq+1]

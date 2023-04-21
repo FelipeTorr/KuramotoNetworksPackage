@@ -160,8 +160,7 @@ def degreeMatrix(C):
     """    
     degree_matrix=np.zeros_like(C)
     if np.shape(C)[0]==np.shape(C)[1]:
-        for i in range(np.shape(C)[0]):
-            degree_matrix[i,i]=np.sum(C[i,:])
+        degree_matrix=np.diag(np.sum(C,axis=1))
     else:
         print("C must be a square matrix")
     return degree_matrix
@@ -268,6 +267,8 @@ def eigen(C):
         Quantity of zeros eigenvalues.
     algebraic_connectivty : float
         Second eigenvalue of C.
+    con_comp: int
+        Connected components of the network (Quantity of zero eigenvalues)
 
     """
     
@@ -280,10 +281,16 @@ def eigen(C):
 
     #count zero eigvalues
     count_zeros_eigvalues=len(np.argwhere(np.abs(eig_values)<1e-9))
-    #Algebraic connectivity
-    algebraic_connectivity=np.abs(eig_values[1])
+    #Algebraic connectivity and connected components
+    con_comp=0
+    for eigv in eig_values:
+        if eigv>1e-6:
+            algebraic_connectivity=np.abs(eigv)
+            break
+        else:
+            con_comp+=1
     
-    return eig_values, eig_vectors, count_zeros_eigvalues, algebraic_connectivity
+    return eig_values, eig_vectors, count_zeros_eigvalues, algebraic_connectivity, con_comp
     
 
     

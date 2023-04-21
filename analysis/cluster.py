@@ -16,6 +16,17 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 import numpy as np
 import matplotlib.pyplot as plt
 
+def cos_similarity(matrix,N=90):
+    normaliz=np.linalg.norm(matrix,axis=1)+1e-16
+    occurrence_matrix=np.copy(matrix)*0
+    for col in range(N):
+        suma_col=np.sum(matrix[:,col])
+        if suma_col>0:
+            occurrence_matrix[:,col]=matrix[:,col]/normaliz
+    similarity_matrix=np.matmul(occurrence_matrix,occurrence_matrix.T)
+    np.fill_diagonal(similarity_matrix,0)
+    return similarity_matrix
+
 def cluster_colors():
     """
     A list of colors to distiguish the clusters
@@ -297,8 +308,8 @@ def spectralBisection(L, trisection=False):
     cluster2 : int 1D array (if trisection==True)
         List of indexes that correspond to the third cluster.
     """
-    eig_values, eig_vectors, count_zeros_eigvalues, algebraic_connectivty=connectivityMatrices.eigen(L)
-    real_fiedler_vector=np.real(eig_vectors[:,1])
+    eig_values, eig_vectors, count_zeros_eigvalues, algebraic_connectivty, con_com=connectivityMatrices.eigen(L)
+    real_fiedler_vector=np.real(eig_vectors[:,con_com])
     if trisection:
         cluster0=np.argwhere(real_fiedler_vector>algebraic_connectivty)[:,0]
         cluster1=np.argwhere(real_fiedler_vector<-algebraic_connectivty)[:,0]
@@ -355,3 +366,27 @@ def clusteringSpectral(C,M=2):
                     clusters_post.append(cluster[cluster1])
                 clusters_pre=clusters_post
         return clusters_post
+
+def get_subnet_features(subnet,interest_indexes):
+    #Size
+    size_=np.sum(subnet)
+    #A network is symetric if it has the pair of nodes from each hemisphere
+    n_node_index=0
+    n_posible_pairs=0
+    sum_impairs=0
+    sum_pairs=0
+    is_symmetric=False
+    while n_node_index < (len(interest_indexes)-1):
+        #If the nodes of interes have a pair from both hemispheres
+        if interest_indexes[n_node_index]%2==0 and interest_indexes[n_node_index+1]==interest_indexes[n_node_index]+1:
+            #check
+            n_posible_pairs+=1
+            if np.sum(subnet[n_node_index:n_node_index+2])==2:
+                sum_pairs+=1
+        else:
+            sum_impairs+=subnet[n_node_index]
+        n_node_index+=1
+    if sum_pairs==n_posible_pairs and sum_impairs==0:
+        is_symmetric=True
+    #
+    return size_, sum_pairs

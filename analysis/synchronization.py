@@ -510,7 +510,7 @@ def synchronyMatrices(X,start_time=0,end_time=20000):
      
     return plv_matrix,phi_matrix,gamma_matrix,SE_matrix
 
-def hilbertFrequencyBand(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simulated=True):
+def hilbertFrequencyBand(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',applyTrim=True,applySin=True):
     """
     Calculate to envelope and phase of a signal in the frequency band specified by [**f_loww** , **f_high** ] Hz.
     Uses the hilbert transform, then the result has more accuraccy as narrower is the frequency band.
@@ -527,9 +527,10 @@ def hilbertFrequencyBand(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simul
         Sampling frequency. The default is 1000 samples/second.
     type : str, optional
         Type of the pass-band filter. The default is 'butterworth', the other option is 'chebysev'.
-    simulated : boolean, optional
+    applyTrim : boolean, optional
         Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
-
+    applySin : boolean, optional
+        Defines if the sin function must be applied to the data before any processing.
     Returns
     -------
     amplitudes : 1D array
@@ -544,11 +545,14 @@ def hilbertFrequencyBand(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simul
         b,a=signal.butter(2,[2*f_low/fs,2*f_high/fs],btype='bandpass')
     elif type=='chebysev': 
         b,a=signal.cheby1(2,1e-6,[2*f_low/fs,2*f_high/fs],btype='bandpass')
-    #Zero-phase filter
-    sinX=np.sin(X)
+    #Apply the sin function
+    if applySin:
+        sinX=np.sin(X)
+    else:
+        sinX=X
     #The final order of the filters is 4th
     Xf=signal.filtfilt(b,a,sinX)
-    if simulated:
+    if applyTrim:
        Xf=Xf[:,2*fs:-2*fs]
     #Hilbert transform
     Xfiltered=np.copy(Xf) #Copy of the array as scipy.signal.Hilbert modifies the input 
@@ -558,10 +562,12 @@ def hilbertFrequencyBand(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',simul
     return amplitudes, angles
 
 
-def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True,applyLow=True,f_lowpass=0.5):
+def envelopesFrequencyBand(X,f_low=0.5,f_high=100,fs=1000,applyTrim=True,applySin=True,applyLow=True,f_lowpass=0.5):
     """
     Returns the envelpes of the Hilbert transform of the signal at a specific frequency
-
+    
+    Warning! envelopes has eight seconds lesser than X
+    
     Parameters
     ----------
     X : float 2D array
@@ -572,13 +578,14 @@ def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True,applyLo
         High frequency limit of the pass-band filter. The default is 100 Hz.
     fs : int, optional
         Sampling frequency. The default is 1000 samples/second.
-    simulated : boolean, optional
+    applyTrim : boolean, optional
         Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
     applyLow: boolean, optional
         Defines if the envelopes are low-pass filtered or if they are directly returned from the Hilbert transform.
     f_lowpass: float, optional
         Defines the stop band of the low-pass filter applied to the Hilbert envelopes
-
+    applySin : boolean, optional
+        Defines if the sin function must be applied to the data before any processing.    
     Returns 
     -------
     envelopes : 2D array
@@ -589,21 +596,21 @@ def lowFrequency_envelopes(X,f_low=0.5,f_high=100,fs=1000,simulated=True,applyLo
     #Signal duration must be higher than 5 seconds, or the same np.shape(X)[1]>5*fs
     #This limitation assures that the filter works well for the frequncy bands where is not signal in simulated data
     #Assume X is NxT
-    amplitudes,angles=hilbertFrequencyBand(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
+    amplitudes,angles=hilbertFrequencyBand(X,f_low=f_low,f_high=f_high,fs=fs,applyTrim=applyTrim, applySin=applySin)
     #The output from hilbertFrequencyBand has two seconds less in duration
     if applyLow:
         #Low-pass 0.5 Hz, removes 1 second of the Analytical signal before filtering
-        b,a=signal.butter(4,2*f_lowpass/fs,btype='lowpass')
+        b,a=signal.butter(2,2*f_lowpass/fs,btype='lowpass')
         envelopes=signal.filtfilt(b,a,amplitudes[:,:],axis=1)
         envelopes=envelopes[:,2*fs:-2*fs] #removes half second after filtering
     else:
         envelopes=amplitudes[:,2*fs:-2*fs] #removes half second after filtering
     
-    #Warning! envelopes has five seconds lesser than X
+    #Warning! envelopes has eight seconds lesser than X
     
     return envelopes
 
-def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
+def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,applyTrim=True,applySin=True):
     """
     Calculates the Functional Connectivity matrix from the low-pass filterd envelopes of the 
     signals in X. The envelopes correspond to the frequency band specified by [**f_low** , **f_high** ] Hz.
@@ -620,9 +627,10 @@ def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
         Sampling frequency. The default is 1000 samples/second.
     type : str, optional
         Type of the pass-band filter. The default is 'butterworth', the other option is 'chebysev'.
-    simulated : boolean, optional
+    applyTrim : boolean, optional
         Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
-
+    applySin : boolean, optional
+        Defines if the sin function must be applied to the data before any processing.
 
     Returns
     -------
@@ -634,7 +642,7 @@ def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
     """
     #Low frequency envelopes (low-pass at 0.5 Hz of the envelope of
     #the Hilbert transform of the filtered signal between f_low and f_high)
-    envelopes=lowFrequency_envelopes(X=X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
+    envelopes=envelopesFrequencyBand(X=X,f_low=f_low,f_high=f_high,fs=fs,applyTrim=applyTrim,applySin=applySin)
     #The mean energy indicates something about how significant is the analysis 
     #in the specific frequency band
     mean_energy=np.mean(envelopes**2)
@@ -650,7 +658,7 @@ def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,simulated=True):
 
     
     
-def FC_filtered_windowed(X,t_start=20000,t_end=40000,f_low=0.5,f_high=100,fs=1000,simulated=True):
+def FC_filtered_windowed(X,t_start=20000,t_end=40000,f_low=0.5,f_high=100,fs=1000,applyTrim=True,applySin=True):
     """
     Calculates the Functional Connectivity matrix from the low-pass filterd envelopes of the 
     signals in X. The envelopes correspond to the frequency band specified by [**f_low** , **f_high** ] Hz,
@@ -668,8 +676,10 @@ def FC_filtered_windowed(X,t_start=20000,t_end=40000,f_low=0.5,f_high=100,fs=100
         Sampling frequency. The default is 1000 samples/second.
     type : str, optional
         Type of the pass-band filter. The default is 'butterworth', the other option is 'chebysev'.
-    simulated : boolean, optional
+    applyTrim : boolean, optional
         Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
+    applySin : boolean, optional
+        Defines if the sin function must be applied to the data before any processing.
     t_start : int, optional
         Initial time point. The default is 20000 samples.
     t_end : int, optional
@@ -684,7 +694,7 @@ def FC_filtered_windowed(X,t_start=20000,t_end=40000,f_low=0.5,f_high=100,fs=100
 
     """
     
-    envelopes=lowFrequency_envelopes(X=X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
+    envelopes=envelopesFrequencyBand(X=X,f_low=f_low,f_high=f_high,fs=fs,applyTrim=applyTrim,applySin=applySin)
     #The mean energy indicates something about how significant is the analysis in the specific frequency band
     mean_energy=np.mean(envelopes**2)
     N=np.shape(X)[0]
@@ -703,7 +713,7 @@ def FC_filtered_windowed(X,t_start=20000,t_end=40000,f_low=0.5,f_high=100,fs=100
                 FC[i,j]=1
     return FC, mean_energy
 
-def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000,simulated=True):
+def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000,applyTrim=True,applySin=False):
     """
     Difference of phases from applying the Hilbert Transform in the signals of **X**.
 
@@ -719,9 +729,10 @@ def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000,simulated=True):
         Sampling frequency. The default is 1000 samples/second.
     type : str, optional
         Type of the pass-band filter. The default is 'butterworth', the other option is 'chebysev'.
-    simulated : boolean, optional
+    applyTrim : boolean, optional
         Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
-
+    applySin : boolean, optional
+        Defines if the sin function must be applied to the data before any processing.
     Returns
     -------
     angles float 2D array
@@ -732,7 +743,7 @@ def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000,simulated=True):
     """
     
     #Assume X is NxT
-    amplitudes,angles=hilbertFrequencyBand(X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
+    amplitudes,angles=hilbertFrequencyBand(X,f_low=f_low,f_high=f_high,fs=fs,applyTrim=applyTrim,applySin=applySin)
     N=np.shape(X)[0]
     diff=np.zeros((np.shape(angles)[1],N,N))
     for i in range(N):
@@ -849,7 +860,8 @@ def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,coldata=False,mode='co
     for j1,j2 in zip(indx_start,indx_stop):
         aux_s = data[:,j1:j2]
         if mode=='corr':
-            corr_mat = np.corrcoef(aux_s) 
+            corr_mat = np.corrcoef(aux_s)
+            corr_mat[np.isnan(corr_mat)]=1
         elif mode=='psync':
             corr_mat=np.zeros((nnodes,nnodes))
             for ii in range(nnodes):
@@ -871,11 +883,11 @@ def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,coldata=False,mode='co
     corr_vectors=np.array([allPm[np.tril_indices(nnodes,k=-1)] for allPm in all_corr_matrix])
     
     CV_centered=corr_vectors - np.mean(corr_vectors,-1)[:,None]
+    FCD=np.corrcoef(CV_centered)
+    FCD[np.isnan(FCD)]=1    
+    return FCD,corr_vectors,shift
     
-    
-    return np.corrcoef(CV_centered),corr_vectors,shift
-    
-def FCD_from_envelopes(X,f_low=8,f_high=13,fs=1000,wwidth=1000,olap=0.9,mode='corr',simulated=True):
+def FCD_from_envelopes(X,f_low=8,f_high=13,fs=1000,wwidth=1000,olap=0.9,mode='corr',applyTrim=True,applySin=True):
     """
     Extract the FCD from the low-pass band filtered envelopes 
 
@@ -899,10 +911,12 @@ def FCD_from_envelopes(X,f_low=8,f_high=13,fs=1000,wwidth=1000,olap=0.9,mode='co
         'psync' : Pair-wise phase synchrony.
         'plock' : Pair-wise phase locking.
         'tdcorr' : Time-delayed correlation, looks for the maximum value in a cross-correlation of the data series
-    simulated : boolean, optional
+    applyTrim : boolean, optional
         Defines if the data comes from simulation, then the impulse response time is removed. The default is True.
     
-
+    applySin : boolean, optional
+        Defines if the sin function must be applied to the data before any processing.
+        
     Returns
     -------
     FCDmatrix : numpy array
@@ -913,8 +927,9 @@ def FCD_from_envelopes(X,f_low=8,f_high=13,fs=1000,wwidth=1000,olap=0.9,mode='co
         The distance between windows that was actually used (in samples)
     """
     
-    envelopes = lowFrequency_envelopes(X=X,f_low=f_low,f_high=f_high,fs=fs,simulated=simulated)
-    FCDmatrix, corr_vectors, shift = extract_FCD(envelopes,wwidth=wwidth,olap=olap,mode=mode)
+    envelopes = envelopesFrequencyBand(X=X,f_low=f_low,f_high=f_high,fs=fs,applyTrim=applyTrim,applySin=applySin,applyLow=True)
+    
+    FCDmatrix, corr_vectors, shift = extract_FCD(envelopes[:,2*fs:-2*fs],wwidth=wwidth,olap=olap,mode=mode)
     return FCDmatrix, corr_vectors, shift
 
 
