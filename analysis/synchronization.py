@@ -284,8 +284,10 @@ def phaseLockingValueMatrix(X):
     T=np.shape(X)[1]
     plv=np.zeros((N,N))
     for i in range(N):
-        for j in range(N):
+        for j in range(i+1,N):
             plv[i,j]=phaseLockingValueTwoNodes(X[i,:]%(2*np.pi),X[j,:]%(2*np.pi))
+            plv[j,i]=plv[i,j]
+        plv[i,i]=1
     return plv
 
 def phaseLockingDiffPhase(diffX):
@@ -405,18 +407,23 @@ def localOrderParameter(x):
 
 
 
-def coherence(x,nperseg=4096,noverlap=3600,fs=1000):
+def coherence(x,nperseg=4096,noverlap=2048,fs=1000,applySin=False):
     """
     Coherence for each pair of signals in x
     
     Parameters
     ----------
     x : float 2D array.
-        Nodes x Time.
+        Matrix with the signal of size Nodes x Time.
     nperseg : int, optional
         Number of samples of the time window. The default is 4096.
     noverlap : int, optional
         Number of samples of the overlap window. The default is 3600.
+        With None, the nperseg is used as value of nfft of a FFT with zero-padding
+    fs: int, optional
+        Sampling frequency
+    applySin: boolean, optional
+        Apply the sin function before performing the coherence calculation
 
     Returns
     -------
@@ -427,14 +434,58 @@ def coherence(x,nperseg=4096,noverlap=3600,fs=1000):
         Node x Node x Frequency
 
     """
-    
-    Cxx=np.zeros((np.shape(x)[0],np.shape(x)[0],nperseg//2+1))
+    nfft=nperseg
+    if noverlap==None:
+        nperseg=None
+    if applySin:
+        x=np.sin(x)
+    Cxx=np.zeros((np.shape(x)[0],np.shape(x)[0],nfft//2+1))
     for i in range(np.shape(x)[0]):
-        for j in range(np.shape(x)[0]):
-            freqsc,Cxx[i,j,:]=signal.coherence(np.cos(x[i,:]),np.cos(x[j,:]),fs=fs,nperseg=nperseg,noverlap=noverlap)
+        for j in range(i+1,np.shape(x)[0]):
+            freqsc,Cxx[i,j,:]=signal.coherence(x[i,:],x[j,:],fs=fs,nfft=nfft,nperseg=nperseg,noverlap=noverlap)
+            Cxx[j,i,:]=Cxx[i,j,:]
+        Cxx[i,i,:]=1
     return freqsc, Cxx
 
 
+def cross_spectrum(x,nperseg=4096,noverlap=2048,fs=1000,applySin=False):
+    """
+    Real part of the cross-spectrum for each pair of signals in x
+    
+    Parameters
+    ----------
+    x : float 2D array.
+        Nodes x Time.
+    nperseg : int, optional
+        Number of samples of the time window. The default is 4096.
+    noverlap : int, optional
+        Number of samples of the overlap window. The default is 3600.
+        With None, the nperseg is used as value of nfft of a FFT with zero-padding
+    fs: int, optional
+        Sampling frequency
+    applySin: boolean, optional
+        Apply the sin function before performing the cross-spectrum calculation
+    Returns
+    -------
+    freqs: float 1D array
+        frequency bins 
+    Cxx : float 3D array
+        Tensor of coherences of each pair of nodes.
+        Node x Node x Frequency
+
+    """
+    if applySin:
+        x=np.sin(x)
+    nfft=nperseg
+    if noverlap==None:
+        nperseg=None
+    Cxx=np.zeros((np.shape(x)[0],np.shape(x)[0],nfft//2+1))
+    for i in range(np.shape(x)[0]):
+        for j in range(i+1,np.shape(x)[0]):
+            freqsc,Cxx[i,j,:]=np.real(signal.csd(x[i,:],x[j,:],fs=fs,nfft=nfft,nperseg=nperseg,noverlap=noverlap))*(2*fs)/nfft
+            Cxx[j,i,:]=Cxx[i,j,:]
+        Cxx[i,i,:]=1
+    return freqsc, Cxx
 
 def synchronyTwoNodes(x1,x2,n=1,m=1):
     """
@@ -505,9 +556,13 @@ def synchronyMatrices(X,start_time=0,end_time=20000):
     SE_matrix=np.zeros((N,N))
     gamma_matrix=np.zeros((N,N))
     for i in range(N):
-        for j in range(N):
+        for j in range(i+1,N):
             plv_matrix[i,j,:],gamma_matrix[i,j],phi_matrix[i,j,:],SE_matrix[i,j]=synchronyTwoNodes(X[i,start_time:end_time], X[j,start_time:end_time])
-     
+            plv_matrix[j,i,:],gamma_matrix[j,i],phi_matrix[j,i,:],SE_matrix[j,i]=plv_matrix[i,j,:],gamma_matrix[i,j],phi_matrix[i,j,:],SE_matrix[i,j]
+        plv_matrix[i,i,:]=np.ones((end_time-start_time,))
+        gamma_matrix[i,i]=1
+        phi_matrix[i,i,:]=np.ones((end_time-start_time,))
+        SE_matrix[i,i]=1
     return plv_matrix,phi_matrix,gamma_matrix,SE_matrix
 
 def hilbertFrequencyBand(X,f_low=0.5,f_high=100,fs=1000,type='butterworth',applyTrim=True,applySin=True):
@@ -649,11 +704,10 @@ def FC_filtered(X,f_low=0.5,f_high=100,fs=1000,applyTrim=True,applySin=True):
     N=np.shape(X)[0]
     FC=np.zeros((N,N))
     for i in range(N):
-        for j in range(N):
-            if i!=j:
-                FC[i,j]=elementFunctionalConnectivity(envelopes[i,:],envelopes[j,:])
-            else:
-                FC[i,j]=1
+        for j in range(i+1,N):
+            FC[i,j]=elementFunctionalConnectivity(envelopes[i,:],envelopes[j,:])
+            FC[j,i]=FC[i,j]
+        FC[i,i]=1
     return FC, mean_energy
 
     
@@ -706,11 +760,10 @@ def FC_filtered_windowed(X,t_start=20000,t_end=40000,f_low=0.5,f_high=100,fs=100
     if t_end-int(2.5*fs)<time_end:
         time_end=t_end-int(2.5*fs)
     for i in range(N):
-        for j in range(N):
-            if i!=j:
-                FC[i,j]=elementFunctionalConnectivity(envelopes[i,time_start:time_end],envelopes[j,time_start:time_end])
-            else:
-                FC[i,j]=1
+        for j in range(i+1,N):
+            FC[i,j]=elementFunctionalConnectivity(envelopes[i,time_start:time_end],envelopes[j,time_start:time_end])
+            FC[j,i]=FC[i,j]
+        FC[i,i]=1
     return FC, mean_energy
 
 def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000,applyTrim=True,applySin=False):
@@ -747,9 +800,11 @@ def diffPhaseHilbert(X,f_low=2,f_high=100,fs=1000,applyTrim=True,applySin=False)
     N=np.shape(X)[0]
     diff=np.zeros((np.shape(angles)[1],N,N))
     for i in range(N):
-        for j in range(N):
+        for j in range(i+1,N):
             #Absolute Phase difference in degrees (as there is not much sense in define 'forward' signals) 
             diff[:,i,j]=(angles[i,:]-angles[j,:])
+            diff[:,j,i]=diff[:,i,j]
+        diff[:,i,i]=np.zeros((np.shape(angles)[1],))
     return angles.T, diff   
 
 def diffPhaseTheta(X):
@@ -929,7 +984,7 @@ def FCD_from_envelopes(X,f_low=8,f_high=13,fs=1000,wwidth=1000,olap=0.9,mode='co
     
     envelopes = envelopesFrequencyBand(X=X,f_low=f_low,f_high=f_high,fs=fs,applyTrim=applyTrim,applySin=applySin,applyLow=True)
     
-    FCDmatrix, corr_vectors, shift = extract_FCD(envelopes[:,2*fs:-2*fs],wwidth=wwidth,olap=olap,mode=mode)
+    FCDmatrix, corr_vectors, shift = extract_FCD(envelopes[:,2*fs:-2*fs],wwidth=wwidth,maxNwindows=1000,olap=olap,mode=mode)
     return FCDmatrix, corr_vectors, shift
 
 

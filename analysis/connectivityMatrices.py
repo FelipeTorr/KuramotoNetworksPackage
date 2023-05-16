@@ -292,5 +292,20 @@ def eigen(C):
     
     return eig_values, eig_vectors, count_zeros_eigvalues, algebraic_connectivity, con_comp
     
+def vonNewmanDensity(L,beta=1):
+    eig_values, eig_vectors, count_zeros_eigvalues, algebraic_connectivity, con_comp=eigen(L)
+    rho=np.exp(-beta*L)/np.trace(np.exp(-beta*L))
+    return rho
 
+def vonNewmanEntropy(L,beta=1):
+    S=-np.trace(vonNewmanDensity(L,beta)*np.log(vonNewmanDensity(L,beta)))
+    return S
+
+def vonNewmanRelativeEntropy(L,J,beta=1):
+    S=np.trace(vonNewmanDensity(L,beta)*(np.log(vonNewmanDensity(L,beta))-np.log(vonNewmanDensity(J,beta))))
+    return S
+    
+def orthoMatrix(eig_value,eig_vector):
+    matrix=np.exp(-eig_value)*np.matmul(eig_vector,eig_vector.T)
+    return np.real(matrix)
     
