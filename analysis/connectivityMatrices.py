@@ -225,7 +225,7 @@ def booleanDegree(C):
     k_i=np.sum(A,axis=1)
     return k_i
 
-def Laplacian(C,asAdjancency=False):
+def Laplacian(C,asAdjacency=False):
     """
     Lplacian matrix of a graph from the connectivity matrix.
 
@@ -233,14 +233,15 @@ def Laplacian(C,asAdjancency=False):
     ----------
     C : 2D float array
         Connectivity matrix.
-
+    asAdjacency: boolean
+        If True, uses the binary adajcency matrix. Then, it matters the connection existence, and it not matters the weight.
     Returns
     -------
     L : 2D float array
         Laplacian matrix.
 
     """
-    if asAdjancency:
+    if asAdjacency:
         A=adjacencyMatrix(C)
     else:
         A=np.copy(C)
@@ -283,6 +284,7 @@ def eigen(C):
     count_zeros_eigvalues=len(np.argwhere(np.abs(eig_values)<1e-9))
     #Algebraic connectivity and connected components
     con_comp=0
+    algebraic_connectivity=0
     for eigv in eig_values:
         if eigv>1e-6:
             algebraic_connectivity=np.abs(eigv)

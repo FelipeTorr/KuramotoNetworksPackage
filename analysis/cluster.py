@@ -310,10 +310,12 @@ def spectralBisection(L, trisection=False):
     """
     eig_values, eig_vectors, count_zeros_eigvalues, algebraic_connectivty, con_com=connectivityMatrices.eigen(L)
     real_fiedler_vector=np.real(eig_vectors[:,con_com])
+    
     if trisection:
-        cluster0=np.argwhere(real_fiedler_vector>algebraic_connectivty)[:,0]
-        cluster1=np.argwhere(real_fiedler_vector<-algebraic_connectivty)[:,0]
-        cluster2=np.argwhere((real_fiedler_vector>=(-algebraic_connectivty)) & (real_fiedler_vector<=algebraic_connectivty))[:,0]
+        th=np.real(eig_vectors[0,0])
+        cluster0=np.argwhere(real_fiedler_vector>th)[:,0]
+        cluster1=np.argwhere(real_fiedler_vector<-th)[:,0]
+        cluster2=np.argwhere((real_fiedler_vector>=(-th)) & (real_fiedler_vector<=th))[:,0]
         return cluster0, cluster1, cluster2
     else:
         cluster0=np.argwhere(real_fiedler_vector>=0)[:,0]
@@ -339,33 +341,40 @@ def clusteringSpectral(C,M=2):
     """
     num_nodes=np.shape(C)[0]
     all_nodes=np.arange(num_nodes)
+    
     if M==1:
         return all_nodes
+    elif M==2:
+        flag_odd=False
+        iter_num=1
+    elif M==3:
+        flag_odd=True
+        iter_num=1
     else:
         flag_odd=False
         iter_num=int(M//2)
-        if (M%2)==1:
-           flag_odd=True
-
-        L=connectivityMatrices.Laplacian(C)
-        clusters_pre=[]
         
-        clusters_pre.append(all_nodes)
-        for ii in range(iter_num):
-            clusters_post=[]
-            for cluster in clusters_pre:
-                if ii==iter_num-1 and flag_odd:
-                    cluster0,cluster1,cluster2=spectralBisection(L[cluster,:][:,cluster],trisection=True)
-                    clusters_post.append(cluster[cluster0])
-                    clusters_post.append(cluster[cluster1])
-                    clusters_post.append(cluster[cluster2])
-                    flag_odd=False
-                else:
-                    cluster0,cluster1=spectralBisection(L[cluster,:][:,cluster],trisection=False)
-                    clusters_post.append(cluster[cluster0])
-                    clusters_post.append(cluster[cluster1])
-                clusters_pre=clusters_post
-        return clusters_post
+
+    L=connectivityMatrices.Laplacian(C)
+    clusters_pre=[]
+        
+    clusters_pre.append(all_nodes)
+    for ii in range(iter_num):
+        clusters_post=[]
+        for cluster in clusters_pre:
+            if ii==iter_num-1 and flag_odd:
+                cluster0,cluster1,cluster2=spectralBisection(L[cluster,:][:,cluster],trisection=True)
+                clusters_post.append(cluster[cluster0])
+                clusters_post.append(cluster[cluster1])
+                clusters_post.append(cluster[cluster2])
+                flag_odd=False
+            else:
+                cluster0,cluster1=spectralBisection(L[cluster,:][:,cluster],trisection=False)
+                clusters_post.append(cluster[cluster0])
+                clusters_post.append(cluster[cluster1])
+                
+        clusters_pre=clusters_post
+    return clusters_post
 
 def get_subnet_features(subnet,interest_indexes):
     #Size

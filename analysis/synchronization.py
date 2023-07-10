@@ -435,17 +435,22 @@ def coherence(x,nperseg=4096,noverlap=2048,fs=1000,applySin=False):
 
     """
     nfft=nperseg
+    halfnfft=nfft//2+1
     if noverlap==None:
         nperseg=None
     if applySin:
         x=np.sin(x)
     Cxx=np.zeros((np.shape(x)[0],np.shape(x)[0],nfft//2+1))
+    
     for i in range(np.shape(x)[0]):
         for j in range(i+1,np.shape(x)[0]):
-            freqsc,Cxx[i,j,:]=signal.coherence(x[i,:],x[j,:],fs=fs,nfft=nfft,nperseg=nperseg,noverlap=noverlap)
+            fx=np.fft.fft(x[i,:],nfft)
+            fy=np.fft.fft(x[j,:],nfft)
+            fxy=np.conjugate(fx)*fy
+            Cxx[i,j,:]=(np.abs(fxy[0:halfnfft])**2/(np.abs(fx[0:halfnfft])*np.abs(fy[0:halfnfft])))/halfnfft
             Cxx[j,i,:]=Cxx[i,j,:]
         Cxx[i,i,:]=1
-    return freqsc, Cxx
+    return np.linspace(0,fs//2,halfnfft), Cxx
 
 
 def cross_spectrum(x,nperseg=4096,noverlap=2048,fs=1000,applySin=False):
@@ -855,7 +860,7 @@ def absDiffPhase(x):
     return np.abs(x)%np.pi*180/np.pi
     
 
-def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,coldata=False,mode='corr'):
+def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,nfft=5000,freq_index=1,coldata=False,mode='corr'):
     """
     Created on Wed Apr 27 15:57:38 2016
     @author: jmaidana
@@ -893,13 +898,14 @@ def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,coldata=False,mode='co
         The distance between windows that was actually used (in samples)
              
     """
-    
+    halfnfft=nfft//2+1
+    halfwwidth=wwidth//2+1
     if olap>=1:
         raise ValueError("olap must be lower than 1")
     if coldata:
         data=data.T    
     
-    all_corr_matrix = []
+    
     lenseries=len(data[0])
     
     Nwindows=min(((lenseries-wwidth*olap)//(wwidth*(1-olap)),maxNwindows))
@@ -911,8 +917,8 @@ def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,coldata=False,mode='co
     indx_stop = range(wwidth,(1+lenseries),shift)
          
     nnodes=len(data)
-
-    for j1,j2 in zip(indx_start,indx_stop):
+    corr_vectors = np.zeros((len(indx_start),len(np.tril_indices(nnodes,k=-1)[0])))
+    for nmat,(j1,j2) in enumerate(zip(indx_start,indx_stop)):
         aux_s = data[:,j1:j2]
         if mode=='corr':
             corr_mat = np.corrcoef(aux_s)
@@ -927,16 +933,43 @@ def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,coldata=False,mode='co
             for ii in range(nnodes):
                 for jj in range(ii):
                     corr_mat[ii,jj]=np.abs(np.mean(np.exp(1j*np.diff(aux_s[[ii,jj],:],axis=0))))
+        elif mode=='coh':
+            corr_mat=np.zeros((nnodes,nnodes))
+            fourier=np.fft.fft(aux_s,nfft)
+            for ii in range(nnodes):
+                for jj in range(ii):
+                    fx=fourier[ii,freq_index]
+                    fy=fourier[jj,freq_index]
+                    fxy=np.conjugate(fx)*fy
+                    Cxy=(np.abs(fxy)/np.sqrt((np.abs(fx)*np.abs(fy))))/halfwwidth
+                    corr_mat[ii,jj]=np.mean(Cxy)
+        elif mode=='icoh':
+            corr_mat=np.zeros((nnodes,nnodes))
+            fourier=np.fft.fft(aux_s,nfft)
+            for ii in range(nnodes):
+                for jj in range(ii):
+                    fx=fourier[ii,freq_index]
+                    fy=fourier[jj,freq_index]
+                    fxy=np.conjugate(fx)*fy
+                    Cxy=np.imag(fxy/np.sqrt((np.abs(fx)*np.abs(fy))))/halfwwidth
+                    corr_mat[ii,jj]=np.mean(Cxy)
+        elif mode=='pcoh':
+            corr_mat=np.zeros((nnodes,nnodes))
+            fourier=np.fft.fft(aux_s,nfft)
+            for ii in range(nnodes):
+                for jj in range(ii):
+                    if len(freq_index)==1:
+                        corr_mat[ii,jj]=np.abs(np.mean(np.exp(1j*np.diff(np.angle(fourier[[ii,jj],:][:,freq_index-1:freq_index+1]),axis=0))))
+                    else:
+                        corr_mat[ii,jj]=np.abs(np.mean(np.exp(1j*np.diff(np.angle(fourier[[ii,jj],:][:,freq_index]),axis=0))))
         elif mode=='tdcorr':
             corr_mat=np.zeros((nnodes,nnodes))
             for ii in range(nnodes):
                 for jj in range(ii):
                     maxCorr=np.max(np.correlate(aux_s[ii,:],aux_s[jj,:],mode='full')[wwidth//2:wwidth+wwidth//2])
                     corr_mat[ii,jj]=maxCorr/np.sqrt(np.dot(aux_s[ii,:],aux_s[ii,:])*np.dot(aux_s[jj,:],aux_s[jj,:]))
-        all_corr_matrix.append(corr_mat)
+        corr_vectors[nmat,:]=corr_mat[np.tril_indices(nnodes,k=-1)]
         
-    corr_vectors=np.array([allPm[np.tril_indices(nnodes,k=-1)] for allPm in all_corr_matrix])
-    
     CV_centered=corr_vectors - np.mean(corr_vectors,-1)[:,None]
     FCD=np.corrcoef(CV_centered)
     FCD[np.isnan(FCD)]=1    
@@ -1034,7 +1067,7 @@ def high_order_cooccurrences(events_times):
     -------
     co_occurrences : list
         List of the co-occurrent events. 
-        Each co-occurrence is a tuple with the starting time point, and a list with the nodes' indexes. 
+        Each co-occurrence is a tuple with the starting time point, the duration, and a list with the nodes' indexes. 
 
     """    
     co_occurrences=[]
@@ -1056,26 +1089,28 @@ def high_order_cooccurrences(events_times):
 
 def extractTimeStatisticsEvents(X,min_duration=5):
     """
+    Extract the co-occurrrences of events in several nodes
+    And their time characteristics: fractional occupancy in each node and durations.
     
-
     Parameters
     ----------
-    X : TYPE
-        DESCRIPTION.
-    min_duration : TYPE, optional
-        DESCRIPTION. The default is 5.
+    X : 2D int array
+        binary time series of size N(nodes) x T(sampling points). 
+        1: indicate the presence of an event. 
+        0: ausence
+    min_duration : float, optional
+        Minimum overlap between the node's events to be considered a co-occurrence. The default is 5 sample points.
 
     Returns
     -------
-    durations : TYPE
-        DESCRIPTION.
-    occupancy : TYPE
-        DESCRIPTION.
-    co_occurrences : TYPE
-        DESCRIPTION.
+    durations : float 
+        Duration of each event.
+    occupancy : float
+        Fractional occupancy of the events in each node N.
+    co_occurrences : list
+        Each co-occurrence is a tuple with the starting time point, the duration, and a list with the nodes' indexes. 
 
     """
-    
     N=np.shape(X)[0]
     T=np.shape(X)[1]
     occupancy=np.zeros((N,))
@@ -1087,3 +1122,71 @@ def extractTimeStatisticsEvents(X,min_duration=5):
     co_occurrences=high_order_cooccurrences(events_times)  
     
     return durations, occupancy, co_occurrences
+
+def durationfromLabels(labels,time_window=118,overlap=0.5):
+    """
+    Calculate the duration of the events from a list of the labels assigned to each time window.
+    The method considers that the time windows could have overlap bewteen them.
+
+    Parameters
+    ----------
+    labels : int array
+        Array with the labels from 0 to N-1 of N groups, or clusters.
+    time_window : int, optional
+        The length of the time window in time units. The default is 118 ms.
+    overlap : float, optional
+        Overlap between the time windows. The default is 0.5 for 50% overlapping.
+
+    Returns
+    -------
+    duration_clusters
+        A dictionary which keys are the labels, and the items are the duration of the events of each label.
+
+    """
+    
+    def array2bits(array):
+        binary = ''.join(['1' if bit else '0' for bit in array])
+        return binary
+    def unoverlap_time(x,time_window,overlap):
+        return time_window*(x-overlap*x+overlap)
+        
+    Nlabels=np.max(labels)+1
+    duration_clusters={}
+    for label in range(Nlabels):
+        duration_clusters[label]=[]
+        binarized=(labels==label)
+        events=array2bits(binarized).strip().split('0')
+        for event in events:
+            if event != '':
+                duration = unoverlap_time(len(event),time_window,overlap)
+                duration_clusters[label].append(duration)
+    return duration_clusters
+
+
+def transitionsfromLabels(labels):
+    """
+    Calculate the transitions between events from a list of the labels assigned to each time window.
+
+    Parameters
+    ----------
+    labels : int array
+        Array with the labels from 0 to N-1 of N groups, or clusters.
+
+    Returns
+    -------
+    transition_matrix : 2d int array
+        Matrix with the counts of the transtions.
+        The rows indicate the destine
+        The columns indicate the orgin
+
+    """
+    
+    Nlabels=np.max(labels)+1
+    transition_matrix=np.zeros((Nlabels,Nlabels))
+    for n in range(1,len(labels)):
+        if labels[n]!=labels[n-1]:
+            tag_destination=labels[n]
+            tag_origin=labels[n-1]
+            transition_matrix[tag_destination,tag_origin]+=1
+    return transition_matrix
+    

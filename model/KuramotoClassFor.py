@@ -50,7 +50,7 @@ class Kuramoto:
     StimFreq: float, optional. 
     	Stimulation frequency, **sigma** 
         (PFDK only! The default is 0 seconds.) 
-    StimAmplitude: float, optional. 
+    StimWeigth: float, optional. 
     	Stimulation force amplitude, **F** 
         PFDK only! The default is 0 seconds.)
     n_nodes: int, optional.
@@ -82,7 +82,7 @@ class Kuramoto:
                 K=5,
                 dt=1.e-4,
                 simulation_period=100,
-                StimTstart=0,StimTend=0,StimFreq=0,StimAmp=0,
+                StimTstart=0,StimTend=0,StimFreq=0,StimWeigth=0,
                 n_nodes=90,natfreqs=None,
                 nat_freq_mean=0,nat_freq_std=2,
                 GenerateRandom=True,SEED=2,
@@ -93,7 +93,7 @@ class Kuramoto:
         simulation_period    : is the simulation time.
         dt: is the integration time step.
         StimFreq: is the stimulation frequency. 
-        StimAmp: is the stimulation Amplitude.
+        StimWeigth: is the stimulation Amplitude.
         StimTstart: is the onset start time.
         StimTend  : is the offset time.
         n_nodes: is the number of nodes.
@@ -114,7 +114,7 @@ class Kuramoto:
         self.StimTstart=StimTstart
         self.StimTend=StimTend
         self.StimFreq=StimFreq*2*np.pi
-        self.StimAmp=StimAmp
+        self.StimWeigth=StimWeigth
         self.ForcingNodes=np.zeros((self.n_nodes,1))
         self.nat_freq_mean=nat_freq_mean
         self.nat_freq_std=nat_freq_std
@@ -229,7 +229,7 @@ class Kuramoto:
         self.simulation_period=parameters['simulation_period'] #Duration of stimulus
         self.StimTstart=parameters['StimTstart'] #starting time of stimulation
         self.StimTend=parameters['StimTend'] #ending time of stimulation
-        self.StimAmp=parameters['StimAmp'] #Amplitude of stimulation
+        self.StimWeigth=parameters['StimWeigth'] #Amplitude of stimulation
         self.StimFreq=parameters['StimFreq'] #Frequency of the stimulation 
         self.seed=parameters['seed'] #random seed
         self.noise_std=parameters['noise_std']#noise
@@ -242,8 +242,12 @@ class Kuramoto:
         except:
             self.initializeForcingNodes(None)
         self.natfreqs=self.initializeNatFreq(nat_freqs)
-        self.struct_connectivity=matrices.loadConnectome(self.n_nodes,parameters['struct_connectivity']) #structural connectivity matrix
-        self.delays_matrix=matrices.loadDelays(self.n_nodes,parameters['delay_matrix']) #delay matrix
+        if parameters['struct_connectivity']=='AAL90':
+            self.struct_connectivity=self.load_struct_connectivity()
+            self.delays_matrix=self.initializeTimeDelays()
+        else:
+            self.struct_connectivity=matrices.loadConnectome(self.n_nodes,parameters['struct_connectivity']) #structural connectivity matrix
+            self.delays_matrix=matrices.loadDelays(self.n_nodes,parameters['delay_matrix']) #delay matrix
         self.applyMean_Delay()
         self.ω = 2*np.pi*self.natfreqs #from Hz to rads
         
@@ -445,7 +449,7 @@ class Kuramoto:
         for i in range(self.n_nodes):
             yield self.ω[i] +self.global_coupling*sum(
                 self.struct_connectivity[i, j] * sin( y(j,t - (self.delays_matrix[i, j])) - y(i))
-                for j in range(self.n_nodes)
+                for j in range(self.n_nodes) if self.struct_connectivity[i,j]
             )
 
     def kuramotosForced(self):
@@ -462,9 +466,9 @@ class Kuramoto:
         Delta=self.ForcingNodes
         for i in range(self.n_nodes):
             epsilon=np.random.rand(1)[0]
-            yield self.ω[i] + self.noise_std*epsilon+Delta[i,0]*self.param_sym_func(t)*self.StimAmp*sin(self.StimFreq*t-y(i))+self.global_coupling*sum(
+            yield self.ω[i] + self.noise_std*epsilon+Delta[i,0]*self.param_sym_func(t)*self.StimWeigth*sin(self.StimFreq*t-y(i))+self.global_coupling*sum(
                 self.struct_connectivity[i, j] * sin( y(j , t - (self.delays_matrix[i, j])) - y(i))
-                for j in range(self.n_nodes)
+                for j in range(self.n_nodes) if self.struct_connectivity[i,j]
             )
 
 

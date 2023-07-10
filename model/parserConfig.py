@@ -51,7 +51,13 @@ def loadData(file_path):
             if not line:
                 break
             key,data=readline(line)
-            if key== 'struct_connectivity' or key=='delay_matrix' or key=='experiment_name':
+            if key== 'struct_connectivity' or key=='delay_matrix':
+                if key=='AAL90':
+                    config[key]=None
+                else:
+                    config[key]=data
+                continue
+            if key=='experiment_name':
                 config[key]=data
                 continue
             if key=='nat_freqs':

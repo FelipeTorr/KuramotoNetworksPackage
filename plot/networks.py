@@ -12,6 +12,20 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from pylab import get_cmap
 
 def DrawNetwork(G):
+    """
+    
+
+    Parameters
+    ----------
+    G : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    
     widths = nx.get_edge_attributes(G, 'weight')
     nodelist = G.nodes()
 
@@ -41,7 +55,16 @@ def loadNiftyVertices():
     c=np.zeros((N,))
     s=np.zeros((N,))
     labels=[]
-    with open('../input_data/Node_AAL90.node', newline='\r\n') as csvfile:
+    fileNodes='../input_data/Node_AAL90.node'
+    try:
+        ff=open(fileNodes)
+        ff.close()
+    except FileNotFoundError:
+        fileNodes='../../input_data/Node_AAL90.node'
+        ff=open(fileNodes)
+        ff.close()
+        
+    with open(fileNodes, newline='\r\n') as csvfile:
         reader=csv.reader(csvfile, delimiter='\t', quotechar='|')
         for row,n_row in zip(reader,range(N+1)):
             if n_row>0:
@@ -136,9 +159,14 @@ def alignoverlay_KDtree(mv,sv,o,k=1,scaling_factor=0.1):
 
 
 def loadBrainMesh():
-    g='../input_data/NewSmoothed.gii'
-    v, f = nibabel.load(g).get_arrays_from_intent (1008)[0].data, \
-                nibabel.load(g).get_arrays_from_intent (1009)[0].data
+    fileMesh='../input_data/NewSmoothed.gii'
+    try:
+        ff=open(fileMesh)
+        ff.close()
+    except:
+        fileMesh='../../input_data/NewSmoothed.gii'
+    v, f = nibabel.load(fileMesh).get_arrays_from_intent (1008)[0].data, \
+                nibabel.load(fileMesh).get_arrays_from_intent (1009)[0].data
     return v, f
 
 def colorizeMatrix(clusters,C):
@@ -363,7 +391,7 @@ def plotSubnetworks(subnetworks,color='blue',N=90,figname='subnetworks',non_colo
     fig1.savefig(figname+'.pdf',dpi=300)
     
 
-def plotAAL90Brain(data90,k=3,interpolation='max',orientation=[90,90],cmap_name='turbo',ax='None',show_plot=False):
+def plotAAL90Brain(data90,k=3,interpolation='max',orientation=[90,90],alpha=0.6,cmap_name='turbo',cmap_nodes='turbo',ax='None',plot_nodes=False,show_plot=False):
     #Load matched mesh to the AAL116 regions
     AALv,s,c,labels=loadNiftyVertices()
     #Load the smoothed mesh with lower quantiy of vertices
@@ -379,27 +407,45 @@ def plotAAL90Brain(data90,k=3,interpolation='max',orientation=[90,90],cmap_name=
     max_y=np.max(y)
     colors_indx=np.zeros((np.shape(f)[0],))
     for n in range(np.shape(f)[0]):
-        if interpolation=='mean':
-            val=np.mean(y[f[n,:]])
-        elif interpolation=='median':
-            val=np.median(y[f[n,:]])
-        elif interpolation=='min':
-            val=np.min(y[f[n,:]])
+        if interpolation=='none':
+            if np.count_nonzero(y[f[n,:]])>0:
+                colors_indx[n]=np.max(data90)
         else:
-            val=np.max(y[f[n,:]])
-        colors_indx[n]=(val-min_y)/(max_y-min_y)
+            if interpolation=='mean':
+                val=np.mean(y[f[n,:]])
+            elif interpolation=='median':
+                val=np.median(y[f[n,:]])
+            elif interpolation=='min':
+                val=np.min(y[f[n,:]])
+            else:
+                val=np.max(y[f[n,:]])
+            colors_indx[n]=(val-min_y)/(max_y-min_y)
      
     #Plot
+    normalized_data90=(data90-np.min(data90))/(np.max(data90)-np.min(data90))
     cmap = get_cmap(cmap_name)
+    cmap_nodes = get_cmap(cmap_nodes)
     if ax=='None':
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111, projection='3d')
     v1=0.01*v[f[::,:]]
     collection = Poly3DCollection(v1,edgecolors=None) 
     p3dc=ax.add_collection(collection)
-    p3dc.set_fc(cmap(colors_indx)[::])
-    ax.set_ylim([-0.7,0.7])
+    colors_alpha=cmap(colors_indx)[::]
+    # p3dc.set(alpha=alpha)
+    if plot_nodes:
+        p3dc.set_fc(colors_alpha*0)
+        for j in range(90):
+            if data90[j]!=0:
+                ax.plot([0.01*AALv[j,0],0.01*AALv[j,0]],[0.01*AALv[j,1],0.01*AALv[j,1]],[0.01*AALv[j,2],0.01*AALv[j,2]],'o',color=cmap_nodes(normalized_data90[j]),markersize=15)
+    else:
+        colors_alpha[:,3]=alpha+(colors_indx>0)*(1-alpha)
+        p3dc.set_fc(colors_alpha)
+    ax.set_ylim([-0.7,0.45])
     ax.set_xlim([-0.5,0.5])
+    if orientation[0]==270:
+        ax.set_ylim([-0.85,0.38])
+        ax.set_xlim([-0.5,0.5])
     ax.set_axis_off()
     ax.view_init(orientation[0],orientation[1])
     if show_plot:
@@ -439,6 +485,9 @@ def plotAAL90FC(FC,data90='ones',interpolation='max',orientation=[90,90],cmap_na
     max_y=np.max(y)
     colors_indx=np.zeros((np.shape(f)[0],))
     for n in range(np.shape(f)[0]):
+        if interpolation=='none':
+            if np.count_nonzero(y[f[n,:]])>0:
+                colors_indx[n]=1.0
         if interpolation=='mean':
             val=np.mean(y[f[n,:]])
         elif interpolation=='median':
@@ -458,13 +507,19 @@ def plotAAL90FC(FC,data90='ones',interpolation='max',orientation=[90,90],cmap_na
     collection = Poly3DCollection(v1,edgecolors=None) 
     p3dc=ax.add_collection(collection)
     p3dc.set_fc(cmap(colors_indx)[::])
-    p3dc.set(alpha=0.2)
-    ax.set_ylim([-0.7,0.7])
+    p3dc.set(alpha=0.1)
     ax.set_xlim([-0.5,0.5])
+    if orientation[0]==270:
+        ax.set_ylim([-0.3,0.3])
+        ax.set_xlim([-0.5,0.5])
+    else:
+        ax.set_ylim([-0.7,0.7])
+    
     ax.set_axis_off()
     for i,j in zip(indexes[0],indexes[1]):
         if FC[i,j]!=0:
             ax.plot([0.01*AALv[i,0],0.01*AALv[j,0]],[0.01*AALv[i,1],0.01*AALv[j,1]],[0.01*AALv[i,2],0.01*AALv[j,2]],color=plt.cm.RdBu_r(FC[i,j]),linewidth=1.2*FC[i,j])
+            ax.plot([0.01*AALv[j,0],0.01*AALv[j,0]],[0.01*AALv[j,1],0.01*AALv[j,1]],[0.01*AALv[j,2],0.01*AALv[j,2]],'o',color='cyan',markersize=1)
     ax.view_init(orientation[0],orientation[1])
     if show_plot:
         plt.show()
