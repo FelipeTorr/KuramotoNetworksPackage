@@ -1,0 +1,28 @@
+#Config file for a Kuramoto model simulation
+experiment_name=MaximumSE
+#Network structure
+n_nodes=90
+struct_connectivity=AAL90
+delay_matrix=AAL90
+#Global parameters
+K=360.00
+mean_delay=0.021
+#Intrinsic/Natural frequencies
+nat_freqs=
+nat_freq_mean=40
+nat_freq_std=0
+#Time parameters 
+simulation_period=40
+dt=1e-3
+#Stimulation
+ForcingNodes=
+StimTstart=15
+StimTend=20
+StimFreq=30
+StimWeigth=200
+#Stochastic parameters
+seed=3423
+random_nat_freq=False
+noise_std=0
+#Parallel process
+max_workers=2

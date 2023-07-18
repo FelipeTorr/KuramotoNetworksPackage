@@ -231,6 +231,7 @@ class Kuramoto:
         self.StimTend=parameters['StimTend'] #ending time of stimulation
         self.StimWeigth=parameters['StimWeigth'] #Amplitude of stimulation
         self.StimFreq=parameters['StimFreq'] #Frequency of the stimulation 
+        self.StimFreq=2*np.pi*self.StimFreq
         self.seed=parameters['seed'] #random seed
         self.noise_std=parameters['noise_std']#noise
         self.nat_freq_mean=parameters['nat_freq_mean'] #mean of the natural frequencies
