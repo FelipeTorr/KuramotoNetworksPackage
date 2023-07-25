@@ -187,7 +187,10 @@ class Kuramoto:
                 #Frequencies specified in an array of the same length than n_nodes
                 natfreqs=natfreqs
             elif type(natfreqs)==str:
-                natfreqs=loadmat(natfreqs)['natfreqs']
+                if natfreqs.find('mat')!=-1:
+                    natfreqs=loadmat(natfreqs)['natfreqs'][:,0]
+                else:
+                    natfreqs=np.array(eval(natfreqs))
                 if self.n_nodes == len(natfreqs):
                     #Frequencies specified in an array of the same length than n_nodes
                     natfreqs=natfreqs
