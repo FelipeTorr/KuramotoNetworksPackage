@@ -402,9 +402,7 @@ def plotAAL90Brain(data90,k=3,interpolation='max',orientation=[90,90],alpha=0.6,
     #Translate the AAL90 mesh to the smoothed mesh
     distances,y = alignoverlay_KDtree(v,AALv,data90,scaling_factor=1,k=k) 
     
-    #Define the face color as the mean/median of the vertices
-    min_y=np.min(y)
-    max_y=np.max(y)
+    #Define the face color as the mean/median/other of the vertices
     colors_indx=np.zeros((np.shape(f)[0],))
     for n in range(np.shape(f)[0]):
         if interpolation=='none':
@@ -419,11 +417,20 @@ def plotAAL90Brain(data90,k=3,interpolation='max',orientation=[90,90],alpha=0.6,
                 val=np.min(y[f[n,:]])
             else:
                 val=np.max(y[f[n,:]])
-            colors_indx[n]=(val-min_y)/(max_y-min_y)
-     
+        colors_indx[n]=val
+    #Normalice the colors in the range [0,1]
+    colors_indx=(colors_indx-np.min(color_indx))/(np.max(color_indx)-np.min(color_indx)) 
+    
     #Plot
     normalized_data90=(data90-np.min(data90))/(np.max(data90)-np.min(data90))
-    cmap = get_cmap(cmap_name)
+    if cmap_name=='custom_plus_black':
+        import matplotlib.colors as colors
+        cmap = colors.LinearSegmentedColormap.from_list("custom",["silver","gold","orange","red","black"])
+    elif cmap_name=='custom_map':
+        import matplotlib.colors as colors
+        cmap = colors.LinearSegmentedColormap.from_list("custom",["silver","gold","orange","red"])
+    else:
+        cmap = get_cmap(cmap_name)
     cmap_nodes = get_cmap(cmap_nodes)
     if ax=='None':
         fig = plt.figure(figsize=(10, 10))
