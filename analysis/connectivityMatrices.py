@@ -227,7 +227,7 @@ def booleanDegree(C):
 
 def Laplacian(C,asAdjacency=False):
     """
-    Lplacian matrix of a graph from the connectivity matrix.
+    Laplacian matrix of a graph from the connectivity matrix.
 
     Parameters
     ----------
@@ -249,7 +249,38 @@ def Laplacian(C,asAdjacency=False):
     L=D-A
     return L
 
-def eigen(C):
+def Transition(C, asAdjacency=False):
+    """
+    Trasition matrix from the connectivity matrix.
+
+    Parameters
+    ----------
+    C : 2D float array
+        Connectivity matrix.
+    asAdjacency: boolean
+        If True, uses the binary adajcency matrix. Then, it matters the connection existence, and it not matters the weight.
+    Returns
+    -------
+    T : 2D float array
+        Transition matrix.
+
+    """
+    if asAdjacency:
+        A=adjacencyMatrix(C)
+        degrees=np.sum(degreeMatrix(C),axis=1)
+    else:
+        A=np.copy(C)
+        degrees=intensities(C)
+    N=np.shape(C)[0]
+    T=np.zeros_like(C)
+    for n in range(N):
+        if degrees[n]!=0:
+    	    T[n,:]=A[n,:]/degrees[n]
+        else:
+    	    T[n,:]=A[n,:]/(degrees[n]+1)
+    return T
+    
+def eigen(C,zero_threshold=1e-9):
     """
     Calculate and sort the eigenvalues and eigenvectors of the matrix C.
     
@@ -257,15 +288,14 @@ def eigen(C):
     ----------
     C : float 2D square array
         Connectivity or Laplacian matrix.
-
+    zero_threshold: float. Default value 1e-9
+        Threshold for smaller eigenvalues. Any eigenvalue with absoulute value lower than zero_threshold is considered a zero eigenvalue.
     Returns
     -------
     eig_values : 1D complex array
         sorted eigenvalues of C.
     eig_vectors : 2D complex array
         eigenvectors of C sorted by eigenvalues.
-    count_zeros_eigvalues : int
-        Quantity of zeros eigenvalues.
     algebraic_connectivty : float
         Second eigenvalue of C.
     con_comp: int
@@ -279,20 +309,16 @@ def eigen(C):
     #Sort eigenvalues
     eig_values=eig_values[sort_index]
     eig_vectors=eig_vectors[:,sort_index]
-
-    #count zero eigvalues
-    count_zeros_eigvalues=len(np.argwhere(np.abs(eig_values)<1e-9))
-    #Algebraic connectivity and connected components
-    con_comp=0
-    algebraic_connectivity=0
-    for eigv in eig_values:
-        if eigv>1e-6:
-            algebraic_connectivity=np.abs(eigv)
-            break
-        else:
-            con_comp+=1
     
-    return eig_values, eig_vectors, count_zeros_eigvalues, algebraic_connectivity, con_comp
+    #count zero eigvalues
+    #Algebraic connectivity and connected components
+    connected_components=len(np.argwhere(np.abs(eig_values)<zero_threshold))
+    if connected_components>0:
+        algebraic_connectivity=np.abs(eig_values[connected_components])
+    else:
+        algebraic_connectivity=0
+    
+    return eig_values, eig_vectors, algebraic_connectivity, connected_components
     
 def vonNewmanDensity(L,beta=1):
     eig_values, eig_vectors, count_zeros_eigvalues, algebraic_connectivity, con_comp=eigen(L)

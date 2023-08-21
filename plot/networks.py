@@ -417,9 +417,9 @@ def plotAAL90Brain(data90,k=3,interpolation='max',orientation=[90,90],alpha=0.6,
                 val=np.min(y[f[n,:]])
             else:
                 val=np.max(y[f[n,:]])
-        colors_indx[n]=val
-    #Normalice the colors in the range [0,1]
-    colors_indx=(colors_indx-np.min(color_indx))/(np.max(color_indx)-np.min(color_indx)) 
+            colors_indx[n]=val
+            #Normalice the colors in the range [0,1]
+            colors_indx=(colors_indx-np.min(colors_indx))/(np.max(colors_indx)-np.min(colors_indx)) 
     
     #Plot
     normalized_data90=(data90-np.min(data90))/(np.max(data90)-np.min(data90))

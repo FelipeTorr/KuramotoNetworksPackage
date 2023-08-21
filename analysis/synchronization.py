@@ -9,7 +9,7 @@ import scipy.linalg as linalg
 import scipy.signal as signal
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-
+from numba import jit
 
 #### Additional functions ##################
 def shannonEntropy(p):
@@ -858,9 +858,39 @@ def absDiffPhase(x):
     """
     
     return np.abs(x)%np.pi*180/np.pi
-    
+  
+def complex_coherence(data_x,data_y,nfft=5000,freq_index=1,wcoh=1000):
+    """
+    Squared complex coherence, from here is easy to obtain the absolute, the real or the imaginary value
 
-def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,nfft=5000,freq_index=1,coldata=False,mode='corr'):
+    Parameters
+    ----------
+    data_x : float array
+        data from channel x
+    data_y : float array
+        data from channel y
+    nfft : int, optional
+        number of points of the FFT. Defines the resolution of the spectrums. The default is 5000.
+    freq_index : int or array int, optional
+        indices of the frequencies of interest, relative to nfft. The default is 1.
+    wcoh : TYPE, optional
+        time window. The default is 1000.
+
+    Returns
+    -------
+    coh : complex
+        Complex average of the coherence in the frequency of interest.
+
+    """
+    
+    f, Pxx = signal.welch(data_x, nperseg=wcoh, noverlap=wcoh//2+1, nfft=nfft)
+    f, Pyy = signal.welch(data_y, nperseg=wcoh, noverlap=wcoh//2+1, nfft=nfft)
+    f, Pxy = signal.csd(data_x,data_y,nperseg=wcoh, noverlap=wcoh//2+1, nfft=nfft)
+    coh=Pxy/np.sqrt(Pxx*Pyy)
+    coh=np.mean(coh[freq_index])
+    return coh
+
+def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,nfft=5000,freq_index=1,wcoh=100,coldata=False,mode='corr'):
     """
     Created on Wed Apr 27 15:57:38 2016
     @author: jmaidana
@@ -881,6 +911,12 @@ def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,nfft=5000,freq_index=1
         Overlap between neighboring data windows, in fraction of window length
     coldata : Boolean
         if True, the time series are arranged in columns and rows represent time
+    nfft: int
+        Number of points of the FFT
+    freq_index: int or array int
+        frequencies of interest
+    wcoh:
+        internal window for the coherence
     mode : 'corr' | 'psync' | 'plock' | 'tdcorr'
         Measure to calculate the Functional Connectivity (FC) between nodes.
         'corr' : Pearson correlation. Uses the corrcoef function of numpy.
@@ -917,7 +953,15 @@ def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,nfft=5000,freq_index=1
     indx_stop = range(wwidth,(1+lenseries),shift)
          
     nnodes=len(data)
-    corr_vectors = np.zeros((len(indx_start),len(np.tril_indices(nnodes,k=-1)[0])))
+    if mode=='ccoh':
+        corr_vectors = np.zeros((len(indx_start),len(np.tril_indices(nnodes,k=-1)[0])),dtype=complex)
+    else:
+        corr_vectors = np.zeros((len(indx_start),len(np.tril_indices(nnodes,k=-1)[0])))
+    
+    if wcoh>wwidth:
+        print('wcoh must be lower than wwidth')
+        return -1,-1,-1
+    
     for nmat,(j1,j2) in enumerate(zip(indx_start,indx_stop)):
         aux_s = data[:,j1:j2]
         if mode=='corr':
@@ -938,21 +982,22 @@ def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,nfft=5000,freq_index=1
             fourier=np.fft.fft(aux_s,nfft)
             for ii in range(nnodes):
                 for jj in range(ii):
-                    fx=fourier[ii,freq_index]
-                    fy=fourier[jj,freq_index]
-                    fxy=np.conjugate(fx)*fy
-                    Cxy=(np.abs(fxy)/np.sqrt((np.abs(fx)*np.abs(fy))))/halfwwidth
-                    corr_mat[ii,jj]=np.mean(Cxy)
+                    coh=complex_coherence(aux_s[ii,:],aux_s[jj,:],wcoh=wcoh,nfft=nfft,freq_index=freq_index)
+                    corr_mat[ii,jj]=np.abs(coh)
+        elif mode=='ccoh':
+            corr_mat=np.zeros((nnodes,nnodes),dtype=complex)
+            fourier=np.fft.fft(aux_s,nfft)
+            for ii in range(nnodes):
+                for jj in range(ii):
+                    coh=complex_coherence(aux_s[ii,:],aux_s[jj,:],wcoh=wcoh,nfft=nfft,freq_index=freq_index)
+                    corr_mat[ii,jj]=coh
         elif mode=='icoh':
             corr_mat=np.zeros((nnodes,nnodes))
             fourier=np.fft.fft(aux_s,nfft)
             for ii in range(nnodes):
                 for jj in range(ii):
-                    fx=fourier[ii,freq_index]
-                    fy=fourier[jj,freq_index]
-                    fxy=np.conjugate(fx)*fy
-                    Cxy=np.imag(fxy/np.sqrt((np.abs(fx)*np.abs(fy))))/halfwwidth
-                    corr_mat[ii,jj]=np.mean(Cxy)
+                    coh=complex_coherence(aux_s[ii,:],aux_s[jj,:],wcoh=wcoh,nfft=nfft,freq_index=freq_index)
+                    corr_mat[ii,jj]=np.imag(coh)
         elif mode=='pcoh':
             corr_mat=np.zeros((nnodes,nnodes))
             fourier=np.fft.fft(aux_s,nfft)

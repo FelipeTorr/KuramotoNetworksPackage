@@ -493,3 +493,33 @@ def spectralEntropy2D(Cxx):
     ProbCxx=Cxx/Cxx.sum()
     H=(np.sum(-ProbCxx*np.log(ProbCxx)))/np.log(N)
     return H
+
+
+def spectralComplexity(Pxx,communities=None):
+    """ 
+    Calculates the spectral complexity from the spectrum **Pxx**.
+    It uses the spectral entropy as entropies to calculate the information complexity
+    **Pxx** could also be an array of spectrums.
+    
+    Parameters
+    ----------
+    Pxx : float 1D (2D) array
+        Spectrum or spectrums' array N x frequency bins
+    communities: dict
+        Dictionary with the nodes grouped by communities.
+    Returns
+    -------
+    C : float (1D array)
+        Spectral complexity
+    """
+    H=spectralEntropy(Pxx)
+    N=np.shape(Pxx)[0]
+    C=0
+    if communities==None:
+        for n in range(N):
+            C+=H[n]-(n+1)/N*np.sum(H)
+    else:
+        n=len(communities.keys())
+        for k,key in enumerate(communities.keys()):
+            C+=np.sum(H[communities[key]])-(k+1)/n*np.sum(H)
+    return C
