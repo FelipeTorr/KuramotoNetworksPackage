@@ -890,6 +890,38 @@ def complex_coherence(data_x,data_y,nfft=5000,freq_index=1,wcoh=1000):
     coh=np.mean(coh[freq_index])
     return coh
 
+def complex_coherence_matrix(data,nfft=5000,freq_index=1,wcoh=1000):
+    """
+    Squared complex coherence, from here is easy to obtain the absolute, the real or the imaginary value
+
+    Parameters
+    ----------
+    data_x : 2D float array
+        data with shape NxT
+    nfft : int, optional
+        number of points of the FFT. Defines the resolution of the spectrums. The default is 5000.
+    freq_index : int or array int, optional
+        indices of the frequencies of interest, relative to nfft. The default is 1.
+    wcoh : TYPE, optional
+        time window. The default is 1000.
+
+    Returns
+    -------
+    coh : complex
+        Complex average of the coherence in the frequency of interest.
+
+    """
+    N=np.shape(data)[0]
+    Pxx=np.zeros((N,nfft//2+1))
+    coh=np.zeros((N,N),dtype=complex)
+    for ii in range(N):
+        f, Pxx[ii,:] = signal.welch(data[ii,:], nperseg=wcoh, noverlap=wcoh//2+1, nfft=nfft) 
+        for jj in range(ii):
+            f, Pxy = signal.csd(data[ii,:],data[jj,:],nperseg=wcoh, noverlap=wcoh//2+1, nfft=nfft)
+            coh_f=Pxy/np.sqrt(Pxx[ii,:]*Pxx[jj,:])
+            coh[ii,jj]=np.mean(coh_f[freq_index])
+    return coh
+
 def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,nfft=5000,freq_index=1,wcoh=100,coldata=False,mode='corr'):
     """
     Created on Wed Apr 27 15:57:38 2016
@@ -978,26 +1010,14 @@ def extract_FCD(data,wwidth=1000,maxNwindows=100,olap=0.9,nfft=5000,freq_index=1
                 for jj in range(ii):
                     corr_mat[ii,jj]=np.abs(np.mean(np.exp(1j*np.diff(aux_s[[ii,jj],:],axis=0))))
         elif mode=='coh':
-            corr_mat=np.zeros((nnodes,nnodes))
-            fourier=np.fft.fft(aux_s,nfft)
-            for ii in range(nnodes):
-                for jj in range(ii):
-                    coh=complex_coherence(aux_s[ii,:],aux_s[jj,:],wcoh=wcoh,nfft=nfft,freq_index=freq_index)
-                    corr_mat[ii,jj]=np.abs(coh)
+            coh=complex_coherence_matrix(aux_s,wcoh=wcoh,nfft=nfft,freq_index=freq_index)
+            corr_mat=np.abs(coh)
         elif mode=='ccoh':
-            corr_mat=np.zeros((nnodes,nnodes),dtype=complex)
-            fourier=np.fft.fft(aux_s,nfft)
-            for ii in range(nnodes):
-                for jj in range(ii):
-                    coh=complex_coherence(aux_s[ii,:],aux_s[jj,:],wcoh=wcoh,nfft=nfft,freq_index=freq_index)
-                    corr_mat[ii,jj]=coh
+            coh=complex_coherence_matrix(aux_s,wcoh=wcoh,nfft=nfft,freq_index=freq_index)
+            corr_mat=coh
         elif mode=='icoh':
-            corr_mat=np.zeros((nnodes,nnodes))
-            fourier=np.fft.fft(aux_s,nfft)
-            for ii in range(nnodes):
-                for jj in range(ii):
-                    coh=complex_coherence(aux_s[ii,:],aux_s[jj,:],wcoh=wcoh,nfft=nfft,freq_index=freq_index)
-                    corr_mat[ii,jj]=np.imag(coh)
+            coh=complex_coherence_matrix(aux_s,wcoh=wcoh,nfft=nfft,freq_index=freq_index)
+            corr_mat=np.imag(coh)
         elif mode=='pcoh':
             corr_mat=np.zeros((nnodes,nnodes))
             fourier=np.fft.fft(aux_s,nfft)

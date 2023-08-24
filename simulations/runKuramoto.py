@@ -72,7 +72,7 @@ def RunKuramotoFor(configFile):
 
 ##############################################################################
 if __name__=='__main__':
-    config_directory='../input_config/maximumSE/'
+    config_directory='../input_config/different_omega/'
     config_files=[]
     for file in os.listdir(config_directory):
         if file.split('.')[1]=='txt':
@@ -82,9 +82,9 @@ if __name__=='__main__':
     print(parameters)
     max_workers=parameters['max_workers']
     
-    #RunKuramotoFor(config_files[0])
-    #Multiprocessing
     RunKuramotoFor(config_files[0])
+    #Multiprocessing
+    #RunKuramotoFor(config_files[0])
     #for j in range(1):
     #    print('Starting simulations')
     #    lock = Lock()
