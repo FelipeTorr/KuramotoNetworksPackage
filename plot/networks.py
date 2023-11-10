@@ -10,6 +10,8 @@ import nibabel
 from scipy.spatial import KDTree
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from pylab import get_cmap
+from nilearn import plotting
+import nibabel as nib
 
 def DrawNetwork(G):
     """
@@ -390,7 +392,47 @@ def plotSubnetworks(subnetworks,color='blue',N=90,figname='subnetworks',non_colo
     fig1.tight_layout()
     fig1.savefig(figname+'.pdf',dpi=300)
     
-
+def plotAAL90GlassBrain(data90,k=3,orientation='ortho',alpha=0.6,cmap_name='turbo',fig='None',ax='None',show_plot=False):
+    mri_file='../input_data/ROI_MNI_V4.nii'
+    try:
+        img=nib.load(mri_file)
+    except FileNotFoundError:
+        img=nib.load('../'+mri_file)
+    
+    
+    img_data=img.get_fdata()
+    #Only 90 regions
+    img_data[img_data>9000]=0
+    labels=np.unique(img_data)
+    N=90
+    #Change from gray levels to integer labels 
+    m=0
+    for label in labels:
+        img_data[img_data==label]=m
+        m+=1
+    #Change labels to data
+    for node in range(1,N+1):
+        img_data[img_data==node]=data90[node-1]
+    #save the new img
+    new_img=nib.Nifti1Image(img_data, img.affine,img.header)
+    
+    #Colormap
+    if cmap_name=='custom_plus_black':
+        import matplotlib.colors as colors
+        cmap = colors.LinearSegmentedColormap.from_list("custom",["silver","gold","orange","red","black"])
+    elif cmap_name=='custom_map':
+        import matplotlib.colors as colors
+        cmap = colors.LinearSegmentedColormap.from_list("custom",["silver","gold","orange","red"])
+    else:
+        cmap = get_cmap(cmap_name)
+    
+    if ax=='None':
+        fig = plt.figure(figsize=(10, 10))
+        ax = fig.add_subplot(111, projection='3d')
+    plotting.plot_glass_brain(new_img,display_mode=orientation,alpha=alpha,cmap=cmap,draw_cross=False,colorbar=False,
+                              resampling_interpolation=False,figure=fig,axes=ax,vmin=0,vmax=1,plot_abs=False,annotate=False)
+    return ax
+    
 def plotAAL90Brain(data90,k=3,interpolation='max',orientation=[90,90],alpha=0.6,cmap_name='turbo',cmap_nodes='turbo',ax='None',plot_nodes=False,show_plot=False):
     #Load matched mesh to the AAL116 regions
     AALv,s,c,labels=loadNiftyVertices()

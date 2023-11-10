@@ -1213,13 +1213,13 @@ def durationfromLabels(labels,time_window=118,overlap=0.5):
         binary = ''.join(['1' if bit else '0' for bit in array])
         return binary
     def unoverlap_time(x,time_window,overlap):
-        return time_window*(x-overlap*x+overlap)
+        return time_window*((1-overlap)*x+overlap)
         
     Nlabels=np.max(labels)+1
     duration_clusters={}
     for label in range(Nlabels):
         duration_clusters[label]=[]
-        binarized=(labels==label)
+        binarized=labels==label
         events=array2bits(binarized).strip().split('0')
         for event in events:
             if event != '':

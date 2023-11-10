@@ -357,9 +357,9 @@ def spectrogram(X,fs=1000,nperseg=4096,noverlap=2048):
     Sxx: 2D or 3D float array: N x len(f) x len(t) 
         Spectrogram with spectral power density units (x^2/Hz). 
     """
-    t,f,Sxx=signal.spectrogram(X,fs=fs,window='hamming',nperseg=nperseg,noverlap=noverlap,scaling='density')
+    f,t,Sxx=signal.spectrogram(X,fs=fs,window='hamming',nperseg=nperseg,noverlap=noverlap,scaling='density',mode='psd')
     	         
-    return t,f,Sxx
+    return f,t,Sxx
 
 # def empiricalModeDecomposition(x,fs=1000,f_start=0.2,f_end=200,numberFreq=500):
 #     #Empirical decomposition (ortogonal signals)
@@ -444,7 +444,7 @@ def ARpsd(a,worN=1000,fs=100,sigma=1e-3):
     
     return psd
 
-def spectralEntropy(Pxx):
+def spectralEntropy(Pxx,independet_row=True):
     """ 
     Calculates the spectral entropy from the spectrum **Pxx**.
     **Pxx** could also be an array of spectrums.
@@ -453,7 +453,8 @@ def spectralEntropy(Pxx):
     ----------
     Pxx : float 1D (2D) array
         Spectrum or spectrums' array N x frequency bins
-    
+    independent_row: boolean
+        Normalize independently the spectrum for each row/node
     Returns
     -------
     H : float (1D array)
@@ -465,7 +466,10 @@ def spectralEntropy(Pxx):
     else:
         if len(np.shape(Pxx))==2:
             Nfreq=np.shape(Pxx)[1]
-            ProbPxx=Pxx/Pxx.sum(keepdims=1)+1e-21
+            if independet_row:
+                ProbPxx=Pxx/Pxx.sum(axis=1,keepdims=True)+1e-21
+            else:
+                ProbPxx=Pxx/Pxx.sum(keepdims=1)+1e-21
             H=(np.sum(-ProbPxx*np.log(ProbPxx),axis=1))/np.log(Nfreq)
         else:
             Nfreq=len(Pxx)
