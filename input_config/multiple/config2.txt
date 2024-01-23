@@ -1,26 +1,28 @@
 #Config file for a Kuramoto model simulation
-experiment_name=TestConfig
+experiment_name=deltaT5e5
 #Network structure
-n_nodes=9
-struct_connectivity=../input_data/structural_connectivity.mat
-delay_matrix=../input_data/delays_matrix.mat
+n_nodes=90
+struct_connectivity=../input_data/AAL_matrices.mat
+delay_matrix=../input_data/AAL_matrices.mat
 #Global parameters
-K=4.00
-mean_delay=0.10
+K=360.00
+mean_delay=0.005
 #Intrinsic/Natural frequencies
 nat_freqs=
 nat_freq_mean=40
-nat_freq_std=5.0
+nat_freq_std=0.0
 #Time parameters 
-simulation_period=30
+simulation_period=40
 dt=1e-3
-StimTstart=0
-StimTend=0
-StimFreq=0
-StimAmp=0
+#Stimulation
+ForcingNodes=[0]
+StimTstart=15
+StimTend=20
+StimFreq=30
+StimWeight=200
 #Stochastic parameters
-seed=3423
+seed=2
 random_nat_freq=False
-noise_std=1e-4
+noise_std=0
 #Parallel process
 max_workers=2
