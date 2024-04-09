@@ -5,6 +5,9 @@ Analysis Tools
    
    analysis/cluster
    analysis/connectivityMatrices
+   analysis/control
+   analysis/dynamicModes
    analysis/frequency
    analysis/synchronization
+   
    

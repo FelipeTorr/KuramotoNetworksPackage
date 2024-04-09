@@ -14,7 +14,9 @@ Visit us here: `Vibrain Web <http://vibebrain.cl>`_
 
 The analysis tools are under development!
 
-The inspiration of the model comes form `Steven Strogatz <https://www.stevenstrogatz.com/>`_ and `Joana Cabral <https://sites.google.com/site/cvjoanacabral/>`_ works.   
+The inspiration of the model comes form `Steven Strogatz <https://www.stevenstrogatz.com/>`_ and `Joana Cabral <https://sites.google.com/site/cvjoanacabral/>`_ works.  
+
+Dynamic Modes Decomposition uses the `pyDMD library <https://github.com/PyDMD>`_.
 
 .. toctree::
    :maxdepth: 2
