@@ -9,7 +9,7 @@ import scipy.linalg as linalg
 import scipy.signal as signal
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from numba import jit
+from numba import njit
 
 #### Additional functions ##################
 def shannonEntropy(p):
@@ -858,7 +858,8 @@ def absDiffPhase(x):
     """
     
     return np.abs(x)%np.pi*180/np.pi
-  
+
+ 
 def complex_coherence(data_x,data_y,nfft=5000,freq_index=1,wcoh=1000):
     """
     Squared complex coherence, from here is easy to obtain the absolute, the real or the imaginary value
@@ -889,6 +890,7 @@ def complex_coherence(data_x,data_y,nfft=5000,freq_index=1,wcoh=1000):
     coh=Pxy/np.sqrt(Pxx*Pyy)
     coh=np.mean(coh[freq_index])
     return coh
+
 
 def complex_coherence_matrix(data,nfft=5000,freq_index=1,wcoh=1000):
     """
@@ -1191,7 +1193,7 @@ def extractTimeStatisticsEvents(X,min_duration=5):
 def durationfromLabels(labels,time_window=118,overlap=0.5):
     """
     Calculate the duration of the events from a list of the labels assigned to each time window.
-    The method considers that the time windows could have overlap bewteen them.
+    The method considers that the time windows could have overlap between them.
 
     Parameters
     ----------

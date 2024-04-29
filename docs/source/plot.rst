@@ -5,6 +5,7 @@ Plot Tools
    
    plot/animation
    plot/circular
+   plot/custom_colormaps
    plot/lti_response
    plot/networks
    plot/scatter

@@ -8,7 +8,7 @@ import numpy as np
 import numpy.linalg as linalg
 import scipy.signal as signal
 import scipy.ndimage as ndimage
-#import emd
+
 
 
 def effectiveFrequency(x,T):

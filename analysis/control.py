@@ -731,6 +731,20 @@ def simulateLTI(A,B,C,D,dt,Tend,K=None,R=None,S=None,T=None,u=None,r=None,x_init
         x=A@x+B@uR
     return y                
     
+
+def build_Hankel(x,q=None):
+    N=np.shape(x)[0]
+    T=np.shape(x)[1]
+    if q is None:
+        q=T
+    hankel=np.zeros((N,q,q))
+    for n in range(N):
+        for i in range(q):
+            for j in range(q-i):
+                hankel[n,i,j]=x[n,i+j]
+    return hankel
+
+
 def RST(desired_eigvalues,Az,Bz,d=0):
     Apz=np.convolve([1,-1],Az)
     nr=len(Az)

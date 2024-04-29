@@ -23,9 +23,9 @@ import gc
 import time as tm
 
 
-class Kuramoto:
+class Hopf:
     """
-    Kuramoto model class
+    Hopf model class
 
     Parameters
     ----------
@@ -405,7 +405,9 @@ class Kuramoto:
         else:
             return 0
             
-    def initial_phases(self):
+
+    
+    def initial_phases_hopf(self):
         """
         Set the initial values of the variables
 
@@ -416,49 +418,30 @@ class Kuramoto:
 
         """
         
-        return 2*np.pi*np.random.random(size=self.n_nodes)
-    
-    def kuramotosZero(self,y,t):
+        return 0.5*np.random.random(size=self.n_nodes)
+
+    def hopf(self):
         """
-        Easiest way to define in python the classical Kuramoto model
-        It works (and solves faster) with scipy ODE solvers 
-
-        Parameters
-        ----------
-        y : float 1D array
-            Current (previous) value of the oscillators phases.
-        t : float
-            Current time (actually not used, but usefull to plot or further analysis).
-
-        Returns
-        -------
-        dphi_dt : float 1D array
-            derivate value at the current time step.
-
-        """
-        
-        ϴ_i,ϴ_j=np.meshgrid(y,y)
-        dphi_dt= self.ω + (self.global_coupling)*( self.struct_connectivity * np.sin( ϴ_j - ϴ_i ) ).sum(axis=0)
-        return dphi_dt
-
-    def kuramotos(self):
-        """
-        Delayed Kuramoto model (from Jitcdde documentation)
+        Delayed Hopf model equivalent to Kuramoto Model(from Kuramto 1974)
 
         Yields
         ------
         Jitcdde Model
-            Delayed Kuramoto. Structural connectivity and delays matrices are required.
+            Delayed Hopf. Structural connectivity and delays matrices are required.
 
         """
         
-        for i in range(self.n_nodes):
-            yield self.ω[i] +self.global_coupling*sum(
-                self.struct_connectivity[i, j] * sin( y(j,t - (self.delays_matrix[i, j])) - y(i))
+        for i,n in enumerate(range(0,2*self.n_nodes,2)):
+            yield 2*self.ω[i]*y(n)-2*self.ω[i]*(y(n)**2+y(n+1)**2)*y(n)+0.99*self.ω[i]*y(n+1)+self.global_coupling*sum(
+            	self.struct_connectivity[i,j]*y(n, t-(self.delays_matrix[i, j]))
+                for j in range(self.n_nodes) if self.struct_connectivity[i,j]
+            )
+            yield 2*self.ω[i]*y(n+1)-2*self.ω[i]*(y(n)**2+y(n+1)**2)*y(n+1)-0.99*self.ω[i]*y(n)+self.global_coupling*sum(
+            	self.struct_connectivity[i,j]*y(n+1, t-(self.delays_matrix[i, j]))
                 for j in range(self.n_nodes) if self.struct_connectivity[i,j]
             )
 
-    def kuramotosForced(self):
+    def hopfForced(self):
         """
         Forced and delayed Kuramoto model
 
@@ -470,10 +453,13 @@ class Kuramoto:
         """
         
         Delta=self.ForcingNodes
-        for i in range(self.n_nodes):
-            epsilon=np.random.rand(1)[0]
-            yield self.ω[i] + self.noise_std*epsilon+Delta[i,0]*self.param_sym_func(t)*self.StimWeigth*sin(self.StimFreq*t-y(i))+self.global_coupling*sum(
-                self.struct_connectivity[i, j] * sin( y(j , t - (self.delays_matrix[i, j])) - y(i))
+        for i,n in enumerate(range(0,2*self.n_nodes,2)):
+            yield 2*self.ω[i]*y(n)-2*self.ω[i]*(y(n)**2+y(n+1)**2)*y(n)+0.99*self.ω[i]*y(n+1)+Delta[i,0]*self.param_sym_func(t)*self.StimWeigth*sin(self.StimFreq*t)+self.global_coupling*sum(
+            	self.struct_connectivity[i,j]*y(n, t-(self.delays_matrix[i, j]))
+                for j in range(self.n_nodes) if self.struct_connectivity[i,j]
+            )
+            yield 2*self.ω[i]*y(n+1)-2*self.ω[i]*(y(n)**2+y(n+1)**2)*y(n+1)-0.99*self.ω[i]*y(n)+self.global_coupling*sum(
+            	self.struct_connectivity[i,j]*y(n+1, t-(self.delays_matrix[i, j]))
                 for j in range(self.n_nodes) if self.struct_connectivity[i,j]
             )
 
@@ -504,18 +490,18 @@ class Kuramoto:
             chunksize=1
         time_start=tm.time()
         if self.Forced:
-            DDE = jitcdde(self.kuramotosForced, n=n, verbose=False,delays=self.delays_matrix.flatten(),callback_functions=[( self.param_sym_func, self.param,1)])
+            DDE = jitcdde(self.hopfForced, n=n*2, verbose=False,delays=self.delays_matrix.flatten(),callback_functions=[( self.param_sym_func, self.param,1)])
             DDE.compile_C(simplify=False, do_cse=False, chunk_size=chunksize,verbose=False)
             DDE.set_integration_parameters(min_step=1e-8,rtol=0, atol=1e-6,pws_max_iterations=1)
-            DDE.constant_past(random.uniform(0, 2*np.pi, n), time=0.0)
+            DDE.constant_past(random.uniform(0, 0.5, 2*n), time=0.0)
             if max_delay>0:
                 DDE.integrate_blindly(max_delay, dt)
         
         elif not self.Forced:
-            DDE = jitcdde(self.kuramotos, n=n,delays=self.delays_matrix.flatten(),verbose=False)
+            DDE = jitcdde(self.hopf, n=n*2,delays=self.delays_matrix.flatten(),verbose=False)
             DDE.compile_C(simplify=False, do_cse=False, chunk_size=chunksize,verbose=False)
             DDE.set_integration_parameters(rtol=0, atol=1e-6,pws_max_iterations=1)
-            DDE.constant_past(random.uniform(0, 2*np.pi, n), time=0.0)
+            DDE.constant_past(random.uniform(0, 0.5, 2*n), time=0.0)
             if max_delay>0:
                 DDE.integrate_blindly(max_delay, dt)
 

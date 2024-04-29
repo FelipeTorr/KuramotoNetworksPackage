@@ -16,7 +16,377 @@ import os
 sys.path.append(os.path.abspath('../'))
 import analysis.control as ctrl
 
+
+def argsort_eigs(sigma_svd):
+    """
+    Sort the eigenvalues by the imaginary part.
+    The real eigenvalues come first.
+
+    Parameters
+    ----------
+    sigma_svd : 1D complex array
+        eigenvalues from a matrix.
+
+    Returns
+    -------
+    imagsort : int array
+        Sorted indexes of sigma_svd by the imaginary part.
+    """
+    
+    real_part=np.real(sigma_svd)
+    imag_part=np.imag(sigma_svd)
+    only_real=np.argwhere(imag_part==0)
+    imagsort=np.argsort(imag_part)
+    outsort=np.zeros_like(imagsort)
+    
+    if only_real is not []:
+        size_only_real=len(only_real[:,0])
+        
+        sort_reals=np.argsort(real_part[only_real[:,0]])
+        realsort=only_real[sort_reals][:,0]
+        outsort[0:size_only_real]=realsort
+    else:
+        size_only_real=0
+    
+    #Reorder the conjugate pairs to get positive imaginary part before the negative.
+    conjugate_pairs=int((len(sigma_svd)-size_only_real)/2)
+    
+    for m in range(conjugate_pairs):
+        if imag_part[imagsort[m]]>0:
+            outsort[-(2*m+1)]=imagsort[-(m+1)]
+            outsort[-(2*m+2)]=imagsort[m]
+        else:
+            outsort[-(2*m+1)]=imagsort[m]
+            outsort[-(2*m+2)]=imagsort[-(m+1)]
+                
+    return outsort
+
+
+def compute_rank(sigma_svd, rows, cols, svd_rank):
+    """
+    Rank computation for the truncated Singular Value Decomposition.
+    Modified version of pydmd.utils._compute_rank.
+    
+    Parameters
+    ----------
+    sigma_svd : 1D (2D) complex array
+        Eigenvalues from the matrix X.
+        If sigma_svd is 2D, the first dimension is considered 
+        the number of eigenvalues arrays.
+    rows : int
+        Number of rows of the matrix X
+    cols : int
+        Number of columns of the matrix X.
+    svd_rank : int or float
+        if svd_rank==0, the Hard Threshold is calculated. 
+        The Hard threshold depends of a noise level.
+        If svd_rank is an integer and >0, that number is used as the rank
+        If svd_rank is a float between 0 and 1, it represents the threshold of 
+        the amount of covariance/energy used to calculate the rank.
+
+    Returns
+    -------
+    rank: int
+        The calculated rank
+    
+    """
+    
+    if svd_rank == 0:
+    #Hard threshold
+        beta = np.divide(*sorted((rows, cols)))
+        lambda_beta=np.sqrt(2*(beta+1)+(8*beta)/((beta+1)+np.sqrt(beta**2+14*beta+1)))
+        sigma_noise=1/3 # Works well for AAL90, but requires work to determine the optimum value
+        tau = lambda_beta*np.sqrt(cols)*sigma_noise
+        if len(np.shape(sigma_svd))>1: #Tensor eigenvalues
+            rank=np.zeros((np.shape(sigma_svd)[0],),dtype=int)
+            for n in range(np.shape(sigma_svd)[0]):
+                rank[n] = np.sum(sigma_svd[n,:] > tau) 
+        else: #Matrix eigenvalues
+            rank = np.sum(sigma_svd > tau)
+    elif 0 < svd_rank < 1:
+    #Threshold as amount of covariance/energy
+        if len(np.shape(sigma_svd))>1: #Tensor eigenvalues
+            rank=np.zeros((np.shape(sigma_svd)[0],),dtype=int)
+            for n in range(np.shape(sigma_svd)[0]):
+                cumulative_energy = np.cumsum(np.abs(sigma_svd[n,:])**2 / np.abs(sigma_svd[n,:]**2).sum())
+                rank[n] = np.searchsorted(cumulative_energy, svd_rank) + 1
+        else:
+            cumulative_energy = np.cumsum(np.abs(sigma_svd)**2 / np.abs(sigma_svd**2).sum())
+            rank = np.searchsorted(cumulative_energy, svd_rank) + 1
+    elif svd_rank >= 1 and isinstance(svd_rank, int):
+    #Rank defined explicitly
+        rank = np.min([svd_rank,sigma_svd.size])
+    else:
+    #Maximum possible rank
+        rank = np.min([rows, cols])
+    return rank
+
+
+def trunkSVD(X,svd_rank=0):
+    """
+    Returns the Singular value Decomposition  matrices 
+    trunked with svd_rank eigenvalues
+    
+    Parameters
+    ----------
+    X : 2D (3D) complex array
+        A matrix or 3D tensor.
+
+    svd_rank : int or float, optional
+        The rank used to trunk the SVD matrices. 
+        The default is 0, then the hard threshold is calculated.
+        If svd_rank is an integer and >0, that number is used as the rank
+        If svd_rank is a float between 0 and 1, it represents the threshold of 
+        the amount of covariance/energy used to calculate the rank.
+
+    Returns
+    -------
+    trunk_U: 2D (3D) complex array 
+         Matrix (matrices) of the left eigenvectors.
+    trunk_s: 1D (2D) xomplex array
+        Array of the eigenvalues 
+    trunk_V: 2D (3D) complex array.
+        Transpose conjugated matrix (matrices) of the right eigenvectors.
+    """
+    
+    U, s, V = np.linalg.svd(X, full_matrices=False)
+    if len(np.shape(X))==3:
+        rank = compute_rank(s, X.shape[1], X.shape[2], svd_rank)
+        global_rank=int(np.max(rank))
+        trunk_U=np.zeros((X.shape[0],X.shape[1],global_rank))
+        trunk_V=np.zeros((X.shape[0],global_rank,X.shape[2]))
+        trunk_s=np.zeros((X.shape[0],global_rank))
+
+        if svd_rank>0 and isinstance(svd_rank, int):
+            aux_rank=rank
+            rank=np.ones((X.shape[0],),dtype=int)*aux_rank
+            
+        for n in range(X.shape[0]):
+            
+            
+            trunk_U[n,:,:rank[n]] = U[n,:, :rank[n]]
+            trunk_V[n,:rank[n],:] = V[n,:rank[n],:]
+            trunk_s[n,:rank[n]] = s[n,:rank[n]]
+    else:
+        rank = compute_rank(s, X.shape[0], X.shape[1], svd_rank)
+        trunk_U = U[:, :rank]
+        trunk_V = V[:rank,:]
+        trunk_s = s[:rank]
+    return(trunk_U,trunk_s,trunk_V,rank)
+
+def TC(X):
+    """
+    Transpose conjugated operation of a matrix
+
+    Parameters
+    ----------
+    X : 2D complex array
+        A matrix.
+
+    Returns
+    -------
+    X* : 2D complex array
+        Transpose conjugated of X.
+
+    """
+    
+    return X.conj().T
+
+def trunc(values, decs=0):
+    """
+    
+    Truncate decimals of real numbers.
+
+    Parameters
+    ----------
+    values : float
+        Real number.
+    decs : int, optional
+        Number of decimals. The default is 0.
+
+    Returns
+    -------
+    float
+        Real number with truncated decimals.
+
+    """
+    
+    return np.trunc(values*10**decs)/(10**decs)
+
+
+def networkDMD(x,C,M=2,u=None,drive_nodes=None,rankX=-1,rankY=None,dt=0.001,returnMatrices=True):
+    
+    #Binarize the adjacency matrix
+    C_binary=np.zeros_like(C)
+    C_binary[C>0]=1
+    
+    assert np.shape(C)[0]==np.shape(C)[1]==np.shape(x)[0], 'C must be a squared matrix representing a graph that generate x dynamics'
+    N=np.shape(x)[0]
+    Tp=np.shape(x)[1]
+    T=Tp-M
+    assert T>=N, 'time samples T+M must be higher than the N nodes in the graph'
+    
+    # If control signal is not explicit
+    if u is None:
+        u=np.zeros((1,Tp))
+        L=1
+        drive_nodes=[0]
+    else:
+        L=np.shape(u)[0]
+        assert L==len(drive_nodes), 'There must be a control signal for each drive node.'
+    #Rank of the SVD decompostions
+    if rankX==-1 and rankY is None or rankY==-1:
+        rankX=0.999
+        rankY=0.9999
+    elif rankY!=-1:
+        rankX=0.999
+        
+    
+    matricesbigA=np.zeros((N,N,M))
+    matricesbigB=np.zeros((N,L,M))
+    Y=x[:,1::]
+    Z=x[:,0:-1]
+    
+    for m in range(M):
+        #STEP 1
+        #Build OMEGA for each node at each window
+        Gamma=np.zeros((N,N+1,T-1))
+        OMEGA=np.zeros((N,N+1,T-1))
+        Zm=Z[:,m:m+T-1]
+        l=0
+        for n in range(N):
+            for i in np.argwhere(C_binary[n,:]==1)[:,0]:
+                Gamma[n,i,:]=Zm[i,:]
+            if n in drive_nodes:
+                Gamma[n,-1,:]=u[l,m:m+T-1]
+                l+=1
+            indexes=ctrl.indexes_untilN_remove_m(N+1,n)
+            OMEGA[n,:,:]=np.vstack((Zm[n:n+1,:],Gamma[n,indexes,:]))
+        
+        U,s,V,rank=trunkSVD(OMEGA,svd_rank=rankX)
+        
+        #STEP 2
+        #Build the network matrix
+        U1=U[:,0:1,:]
+        U2=U[:,1:N,:]
+        U3=U[:,N::,:]
+        
+        Ajj=np.zeros((N,1))
+        Ajk=np.zeros((N,N-1))
+        Bjl=np.zeros((N,L))
+        
+        bigA=np.zeros((N,N))
+        
+        for n in range(N):
+            Ajj[n,:]=Y[n,m:T+m-1]@TC(V[n,:rank[n],:])@np.diag(1/s[n,:rank[n]])@TC(U1[n,:,:rank[n]])
+            Ajk[n,:]=Y[n,m:T+m-1]@TC(V[n,:rank[n],:])@np.diag(1/s[n,:rank[n]])@TC(U2[n,:,:rank[n]])
+            Bjl[n,:]=Y[n,m:T+m-1]@TC(V[n,:rank[n],:])@np.diag(1/s[n,:rank[n]])@TC(U3[n,:,:rank[n]]) 
+            bigA[n,n]=Ajj[n,:]
+            bigA[n,ctrl.indexes_untilN_remove_m(N,n)]=Ajk[n,:]
+        
+        bigB=Bjl
+        matricesbigA[:,:,m]=bigA
+        matricesbigB[:,:,m]=bigB
+        
+    # STEP 3 Average Network Transition matrix
+    mean_bigA=np.mean(matricesbigA,axis=2)
+    mean_bigB=np.mean(matricesbigB,axis=2)
+    sd_bigA=np.std(matricesbigA,axis=2)
+    sd_bigB=np.std(matricesbigB,axis=2)
+    
+    UY,sY,VY,rankY=trunkSVD(Y,svd_rank=rankY)
+    smallA=TC(UY)@mean_bigA@UY
+    smallB=TC(UY)@mean_bigB
+    eigsA,eigvectorsA=np.linalg.eig(smallA)
+    
+    # Continuous time eigvalues
+    seigs=1/dt*np.log(eigsA) 
+    
+    #sort eigvalues by frequency
+    sort_eigs=argsort_eigs(seigs)
+    seigs=seigs[sort_eigs]
+    eigsA=eigsA[sort_eigs]
+    eigvectorsA=eigvectorsA[sort_eigs]
+    # STEP 5
+    
+    # Theoretical Modes
+    PHI=mean_bigA@UY@eigvectorsA
+    
+    
+    # Fit amplitudes
+    ttp=np.arange(0,Tp*dt,dt) 
+    exp_omega_even=np.exp(np.outer(seigs,ttp[0::2]))
+    exp_omega_odd=np.exp(np.outer(seigs,ttp[1::2]))
+    exp_omega=np.exp(np.outer(seigs,ttp))
+    P_even=TC(PHI@exp_omega_even)
+    P_odd=TC(PHI@exp_omega_odd)
+    P=TC(PHI@exp_omega)
+    b_even=np.linalg.lstsq(P_even, x[:,0::2].T,rcond=None)[0]
+    b_odd=np.linalg.lstsq(P_odd, x[:,1::2].T,rcond=None)[0]
+    b_all=np.linalg.lstsq(P, x.T,rcond=None)[0]
+    b=(b_even+b_odd+b_all)/3
+    
+    PHI_b=TC(b)@PHI
+
+    
+    #Optimal amplitudes
+    # vander = np.vander(eigsA, T, True)
+
+    # P = np.multiply(np.dot(TC(PHI), PHI),
+    #                 np.conj(np.dot(vander, TC(vander))))
+    # q = np.conj(np.diag(np.linalg.multi_dot([vander, TC(x[:,0:T]), PHI])))
+    
+    # a = np.linalg.solve(P,q)
+    
+    # PHI_b=PHI@np.diag(a)
+    
+    # # STEP 6 
+    # #Reconstruct and determine b for each snapshot
+    # tt=np.arange(0,T*dt,dt) 
+    # snap_b=np.zeros((rankY,rankY,M),dtype=complex)
+    # for m in range(M):
+    #     snap_b[:,:,m]=np.linalg.pinv(PHI)@Z[:,m:m+T]@np.linalg.pinv(np.exp(np.outer(seigs,tt)))
+
+    # #Determine the modes using the entire data
+    # mean_b=np.mean(snap_b,axis=2)  
+    # aux_PHI_b=PHI@mean_b
+    
+    # 
+    # b=np.linalg.pinv(aux_PHI_b)@x[:,:]@np.linalg.pinv(np.exp(np.outer(seigs,ttp)))
+    
+    # PHI_b=aux_PHI_b@b
+    
+    if returnMatrices:
+        return seigs, PHI_b, eigsA, mean_bigA,mean_bigB, smallA, smallB
+    else:
+        return seigs, PHI_b
+
 def sortedDMD(x,rank,dt,d=2):
+    """
+    Dynamic Modes Decomposition with modes sorted by the frequency
+
+    Parameters
+    ----------
+    x : 2D(1D) float array
+        Data of shape N channels x T time samples.
+    rank : int
+        Number of poles, note that each oscillatory mode is a pair of conjugate poles.
+    dt : float
+        Sampling period.
+    d : int, optional
+        Number of frames/ delays. The default is 2.
+
+    Returns
+    -------
+    sorted_eigs : 1D complex array
+        Eigenvalues of DMD, the poles of the LTI system (\Omega).
+    sorted_amplitudes : 1D float array
+        Amplitudes of DMD, the weight of each mode (b).
+    sorted_modes : 2D float array
+        Spatial Modes of DMD, the coefficients for the linear combination of the dynamic modes.
+
+    """
+    
     #time array withoth the last d samples 
     delay_t=np.arange(0,(np.shape(x)[1]-d+1)*dt,dt)
     N=np.shape(x)[0]
@@ -46,7 +416,6 @@ def stableDMD(x,rank,dt,d=2):
     not_stable=np.argwhere(np.real(eigs)>0)
     stable_eigs_real[not_stable]=0
     stable_eigs=stable_eigs_real+1j*stable_eigs_imag
-    
     return stable_eigs, amplitudes,modes
 
 def frequencies(eigs):

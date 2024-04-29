@@ -15,12 +15,12 @@ import nibabel as nib
 
 def DrawNetwork(G):
     """
-    
+    Draw the adjacency matrix of a netowrk with the networkx library
 
     Parameters
     ----------
-    G : TYPE
-        DESCRIPTION.
+    G : 2D float array
+        Adjacency matrix.
 
     Returns
     -------
@@ -492,8 +492,8 @@ def plotAAL90Brain(data90,k=3,interpolation='max',orientation=[90,90],alpha=0.6,
         p3dc.set_fc(colors_alpha)
     ax.set_ylim([-0.7,0.45])
     ax.set_xlim([-0.5,0.5])
-    if orientation[0]==270:
-        ax.set_ylim([-0.85,0.38])
+    if orientation[0]==0 or orientation[0]==270:
+        ax.set_ylim([-0.8,0.4])
         ax.set_xlim([-0.5,0.5])
     ax.set_axis_off()
     ax.view_init(orientation[0],orientation[1])
