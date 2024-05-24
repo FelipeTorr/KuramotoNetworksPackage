@@ -407,52 +407,6 @@ def localOrderParameter(x):
 
 
 
-def coherence(x,nperseg=4096,noverlap=2048,fs=1000,applySin=False):
-    """
-    Coherence for each pair of signals in x
-    
-    Parameters
-    ----------
-    x : float 2D array.
-        Matrix with the signal of size Nodes x Time.
-    nperseg : int, optional
-        Number of samples of the time window. The default is 4096.
-    noverlap : int, optional
-        Number of samples of the overlap window. The default is 3600.
-        With None, the nperseg is used as value of nfft of a FFT with zero-padding
-    fs: int, optional
-        Sampling frequency
-    applySin: boolean, optional
-        Apply the sin function before performing the coherence calculation
-
-    Returns
-    -------
-    freqs: float 1D array
-        frequency bins 
-    Cxx : float 3D array
-        Tensor of coherences of each pair of nodes.
-        Node x Node x Frequency
-
-    """
-    nfft=nperseg
-    halfnfft=nfft//2+1
-    if noverlap==None:
-        nperseg=None
-    if applySin:
-        x=np.sin(x)
-    Cxx=np.zeros((np.shape(x)[0],np.shape(x)[0],nfft//2+1))
-    
-    for i in range(np.shape(x)[0]):
-        for j in range(i+1,np.shape(x)[0]):
-            fx=np.fft.fft(x[i,:],nfft)
-            fy=np.fft.fft(x[j,:],nfft)
-            fxy=np.conjugate(fx)*fy
-            Cxx[i,j,:]=(np.abs(fxy[0:halfnfft])**2/(np.abs(fx[0:halfnfft])*np.abs(fy[0:halfnfft])))/halfnfft
-            Cxx[j,i,:]=Cxx[i,j,:]
-        Cxx[i,i,:]=1
-    return np.linspace(0,fs//2,halfnfft), Cxx
-
-
 def cross_spectrum(x,nperseg=4096,noverlap=2048,fs=1000,applySin=False):
     """
     Real part of the cross-spectrum for each pair of signals in x
@@ -921,6 +875,37 @@ def complex_coherence_matrix(data,nfft=5000,freq_index=1,wcoh=1000):
         for jj in range(ii):
             f, Pxy = signal.csd(data[ii,:],data[jj,:],nperseg=wcoh, noverlap=wcoh//2+1, nfft=nfft)
             coh_f=Pxy/np.sqrt(Pxx[ii,:]*Pxx[jj,:])
+            coh[ii,jj]=np.mean(coh_f[freq_index])
+    return coh
+
+def abs_coherence_matrix(data,nfft=5000,freq_index=1,wcoh=1000):
+    """
+    Squared complex coherence, from here is easy to obtain the absolute, the real or the imaginary value
+
+    Parameters
+    ----------
+    data_x : 2D float array
+        data with shape NxT
+    nfft : int, optional
+        number of points of the FFT. Defines the resolution of the spectrums. The default is 5000.
+    freq_index : int or array int, optional
+        indices of the frequencies of interest, relative to nfft. The default is 1.
+    wcoh : TYPE, optional
+        time window. The default is 1000.
+
+    Returns
+    -------
+    coh : complex
+        Complex average of the coherence in the frequency of interest.
+
+    """
+    N=np.shape(data)[0]
+    Pxx=np.zeros((N,nfft//2+1))
+    coh=np.zeros((N,N),dtype=complex)
+    for ii in range(N):
+        f, Pxx[ii,:] = signal.welch(data[ii,:], nperseg=wcoh, noverlap=wcoh//2+1, nfft=nfft) 
+        for jj in range(ii):
+            f, coh_f = signal.coherence(data[ii,:],data[jj,:],nperseg=wcoh, noverlap=wcoh//2+1, nfft=nfft)
             coh[ii,jj]=np.mean(coh_f[freq_index])
     return coh
 

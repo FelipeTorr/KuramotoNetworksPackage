@@ -9,7 +9,6 @@ import gc
 import numpy as np
 import scipy.io as sio
 import csv 
-from npy_append_array import NpyAppendArray
 import matplotlib.pyplot as plt
 import time
 import model.parserConfig as parser 
@@ -57,20 +56,20 @@ def RunKuramotoFor(configFile):
     gc.collect()
 
 if __name__=='__main__':
-    config_directory='../input_config/multiple/'
+    config_directory='../input_config/pablo/'
     config_files=[]
     for file in os.listdir(config_directory):
         if file.split('.')[1]=='txt':
             config_files.append(config_directory+file)
             
-    parameters=parser.loadData(config_files[0])
+    parameters=parser.loadData('../input_config/pablo/Config_file_for_Simulations_weight_in_nodes[69]_weigh400_fstim=13.00_with_K=4_and_MD=0.005_seed789.txt')
     print(parameters)
     max_workers=parameters['max_workers']
     
-    #RunKuramotoFor(config_files[0])
-    #Multiprocessing
-    for j in range(1):
-        print('Starting simulations')
-        lock = Lock()
-        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-            executor.map(RunKuramotoFor, config_files)
+    RunKuramotoFor('../input_config/pablo/Config_file_for_Simulations_weight_in_nodes[69]_weigh400_fstim=13.00_with_K=4_and_MD=0.005_seed789.txt')
+    ##Multiprocessing
+    #for j in range(1):
+    #    print('Starting simulations')
+    #    lock = Lock()
+    #    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+    #        executor.map(RunKuramotoFor, config_files)

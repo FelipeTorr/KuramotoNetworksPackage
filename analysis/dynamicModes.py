@@ -223,12 +223,12 @@ def networkDMD(x,C,M=2,u=None,drive_nodes=None,rankX=-1,rankY=None,dt=0.001,retu
     assert np.shape(C)[0]==np.shape(C)[1]==np.shape(x)[0], 'C must be a squared matrix representing a graph that generate x dynamics'
     N=np.shape(x)[0]
     Tp=np.shape(x)[1]
-    T=Tp-M
-    assert T>=N, 'time samples T+M must be higher than the N nodes in the graph'
+    T=Tp-1
+    assert T>=2, 'at least two time points are needed'
     
     # If control signal is not explicit
     if u is None:
-        u=np.zeros((1,Tp))
+        u=np.zeros((1,Tp-1))
         L=1
         drive_nodes=[0]
     else:
@@ -247,18 +247,20 @@ def networkDMD(x,C,M=2,u=None,drive_nodes=None,rankX=-1,rankY=None,dt=0.001,retu
     Y=x[:,1::]
     Z=x[:,0:-1]
     
-    for m in range(M):
+    for m, skip in enumerate(np.arange(M)):
         #STEP 1
         #Build OMEGA for each node at each window
-        Gamma=np.zeros((N,N+1,T-1))
-        OMEGA=np.zeros((N,N+1,T-1))
-        Zm=Z[:,m:m+T-1]
+        Zm=Z[:,skip:T]
+        lenTime=np.shape(Zm)[1]
+        Gamma=np.zeros((N,N+1,lenTime))
+        OMEGA=np.zeros((N,N+1,lenTime))
+        
         l=0
         for n in range(N):
             for i in np.argwhere(C_binary[n,:]==1)[:,0]:
                 Gamma[n,i,:]=Zm[i,:]
             if n in drive_nodes:
-                Gamma[n,-1,:]=u[l,m:m+T-1]
+                Gamma[n,-1,:]=u[l,skip:T]
                 l+=1
             indexes=ctrl.indexes_untilN_remove_m(N+1,n)
             OMEGA[n,:,:]=np.vstack((Zm[n:n+1,:],Gamma[n,indexes,:]))
@@ -278,9 +280,9 @@ def networkDMD(x,C,M=2,u=None,drive_nodes=None,rankX=-1,rankY=None,dt=0.001,retu
         bigA=np.zeros((N,N))
         
         for n in range(N):
-            Ajj[n,:]=Y[n,m:T+m-1]@TC(V[n,:rank[n],:])@np.diag(1/s[n,:rank[n]])@TC(U1[n,:,:rank[n]])
-            Ajk[n,:]=Y[n,m:T+m-1]@TC(V[n,:rank[n],:])@np.diag(1/s[n,:rank[n]])@TC(U2[n,:,:rank[n]])
-            Bjl[n,:]=Y[n,m:T+m-1]@TC(V[n,:rank[n],:])@np.diag(1/s[n,:rank[n]])@TC(U3[n,:,:rank[n]]) 
+            Ajj[n,:]=Y[n,skip:T]@TC(V[n,:rank[n],:])@np.diag(1/s[n,:rank[n]])@TC(U1[n,:,:rank[n]])
+            Ajk[n,:]=Y[n,skip:T]@TC(V[n,:rank[n],:])@np.diag(1/s[n,:rank[n]])@TC(U2[n,:,:rank[n]])
+            Bjl[n,:]=Y[n,skip:T]@TC(V[n,:rank[n],:])@np.diag(1/s[n,:rank[n]])@TC(U3[n,:,:rank[n]]) 
             bigA[n,n]=Ajj[n,:]
             bigA[n,ctrl.indexes_untilN_remove_m(N,n)]=Ajk[n,:]
         
@@ -291,8 +293,8 @@ def networkDMD(x,C,M=2,u=None,drive_nodes=None,rankX=-1,rankY=None,dt=0.001,retu
     # STEP 3 Average Network Transition matrix
     mean_bigA=np.mean(matricesbigA,axis=2)
     mean_bigB=np.mean(matricesbigB,axis=2)
-    sd_bigA=np.std(matricesbigA,axis=2)
-    sd_bigB=np.std(matricesbigB,axis=2)
+    # sd_bigA=np.std(matricesbigA,axis=2)
+    # sd_bigB=np.std(matricesbigB,axis=2)
     
     UY,sY,VY,rankY=trunkSVD(Y,svd_rank=rankY)
     smallA=TC(UY)@mean_bigA@UY
@@ -310,23 +312,13 @@ def networkDMD(x,C,M=2,u=None,drive_nodes=None,rankX=-1,rankY=None,dt=0.001,retu
     # STEP 5
     
     # Theoretical Modes
-    PHI=mean_bigA@UY@eigvectorsA
+    # PHI=mean_bigA@UY@eigvectorsA
     
     
-    # Fit amplitudes
-    ttp=np.arange(0,Tp*dt,dt) 
-    exp_omega_even=np.exp(np.outer(seigs,ttp[0::2]))
-    exp_omega_odd=np.exp(np.outer(seigs,ttp[1::2]))
-    exp_omega=np.exp(np.outer(seigs,ttp))
-    P_even=TC(PHI@exp_omega_even)
-    P_odd=TC(PHI@exp_omega_odd)
-    P=TC(PHI@exp_omega)
-    b_even=np.linalg.lstsq(P_even, x[:,0::2].T,rcond=None)[0]
-    b_odd=np.linalg.lstsq(P_odd, x[:,1::2].T,rcond=None)[0]
-    b_all=np.linalg.lstsq(P, x.T,rcond=None)[0]
-    b=(b_even+b_odd+b_all)/3
-    
-    PHI_b=TC(b)@PHI
+    # Fit modes to the amplitudes
+    ttp=np.arange(0,(Tp)*dt,dt)
+    PHI_b=x@np.linalg.pinv(np.exp(np.outer(seigs,ttp)))
+
 
     
     #Optimal amplitudes
@@ -340,21 +332,7 @@ def networkDMD(x,C,M=2,u=None,drive_nodes=None,rankX=-1,rankY=None,dt=0.001,retu
     
     # PHI_b=PHI@np.diag(a)
     
-    # # STEP 6 
-    # #Reconstruct and determine b for each snapshot
-    # tt=np.arange(0,T*dt,dt) 
-    # snap_b=np.zeros((rankY,rankY,M),dtype=complex)
-    # for m in range(M):
-    #     snap_b[:,:,m]=np.linalg.pinv(PHI)@Z[:,m:m+T]@np.linalg.pinv(np.exp(np.outer(seigs,tt)))
-
-    # #Determine the modes using the entire data
-    # mean_b=np.mean(snap_b,axis=2)  
-    # aux_PHI_b=PHI@mean_b
-    
-    # 
-    # b=np.linalg.pinv(aux_PHI_b)@x[:,:]@np.linalg.pinv(np.exp(np.outer(seigs,ttp)))
-    
-    # PHI_b=aux_PHI_b@b
+   
     
     if returnMatrices:
         return seigs, PHI_b, eigsA, mean_bigA,mean_bigB, smallA, smallB

@@ -1,7 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#from ast import Del
-from symtable import Symbol
+"""
+Created on Wed May 15 12:09:54 2024
+
+@author: felipe
+"""
 from scipy.io import loadmat
 import numpy as np
 import os
@@ -9,23 +12,20 @@ import sys
 sys.path.append(os.path.abspath('../'))
 try:
     import analysis.connectivityMatrices as matrices
+    import analysis.dynamicModes as dmd
+    import analysis.control as control
 except ModuleNotFoundError:
     import KuramotoNetworksPackage.analysis.connectivityMatrices as matrices
+    import KuramotoNetworksPackage.analysis.dynamicModes as dmd
+    import KuramotoNetworksPackage.analysis.control as control
 from tqdm import tqdm
 from numpy import pi, random, max
 from scipy import signal
-# https://jitcdde.readthedocs.io/en/stable/
-from jitcdde import jitcdde, y, t
-from symengine import sin, Symbol
-import symengine
-import sympy
-import gc
-import time as tm
 
 
-class Hopf:
+class Kuramoto:
     """
-    Hopf model class
+    Kuramoto model class
 
     Parameters
     ----------
@@ -110,7 +110,6 @@ class Hopf:
         self.dt=dt
         self.simulation_period=simulation_period
         self.K=K
-        self.param_sym_func=symengine.Function('param_sym_func')
         self.StimTstart=StimTstart
         self.StimTend=StimTend
         self.StimFreq=StimFreq*2*np.pi
@@ -210,7 +209,34 @@ class Hopf:
                 
         return natfreqs
 
-    
+    def initializeForcingNodes(self,forcingNodes):
+        """
+        Set the binary vector of forcing/no-forcing nodes
+        
+
+        Parameters
+        ----------
+        forcingNodes : list
+            List of the indexes of the forcing nodes.
+
+        Returns
+        -------
+        None.
+
+        """
+        
+        self.ForcingNodes=np.zeros((self.n_nodes,1))
+        if forcingNodes is not None:
+            if type(forcingNodes)==int:
+                self.ForcingNodes[forcingNodes]=1
+            elif type(forcingNodes)==str:
+                fnodes=eval(forcingNodes)
+                for node in fnodes:
+                    self.ForcingNodes[node]=1
+            else:
+                for node in forcingNodes:
+                    self.ForcingNodes[node]=1    
+
     def loadParameters(self,parameters):
         """
 
@@ -259,60 +285,29 @@ class Hopf:
         
         self.global_coupling=self.K/self.n_nodes #scaling of the global coupling
 
-    def initializeForcingNodes(self,forcingNodes):
-        """
-        Set the binary vector of forcing/no-forcing nodes
-        
-
-        Parameters
-        ----------
-        forcingNodes : list
-            List of the indexes of the forcing nodes.
-
-        Returns
-        -------
-        None.
-
-        """
-        
-        self.ForcingNodes=np.zeros((self.n_nodes,1))
-        if forcingNodes is not None:
-            if type(forcingNodes)==int:
-                self.ForcingNodes[forcingNodes]=1
-            elif type(forcingNodes)==str:
-                fnodes=eval(forcingNodes)
-                for node in fnodes:
-                    self.ForcingNodes[node]=1
-            else:
-                for node in forcingNodes:
-                    self.ForcingNodes[node]=1
-            
-    
     def initializeTimeDelays(self):
         """
         
         Initialize the default matrix **D**: the delays matrix of AAL90.
         Only if the matrix was not specified in the input parameters
-
+    
         Returns
         -------
         D : float 2D array
             Delays matrix.
-
+    
         """
         
         No_nodes=self.n_nodes
         D = loadmat('../input_data/AAL_matrices.mat')['D']
         D=D[-No_nodes:,-No_nodes:]
-        C=self.struct_connectivity
-        mean_delay=self.mean_delay
         if No_nodes>90:
             print('Max No. Nodes is 90')
             No_nodes=90
         D /= 1000 # Distance matrix in meters
         self.delays_matrix=D
         return D
-
+    
     def load_struct_connectivity(self):
         """
         Intialize the default structural connectivity matrix **C** from AAL90
@@ -322,7 +317,7 @@ class Hopf:
         -------
         C : float 2D array
             Structural connectivity matrix.
-
+    
         """
         
         n=self.n_nodes
@@ -333,24 +328,23 @@ class Hopf:
             n=90
         C=C[-n:,-n:]
         C[np.diag(np.ones(n))==0] /= C[np.diag(np.ones(n))==0].mean()
-
+    
         return C
     
     def setMeanTimeDelay(self, mean_delay):
         """
         Set the **mean_delay** parameter
-
+    
         Parameters
         ----------
         mean_delay : float
             Mean delay value that scales the delays matrix **D**.
-
+    
         Returns
         -------
         None.
-
+    
         """
-        
         self.mean_delay=mean_delay
         self.applyMean_Delay()
         
@@ -360,281 +354,106 @@ class Hopf:
     def setGlobalCoupling(self,K):
         """
         Set the global coupling parameter **K**
-
+    
         Parameters
         ----------
         K : float
             Scaling factor for the structural connectivity matrix **C**.
             The value using this function is scaled by the number of nodes
             then **K** =K/N.
-
+    
         Returns
         -------
         None.
-
+    
         """
         
         self.K=K
         self.global_coupling=self.K/self.n_nodes
-
-    def param(self,y,arg):
-        """
-        Auxiliar function in order to present the stimulation from **StimTstart** to **StimTend** 
-        Add the maximum of the delays matrix, because for the stored data t_0=max(**delays_matrix**).
-
-        Parameters
-        ----------
-        y : Not needed, internal function of Jitcdde
-            
-        arg : Not needed, internal function of Jitcdde 
-            
-        Returns
-        -------
-        int(boolean)
-            True if the simulation time is inside the stimulation window. 
-
-        """
         
-
-        if self.StimTend>self.simulation_period:
-            print("Tend Cannot be larger than the simulation time which is"+'%.1f' %self.T)
-        if arg<self.StimTstart+np.max(self.delays_matrix):
-            return 0
-        elif arg>self.StimTstart+np.max(self.delays_matrix) and arg<self.StimTend+np.max(self.delays_matrix): 
-            return 1
-        else:
-            return 0
-            
-
+    def vectdiff(self,x,D):
+        N=np.shape(x)[0]
+        diff=np.zeros((N,N))
+        for i in range(N):
+            for j in range(N):
+                diff[j,i]=x[j,D[i,j]]-x[i,0]
+        return diff
     
-    def initial_phases_hopf(self):
-        """
-        Set the initial values of the variables
-
-        Returns
-        -------
-        Initial_values: float 1D array
-            Array with the initial values of the ocillators' phases.
-
-        """
+    def defineA(self):
+        self.A=self.global_coupling*self.struct_connectivity
+    
+    def defineB(self):
+        self.B=np.zeros_like(self.struct_connectivity)
+        for i in range(self.n_nodes):
+            if self.ForcingNodes[i]==1:
+                self.B[i,i]=self.StimWeigth
+    
+    def defineD(self):
+        self.D=(np.ceil(self.delays_matrix/self.dt)).astype(int)
         
-        return 0.5*np.random.random(size=self.n_nodes)
-
-    def hopf(self):
-        """
-        Delayed Hopf model equivalent to Kuramoto Model(from Kuramto 1974)
-
-        Yields
-        ------
-        Jitcdde Model
-            Delayed Hopf. Structural connectivity and delays matrices are required.
-
-        """
+    def dotx(self,x,u):
+        diff_theta=self.vectdiff(x,self.D)
+        dotx=self.ω+np.diag(np.matmul(self.A,np.sin(diff_theta)))+np.matmul(self.B,u)[:,0]
+        return dotx,diff_theta
+    
+    def setRank(self,r):
+        self.rank=r
+    
+    def setDesiredPoles(self,poles):
+        self.desired_eigs=poles
         
-        for i,n in enumerate(range(0,2*self.n_nodes,2)):
-            yield 4*self.ω[i]*y(n)-4*self.ω[i]*(y(n)**2+y(n+1)**2)*y(n)+self.ω[i]*y(n+1)+self.global_coupling*sum(
-            	self.struct_connectivity[i,j]*y(n, t-(self.delays_matrix[i, j]))
-                for j in range(self.n_nodes) if self.struct_connectivity[i,j]
-            )
-            yield 4*self.ω[i]*y(n+1)-4*self.ω[i]*(y(n)**2+y(n+1)**2)*y(n+1)-self.ω[i]*y(n)+self.global_coupling*sum(
-            	self.struct_connectivity[i,j]*y(n+1, t-(self.delays_matrix[i, j]))
-                for j in range(self.n_nodes) if self.struct_connectivity[i,j]
-            )
-
-    def hopfForced(self):
-        """
-        Forced and delayed Kuramoto model
-
-        Yields
-        ------
-        Jitcdde Model
-            Forced and Delayed Kuramoto model. The stimulation parameters are required.
-
-        """
+    def simulate(self):
+        self.defineA()
+        self.defineB()
+        self.defineD()
         
-        Delta=self.ForcingNodes
-        for i,n in enumerate(range(0,2*self.n_nodes,2)):
-            yield 4*self.ω[i]*y(n)-4*self.ω[i]*(y(n)**2+y(n+1)**2)*y(n)+self.ω[i]*y(n+1)+Delta[i,0]*self.param_sym_func(t)*self.StimWeigth*sin(self.StimFreq*t)+self.global_coupling*sum(
-            	self.struct_connectivity[i,j]*y(n, t-(self.delays_matrix[i, j]))
-                for j in range(self.n_nodes) if self.struct_connectivity[i,j]
-            )
-            yield 4*self.ω[i]*y(n+1)-4*self.ω[i]*(y(n)**2+y(n+1)**2)*y(n+1)-self.ω[i]*y(n)+self.global_coupling*sum(
-            	self.struct_connectivity[i,j]*y(n+1, t-(self.delays_matrix[i, j]))
-                for j in range(self.n_nodes) if self.struct_connectivity[i,j]
-            )
-
-
-    def IntegrateDD(self):
-        """
-        Jitcdde solver (integration) function.
-
-        Returns
-        -------
-        output : float 2D array
+        T=int(self.simulation_period//self.dt)
+        self.x=np.zeros((self.n_nodes,T))
+        
+        self.x_dot=np.zeros((self.n_nodes,T))
+        self.diff_theta=np.zeros((self.n_nodes,self.n_nodes,T))
+        
+        #Without control, the external input is zero
+        u_Out=np.zeros((self.n_nodes,T))
+        #Initial conditions
+        np.random.seed(self.seed)
+        self.x[:,0]=np.random.rand(self.n_nodes)*2*np.pi
+        
+        for n in tqdm(range(1,T)):
+            self.x_dot[:,n-1],self.diff_theta[:,:,n-1]=self.dotx(self.x,u_Out[:,n-1:n])
+            self.x[:,1::]=self.x[:,0:-1]
+            self.x[:,0:1]+=self.dt*self.x_dot[:,n-1:n]
+            ##################################################################
+            ############# CONTROL ##################
+            # Parameters
+            L=25 #Window to linearize
+            M=3 #Repetitions to get the average
+            ########################################
+            # At each window (fixed length)
+            if n%L==0:
+                # 1. Linearize
+                seigs, PHI_b, eigsA, mean_bigA,mean_bigB, smallA, smallB=dmd.networkDMD(np.sin(self.x[:,0:L]),C=self.struct_connectivity,M=M,u=u_Out[:,n-L:n],drive_nodes=np.arange(90),rankX=-1,rankY=self.rank,dt=self.dt,returnMatrices=True)
+                
+                A,B,C,D=control.build_tf_NDMD(seigs,PHI_b, mean_bigB, self.dt)
+                
+                K,PHIA=control.build_K_Ackerman(A,B,self.desired_eigs,self.dt,self.rank,N=self.n_nodes)
+                # 2. Simulate the LTI
+                t=np.arannge(0,2*L*self.dt,self.dt) #2 windows
+                x_windowed_controlled=np.zeros((self.n_nodes*self.rank,len(t)),dtype=complex)
+                y_windowed_controlled=np.zeros((self.n_nodes,len(t)))
+                p=np.zeros((self.n_nodes,len(t)))
+                p[7,:]=np.sin(2*np.pi*20*t)
+                u_internal=np.zeros((self.n_nodes,len(t)))
+                K0=0.2
+                K1=1/(self.rank*np.max(K))
+                for nn,tt in enumerate(t[1::]):
+                    #Control Ackerman
+                    if nn==0:
+                        u_internal[:,0]=1
+                    else:
+                        u_internal[:,nn]=(K0*p[:,nn])-K1*K@x_windowed_controlled[:,nn]
+                    x_windowed_controlled[:,nn+1]=A@x_windowed_controlled[:,nn]+B@u_internal[:,nn]
+                    y_windowed_controlled[:,nn+1]=np.real(C@x_windowed_controlled[:,nn]+D@u_internal[:,nn])
+                u_Out[:,n:n+L]=np.arcsin(u_internal[:,L::]) #Test with the arcsin
             
-            Oscillator phases at the sampling times.
-            T x N array.   
-
-        """
-        
-        print('Simulating %d nodes network using K=%.3f and MD=%.3f at f=%.3fHz'%(self.n_nodes,self.K,self.mean_delay,self.nat_freq_mean))
-        simulation_period=self.simulation_period
-        dt=self.dt
-        max_delay=np.max(self.delays_matrix)
-        n=self.n_nodes
-        if n<20:
-            chunksize=20
-        elif n<360:
-            chunksize=4
-        else:
-            chunksize=1
-        time_start=tm.time()
-        if self.Forced:
-            DDE = jitcdde(self.hopfForced, n=n*2, verbose=False,delays=self.delays_matrix.flatten(),callback_functions=[( self.param_sym_func, self.param,1)])
-            DDE.compile_C(simplify=False, do_cse=False, chunk_size=chunksize,verbose=False)
-            DDE.set_integration_parameters(min_step=1e-8,rtol=0, atol=1e-6,pws_max_iterations=1)
-            DDE.constant_past(random.uniform(0, 0.5, 2*n), time=0.0)
-            if max_delay>0:
-                DDE.integrate_blindly(max_delay, dt)
-        
-        elif not self.Forced:
-            DDE = jitcdde(self.hopf, n=n*2,delays=self.delays_matrix.flatten(),verbose=False)
-            DDE.compile_C(simplify=False, do_cse=False, chunk_size=chunksize,verbose=False)
-            DDE.set_integration_parameters(rtol=0, atol=1e-6,pws_max_iterations=1)
-            DDE.constant_past(random.uniform(0, 0.5, 2*n), time=0.0)
-            if max_delay>0:
-                DDE.integrate_blindly(max_delay, dt)
-
-        #DDE.step_on_discontinuities()
-        time_end=tm.time()-time_start
-        print('Compiled in %.4f seconds'%time_end)
-        output = []
-        for time in tqdm(DDE.t + np.arange(0, simulation_period,dt )):
-            output.append([*DDE.integrate(time)])
-        output=np.asarray(output)
-        del DDE
-        gc.collect()
-        return output
-        
-
-        
-        
-    def gui_interact(self,K):
-        """
-        Jupyter notebook function for "online" change of the **K** parameter
-        (Note that this method can be used to change any model parameter with the appropiate modifications)
-
-        Parameters
-        ----------
-        K : float
-            Global coupling parameter (it will be normalized by the number of nodes).
-
-        Returns
-        -------
-        None.
-
-        """
-        
-        import matplotlib.pyplot as plt
-        self.setGlobalCoupling(K) #Modify this line to change another parameter or change more parameters  
-        R,Dynamics=self.simulate()
-        t=np.linspace(0,self.simulation_period,int(self.simulation_period//self.dt)+1)
-        plt.figure(figsize=(12,4))
-        plt.plot(t,R)
-        plt.show()
-
-    
-    def simulate(self,Forced=False):
-        """
-        Main function. Simulate the Kuramoto model.
-        To avoid the additional overload from using the Partially Forced Kuramoto you shoul pass 
-        False in the Forced argument.
-        On the other hand, if you need to apply stimulation, use Forced=True 
-
-        Parameters
-        ----------
-        Forced : boolean, optional
-            Set if the simulation is going to use or not the Partially Forced Kuramoto. The default is False.
-
-        Returns
-        -------
-        R : float 1D array
-            Kuramoto order parameter. Array with dimensions T x 1.
-        dynamics : float 2D array
-            Kuramoto oscillators phases. Array with dimensions T x N
-
-        """
-        
-        self.Forced=Forced
-        dynamics=self.IntegrateDD()
-        R=self.calculateOrderParameter(dynamics)
-        return R,dynamics
-
-    def testIntegrateForced(self):
-        """
-        Test the Partially forced and delayed model
-
-        Returns
-        -------
-        None.
-
-        """
-        
-        R,_=self.simulate(Forced=True)
-        print(np.mean(R))
-        
-    def testIntegrate(self):
-        """
-        Test the Delayed Kuramoto
-
-        Returns
-        -------
-        None.
-        
-        """
-        
-        R,_=self.simulate(Forced=True)
-        print(np.mean(R))
-
-    
-    @staticmethod
-    def phase_coherence(angles_vec):
-        """
-        Calculate the Kuramoto Order parameter for each time step
-
-        Parameters
-        ----------
-        angles_vec : float 1D array
-            Phases of the oscillators at time t.
-
-        Returns
-        -------
-        R(t): float            
-        	A time point of the Kuramoto order parameter: abs(exp{(theta_n(t))}) 
-
-        """
-        
-        suma=sum([np.exp(1j*i) for i in angles_vec ])
-        return abs(suma/len(angles_vec))
-
-
-    def calculateOrderParameter(self,dynamics):
-        """
-        Calculate Kuramoto order parameter
-
-        R=abs((1/N)* \\sum_{n} ( e^{(i*\\theta_{n})}))
-
-        Parameters
-        ----------
-        dynamics : float 2D array
-            T x N matrix with the oscillators phases.
-
-        Returns
-        -------
-        R : float 1D array
-            Kuramoto order parameter.
-        """
-        R=[self.phase_coherence(vec) for vec in dynamics]
-        del dynamics
-        gc.collect()
-        return R
+            

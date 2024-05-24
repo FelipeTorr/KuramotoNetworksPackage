@@ -274,6 +274,53 @@ def canonical_step_numerator(num,den):
     num_canon[:,r-1]=-num_ind*den[r]
     return num_canon, num_ind
 
+def build_tf_NDMD(eigvalues,modes,Bcontrol,dt):
+    """
+    Build the diagonal state-space matrices from the DMD eigvalues \Omega, and modes \Phi with sampling time dt
+    Parameters
+    ----------
+    eigvalues : 1D complex array
+        eigenvalues or poles of the LTI system
+    amplitudes : 1D float array
+        amplitudes or weights of each mode
+    modes : 2D complex array
+        spatial modes from DMD decomposition of shape N x r
+    dt : float
+        Sampling time
+
+    Returns
+    -------
+    The linear-time invariant system
+    x[k+1]=Ax[k]+Bu[k]
+    y[k]=Cx[k]+Du[k]
+    
+    A : 2D complex array
+        Matriz A with shape Nr x Nr.
+    B : 2D float array
+        Matrix B with shape Nr x N.
+    C : 2D complex array
+        Matrix C with shape N x Nr.
+    D : 2D float array
+        Matrix D with shape N x N.
+    """
+    #Dimensions
+    N=np.shape(modes)[0]
+    r=len(eigvalues)
+    #Numerador and denominador of the transfer function in canonical form
+    #State space matrices
+    A=np.zeros((N*r,N*r),dtype=complex)
+    B=np.zeros((N*r,N))
+    C=np.zeros((N,N*r),dtype=complex)
+    D=np.zeros((N,N)) #for now is always zero
+    
+    #Fill the matrices for each node
+    for n in range(N):
+        A[n*r:(n+1)*r,n*r:(n+1)*r]=np.diag(np.exp(eigvalues*dt))
+        if Bcontrol[n,n]!=0:
+            B[n*r:(n+1)*r,n]=Bcontrol[n]
+        C[n,n*r:(n+1)*r]=modes[n,:]
+    return A,B,C,D
+
 def build_tf_canonical(eigvalues,amplitudes,modes,dt):
     """
     Build the canonical controllable state-space matrices from the DMD eigvalues \Omega, ampplitudes b, and modes \Phi with sampling time dt
@@ -365,7 +412,6 @@ def build_tf_diagonal(eigvalues,amplitudes,modes,dt):
     B=np.zeros((N*r,N))
     C=np.zeros((N,N*r),dtype=complex)
     D=np.zeros((N,N)) #for now is always zero
-    aux_canonical=np.eye(r-1)
     
     #Fill the matrices for each node
     for n in range(N):
