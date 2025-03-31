@@ -12,6 +12,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from pylab import get_cmap
 from nilearn import plotting
 import nibabel as nib
+import scipy.io as sio
 
 def DrawNetwork(G):
     """
@@ -501,24 +502,39 @@ def plotAAL90Brain(data90,k=3,interpolation='max',orientation=[90,90],alpha=0.6,
         plt.show()
     return ax
 
+def fillData(data,FC=None,N=90):
+    if type(data)==str:
+        if data=='ones':
+            data=np.ones((N,))
+        elif data=='intensity' and FC is not None: 
+            data=np.sum(FC,axis=0)
+        elif data=='degree' and FC is not None:
+            binaryFC=np.zeros_like(FC)
+            binaryFC[FC!=0]=1
+            data=np.sum(binaryFC,axis=0)
+        elif data=='binary' and FC is not None:
+            data=np.zeros((N,))
+            binaryFC=np.zeros_like(FC)
+            binaryFC[FC!=0]=1
+            data[np.sum(binaryFC,axis=0)>0]=1
+        else:
+            data=np.zeros((N,))
+            print('Returnin zeros, please indicate the FC')
+    else:
+        if len(data)==N:
+            data=data
+        else:
+            data=np.zeros((N,))
+            print('Returning zeros, data must have N elements')
+    return data
+    
+    
 def plotAAL90FC(FC,data90='ones',interpolation='max',orientation=[90,90],cmap_name='turbo',ax='None',show_plot=False):
     N=90
     k=3
     indexes=np.triu_indices(90,k=1)
     
-    if data90=='ones':
-        data90=np.ones((N,))
-    elif data90=='intensity':
-        data90=np.sum(FC,axis=0)
-    elif data90=='degree':
-        binaryFC=np.zeros_like(FC)
-        binaryFC[FC!=0]=1
-        data90=np.sum(binaryFC,axis=0)
-    elif data90=='binary':
-        data90=np.zeros((N,))
-        binaryFC=np.zeros_like(FC)
-        binaryFC[FC!=0]=1
-        data90[np.sum(binaryFC,axis=0)>0]=1
+    data90=fillData(data90,FC=FC,N=N)
     #Load matched mesh to the AAL116 regions
     AALv,s,c,labels=loadNiftyVertices()
     #Load the smoothed mesh with lower quantiy of vertices
@@ -574,6 +590,60 @@ def plotAAL90FC(FC,data90='ones',interpolation='max',orientation=[90,90],cmap_na
         plt.show()
     return ax
     
+
+def plotAAL90Circular(edge_values,data90='ones',cmap_name='turbo',colormap_nodes=plt.cm.tab10,filename='circular.png',show_plot=False,plot_labels=True):
+    from mne_connectivity.viz import plot_connectivity_circle
+    from mne.viz import circular_layout
+    N=90
+    file_indexes=sio.loadmat('../input_data/indexes_hemispheres_front')
+    hemisphere_sorted=file_indexes['sorted_regions'][0,:]
+    file_labels=sio.loadmat('../input_data/AAL_short_labels')
+    labels=file_labels['label90']
+    labels=file_labels['label90']
+    node_labels=labels[hemisphere_sorted]
+    nodes_order=circular_layout(node_labels, node_labels.tolist(),start_pos=90,
+                              group_boundaries=[0, len(node_labels) // 2])
+    for nn,nlabel in enumerate(node_labels):
+        name=nlabel.split('.')[0]
+        node_labels[nn]=name
+    
+    #With original FC
+    data90=fillData(data=data90,FC=edge_values,N=N)
+    #Then sort FC
+    edge_values=edge_values[hemisphere_sorted,:][:,hemisphere_sorted]
+    array_edges=edge_values[np.argwhere(edge_values>0)[:,0],np.argwhere(edge_values>0)[:,1]]
+    indexes_i=np.argwhere(edge_values>0)[:,0]
+    indexes_j=np.argwhere(edge_values>0)[:,1]
+    
+   
+    colors_node=[]
+    labels_node=[]
+    for node in range(N):
+        if data90[hemisphere_sorted[node]]!=0:
+            if plot_labels:
+                labels_node.append(node_labels[node])
+            else:
+                labels_node.append('')
+            
+            colors_node.append(colormap_nodes(0))
+        else:
+            labels_node.append('')
+            colors_node.append('white')
+    fig, axcircle = plt.subplots(figsize=(2, 1.8), facecolor='white',
+                                subplot_kw=dict(polar=True,frame_on=False))
+    plot_connectivity_circle(array_edges,labels_node,indices=(indexes_i,indexes_j),
+                              node_angles=nodes_order,
+                              facecolor='white', textcolor='black',
+                              node_colors=colors_node, colormap='RdBu_r',
+                              node_linewidth=0.1, show=False,
+                              vmin=-1.0,vmax=1.0, colorbar_pos=(-0.5,0.02), colorbar_size=0.3,
+                              ax=axcircle,fontsize_names=8,fontsize_colorbar=8,padding=0.0)
+    fig.tight_layout()
+    fig.savefig(filename,dpi=600)
+    if show_plot:
+        plt.show()
+    return axcircle
+            
 
 
 

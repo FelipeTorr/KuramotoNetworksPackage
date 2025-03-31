@@ -30,12 +30,17 @@ seed=2
 
 model=Kuramoto(n_nodes=N,
 dt=1e-3,
-simulation_period=10,
+simulation_period=4,
 nat_freq_mean=40,
 nat_freq_std=0,
 GenerateRandom=False,
+StimTstart=2,
+StimTend=3,
+StimWeigth=100,
+StimFreq=13,
 SEED=seed)
 
+model.initializeForcingNodes(7)
 model.setGlobalCoupling(360)
 model.setMeanTimeDelay(0.021)
 model.setRank(14)
@@ -47,10 +52,10 @@ num_of_realizations=1
 model.simulate()
 dynamics=np.fliplr(model.x)
 u=model.u_Out
-directory='/mnt/usb-Seagate_Basic_NABS42YJ-0:0-part2/MatricesStructure/'
-filename=directory+'Kuramoto_Controled_seed%d.mat'%(seed)
-data={'theta':dynamics,'u':u}
-sio.savemat(filename,data)  
+# directory='/mnt/usb-Seagate_Basic_NABS42YJ-0:0-part2/MatricesStructure/'
+# filename=directory+'Kuramoto_Controled_seed%d.mat'%(seed)
+# data={'theta':dynamics,'u':u}
+# sio.savemat(filename,data)  
 
 
 

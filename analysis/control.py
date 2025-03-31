@@ -9,12 +9,28 @@ Created on Thu Nov 30 14:01:27 2023
 #Canonical Python libraries
 import numpy as np
 import scipy.signal as signal
-
+from scipy.linalg import schur
 #Matplotlib for tests and examples
 import matplotlib.pyplot as plt
 
 ###############################################################################
 ### Papers replication
+#
+def AvgControllability(matrix,c=1):
+    w, _ = np.linalg.eig(matrix)
+    l = np.abs(w).max()
+
+    # Matrix normalization for discrete-time systems
+    A_norm = matrix / (c + l)
+    T, U = schur(A_norm, 'real')  # Schur stability
+    midMat = np.multiply(U, U).transpose()
+    v = np.diag(T)[np.newaxis, :].transpose()
+    N = matrix.shape[0]
+    P = np.diag(1 - np.matmul(v, v.transpose()))
+    P = np.tile(P.reshape([N, 1]), (1, N))
+    ac = sum(np.divide(midMat, P))
+    return ac
+
 
 def lowDimensionalCC(matrix,target=None,drivers=None,r_dim=5):
     """
@@ -317,7 +333,7 @@ def build_tf_NDMD(eigvalues,modes,Bcontrol,dt):
     for n in range(N):
         A[n*r:(n+1)*r,n*r:(n+1)*r]=np.diag(np.exp(eigvalues*dt))
         if Bcontrol[n,n]!=0:
-            B[n*r:(n+1)*r,n]=Bcontrol[n]
+            B[n*r:(n+1)*r,:]=Bcontrol[n]
         C[n,n*r:(n+1)*r]=modes[n,:]
     return A,B,C,D
 
@@ -627,20 +643,20 @@ def build_K_Ackerman(A,B,eigvalues,dt,r,N=1):
         The characteristic matrix (the desired state-space matrix A).
     """
     
-    assert np.shape(A)[0]==N*r,'A must be square matrix of size N x r' 
-    assert np.shape(B)[0]==N*r,'B must be a matrix with N x r rows' 
-    assert np.shape(B)[1]==N,'B must be a matrix with N columns' 
+    assert np.shape(A)[0]==N*r or np.shape(A)[0]==r,'A must be square matrix of size Nr x Nr, or r x r' 
+    assert np.shape(B)[0]==N*r or np.shape(B)[0]==r,'B must be a matrix with Nr rows, or r rows' 
     
     J=build_J(1,r)
     Mc, controllability=build_MC(A[0:r,0:r], B[0:r,0:1])
+    K=np.zeros((N,N*r))
     if np.abs(controllability)<1e-9:
         print('Not controllable system, Mc is not invertible')
-        return 0
+        return K,0
     else:
         Mc_inv=np.linalg.inv(Mc)
         Phi=build_Characteristic(A[0:r,0:r], eigvalues, dt)
         K_single=J@Mc_inv@Phi
-        K=np.zeros((N,N*r))
+       
         for n in range(N):
             K[n:n+1,n*r:(n+1)*r]=K_single
         #For control the input to the system must be replaced by -K@u 

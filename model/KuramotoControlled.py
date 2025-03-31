@@ -426,44 +426,58 @@ class Kuramoto:
             ##################################################################
             ############# CONTROL ##################
             # Parameters
-            L=25 #Window to linearize
+            L=50 #Window to linearize
             M=3 #Repetitions to get the average
             ########################################
             # At each window (fixed length)
-            if n%L==0:
-                
-                # 1. Linearize
-                try:
-                    seigs, PHI_b, eigsA, mean_bigA,mean_bigB, smallA, smallB=dmd.networkDMD(np.sin(self.x[:,0:L]),C=self.struct_connectivity,M=M,u=self.u_Out[:,n-L:n],drive_nodes=np.arange(90),rankX=-1,rankY=self.rank,dt=self.dt,returnMatrices=True)
-                except:
-                    seigs, PHI_b, eigsA, mean_bigA,mean_bigB, smallA, smallB=dmd.networkDMD(np.sin(self.x[:,L+1:2*L+1]),C=self.struct_connectivity,M=M,u=self.u_Out[:,n-L:n],drive_nodes=np.arange(90),rankX=-1,rankY=self.rank,dt=self.dt,returnMatrices=True)
-               
-                A,B,C,D=control.build_tf_NDMD(seigs,PHI_b, mean_bigB, self.dt)
-                
-                K,PHIA=control.build_K_Ackerman(smallA,np.ones((self.rank,1)),self.desired_eigs,self.dt,self.rank,N=self.n_nodes)
-                # 2. Simulate the LTI
-                t=np.arange(0,(2*L+1)*self.dt,self.dt) #2 windows
-                x_windowed_controlled=np.zeros((self.n_nodes*self.rank,len(t)),dtype=complex)
-                y_windowed_controlled=np.zeros((self.n_nodes,len(t)))
-                p=np.zeros((self.n_nodes,len(t)))
-                p[7,:]=np.sin(2*np.pi*40*t)
-                u_internal=np.zeros((self.n_nodes,len(t)))
-                K0=0.5
-                K1=1/(self.rank*np.max(K))
-                for nn,tt in enumerate(t[1::]):
-                    #Control Ackerman
-                    if nn==0:
-                        u_internal[:,0]=1
-                    else:
-                        u_internal[:,nn]=np.real((K0*p[:,nn])-K1*K@x_windowed_controlled[:,nn])
-                    x_windowed_controlled[:,nn+1]=A@x_windowed_controlled[:,nn]+B@u_internal[:,nn]
-                    y_windowed_controlled[:,nn+1]=np.real(C@x_windowed_controlled[:,nn]+D@u_internal[:,nn])
-                if (np.shape(self.u_Out)[1]-L)>n:
+            if n>=self.StimTstart/self.dt and n<=self.StimTend/self.dt:
+                if n%L==0:
+                    
+                    # 1. Linearize
+                    try:
+                        seigs, PHI_b, eigsA, mean_bigA,mean_bigB, smallA, smallB=dmd.networkDMD(np.sin(self.x[:,0:L]),C=self.struct_connectivity,M=M,u=self.u_Out[:,n-L:n],drive_nodes=np.arange(90),rankX=-1,rankY=self.rank,dt=self.dt,returnMatrices=True)
+                    except:
+                        seigs, PHI_b, eigsA, mean_bigA,mean_bigB, smallA, smallB=dmd.networkDMD(np.sin(self.x[:,L+1:2*L+1]),C=self.struct_connectivity,M=M,u=self.u_Out[:,n-L:n],drive_nodes=np.arange(90),rankX=-1,rankY=self.rank,dt=self.dt,returnMatrices=True)
+                   
+                    A,B_,C,D=control.build_tf_NDMD(seigs,PHI_b, mean_bigB, self.dt)
+                    B=np.copy(B_)
+                    for j in range(self.n_nodes):
+                        B[j*self.rank:(j+1)*self.rank,j:j+1]=1
+                    B_control=np.ones((self.rank,1))
+                    K,PHIA=control.build_K_Ackerman(smallA,B_control,self.desired_eigs,self.dt,self.rank,N=self.n_nodes)
+                    # 2. Simulate the LTI
+                    t=np.arange(0,(2*L+1)*self.dt,self.dt) #2 windows
+                    x_windowed_controlled=np.zeros((self.n_nodes*self.rank,len(t)),dtype=complex)
+                    y_windowed_controlled=np.zeros((self.n_nodes,len(t)))
+                    p=np.zeros((self.n_nodes,len(t)))
+                    p[np.argwhere(self.ForcingNodes==1)[:,0],:]=np.sin(2*np.pi*self.StimFreq*t)
+                  
+                    u_internal=np.zeros((self.n_nodes,len(t)))
+                    K_control=K[0:1,0:self.rank]
+                    G=PHI_b@np.linalg.inv(np.eye(self.rank)-smallA+B_control@K_control)
+                    K0=1/np.sum(G,axis=1)
+                    
+                    for nn,tt in enumerate(t[1::]):
+                        #Control Ackerman
+                        if nn==0:
+                            u_internal[:,0]=1
+                        else: 
+                            K2=1/self.StimWeigth
+                            K3=0.8
+                            u_internal[:,nn]=np.real((K2*p[:,nn]-K3)-K0*np.eye(self.n_nodes)@K@x_windowed_controlled[:,nn])
+                        x_windowed_controlled[:,nn+1]=A@x_windowed_controlled[:,nn]+B@u_internal[:,nn]
+                        y_windowed_controlled[:,nn+1]=np.real(C@x_windowed_controlled[:,nn]+D@u_internal[:,nn])
                     # import matplotlib.pyplot as plt
-                    # plt.plot(u_internal[7,:])
-                    self.u_Out[:,n:n+L]=u_internal[:,L:2*L] #Test with the arcsin
-                else:
-                    Ltail=np.shape(self.u_Out)[1]-n
-                    self.u_Out[:,n::]=u_internal[:,L:L+Ltail]
+                    # plt.figure()
+                    # plt.plot(y_windowed_controlled[7,:])
+                    # plt.plot(p[7,:])
+                    
+                    if (np.shape(self.u_Out)[1]-L)>n:
+                        # import matplotlib.pyplot as plt
+                        # plt.plot(u_internal[7,:])
+                        self.u_Out[:,n:n+L]=u_internal[:,L:2*L] #Test with the arcsin
+                    else:
+                        Ltail=np.shape(self.u_Out)[1]-n
+                        self.u_Out[:,n::]=u_internal[:,L:L+Ltail]
             
             

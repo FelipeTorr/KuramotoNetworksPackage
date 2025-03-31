@@ -875,6 +875,7 @@ def complex_coherence_matrix(data,nfft=5000,freq_index=1,wcoh=1000):
         for jj in range(ii):
             f, Pxy = signal.csd(data[ii,:],data[jj,:],nperseg=wcoh, noverlap=wcoh//2+1, nfft=nfft)
             coh_f=Pxy/np.sqrt(Pxx[ii,:]*Pxx[jj,:])
+            
             coh[ii,jj]=np.mean(coh_f[freq_index])
     return coh
 

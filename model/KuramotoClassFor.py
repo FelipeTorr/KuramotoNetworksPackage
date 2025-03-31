@@ -50,7 +50,7 @@ class Kuramoto:
     StimFreq: float, optional. 
     	Stimulation frequency, **sigma** 
         (PFDK only! The default is 0 seconds.) 
-    StimWeigth: float, optional. 
+    StimWeight: float, optional. 
     	Stimulation force amplitude, **F** 
         PFDK only! The default is 0 seconds.)
     n_nodes: int, optional.
@@ -82,18 +82,18 @@ class Kuramoto:
                 K=5,
                 dt=1.e-4,
                 simulation_period=100,
-                StimTstart=0,StimTend=0,StimFreq=0,StimWeigth=0,
+                StimTstart=0,StimTend=0,StimFreq=0,StimWeight=0,
                 n_nodes=90,natfreqs=None,
                 nat_freq_mean=0,nat_freq_std=2,
                 GenerateRandom=True,SEED=2,
                 mean_delay=0.10):
         """
-        struct_connectivity: is the weigthed adjacency matrix (struct_connectivity).
+        struct_connectivity: is the Weighted adjacency matrix (struct_connectivity).
         K: is the global coupling strength.
         simulation_period    : is the simulation time.
         dt: is the integration time step.
         StimFreq: is the stimulation frequency. 
-        StimWeigth: is the stimulation Amplitude.
+        StimWeight: is the stimulation Amplitude.
         StimTstart: is the onset start time.
         StimTend  : is the offset time.
         n_nodes: is the number of nodes.
@@ -114,7 +114,7 @@ class Kuramoto:
         self.StimTstart=StimTstart
         self.StimTend=StimTend
         self.StimFreq=StimFreq*2*np.pi
-        self.StimWeigth=StimWeigth
+        self.StimWeight=StimWeight
         self.ForcingNodes=np.zeros((self.n_nodes,1))
         self.nat_freq_mean=nat_freq_mean
         self.nat_freq_std=nat_freq_std
@@ -203,17 +203,18 @@ class Kuramoto:
         else:
             #Generate random natural frequencies from a Gaussian distribution
             if self.random_nat_freq==True:
-                natfreqs=np.random.normal( self.nat_freq_mean,self.nat_freq_std ,size=self.n_nodes)
+            	 #Generate the dispersion around a real mean zero ensures to have the desired mean even for small N	
+                natfreqs=np.random.normal(0,self.nat_freq_std ,size=self.n_nodes)
+                natfreqs=natfreqs-np.mean(natfreqs)+self.nat_freq_mean
             else:
                 np.random.seed(self.seed)
-                natfreqs=np.random.normal( self.nat_freq_mean,self.nat_freq_std ,size=self.n_nodes)
-                
+                natfreqs=np.random.normal(0,self.nat_freq_std ,size=self.n_nodes)
+                natfreqs=natfreqs-np.mean(natfreqs)+self.nat_freq_mean
         return natfreqs
 
     
     def loadParameters(self,parameters):
         """
-
         Load the parameters of the model
         
         Parameters
@@ -234,19 +235,21 @@ class Kuramoto:
         self.simulation_period=parameters['simulation_period'] #Duration of stimulus
         self.StimTstart=parameters['StimTstart'] #starting time of stimulation
         self.StimTend=parameters['StimTend'] #ending time of stimulation
-        self.StimWeigth=parameters['StimWeight'] #Amplitude of stimulation
+        self.StimWeight=parameters['StimWeight'] #Amplitude of stimulation
         self.StimFreq=parameters['StimFreq'] #Frequency of the stimulation 
         self.StimFreq=2*np.pi*self.StimFreq
         self.seed=parameters['seed'] #random seed
         self.noise_std=parameters['noise_std']#noise
         self.nat_freq_mean=parameters['nat_freq_mean'] #mean of the natural frequencies
         self.nat_freq_std=parameters['nat_freq_std'] #deviation of the natural frequencies
-        self.random_nat_freq=parameters['random_nat_freq'] #Flag: random nat. frequency for each realization
+        self.random_nat_freq=parameters['random_nat_freq'] #Flag: random nat. frequency for each realization 
         nat_freqs=parameters['nat_freqs'] #natural frequencies
+        #format the forcing nodes
         try:
             self.initializeForcingNodes(parameters['ForcingNodes'])
         except:
             self.initializeForcingNodes(None)
+        #format the natural frequencies
         self.natfreqs=self.initializeNatFreq(nat_freqs)
         if parameters['struct_connectivity']=='AAL90':
             self.struct_connectivity=self.load_struct_connectivity()
@@ -290,7 +293,6 @@ class Kuramoto:
     
     def initializeTimeDelays(self):
         """
-        
         Initialize the default matrix **D**: the delays matrix of AAL90.
         Only if the matrix was not specified in the input parameters
 
@@ -472,7 +474,7 @@ class Kuramoto:
         Delta=self.ForcingNodes
         for i in range(self.n_nodes):
             epsilon=np.random.rand(1)[0]
-            yield self.ω[i] + self.noise_std*epsilon+Delta[i,0]*self.param_sym_func(t)*self.StimWeigth*sin(self.StimFreq*t-y(i))+self.global_coupling*sum(
+            yield self.ω[i] + self.noise_std*epsilon+Delta[i,0]*self.param_sym_func(t)*self.StimWeight*sin(self.StimFreq*t-y(i))+self.global_coupling*sum(
                 self.struct_connectivity[i, j] * sin( y(j , t - (self.delays_matrix[i, j])) - y(i))
                 for j in range(self.n_nodes) if self.struct_connectivity[i,j]
             )
@@ -506,7 +508,7 @@ class Kuramoto:
         if self.Forced:
             DDE = jitcdde(self.kuramotosForced, n=n, verbose=False,delays=self.delays_matrix.flatten(),callback_functions=[( self.param_sym_func, self.param,1)])
             DDE.compile_C(simplify=False, do_cse=False, chunk_size=chunksize,verbose=False)
-            DDE.set_integration_parameters(min_step=1e-8,rtol=0, atol=1e-6,pws_max_iterations=1)
+            DDE.set_integration_parameters(min_step=1e-8,rtol=0, atol=1e-5,pws_max_iterations=1)
             DDE.constant_past(random.uniform(0, 2*np.pi, n), time=0.0)
             if max_delay>0:
                 DDE.integrate_blindly(max_delay, dt)
